@@ -9,7 +9,7 @@ export const PERSONAL_INFO = {
   email: "sujalchhajed925@gmail.com",
   phone: "+91 9307346453",
   location: "Chennai, India",
-  resumeLink: "https://dragonballsuper-1995.github.io/my-portfolio/Assets/Updated%20Resume.pdf"
+  resumeLink: "https://drive.google.com/file/d/1JttL-KcFbmj0hI2qLjrENEIjcI3Y_L4j/view?usp=sharing"
 };
 
 export const SKILLS: Skill[] = [

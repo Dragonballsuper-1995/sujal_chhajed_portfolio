@@ -9,7 +9,7 @@ export const PERSONAL_INFO = {
   email: "sujalchhajed925@gmail.com",
   phone: "+91 9307346453",
   location: "Chennai, India",
-  resumeLink: "https://drive.google.com/file/d/1JttL-KcFbmj0hI2qLjrENEIjcI3Y_L4j/view?usp=sharing"
+  resumeLink: "https://drive.google.com/file/d/1WKBRplQ_N3ZZNsujk_mZEQqAmOTbbYue/view?usp=sharing"
 };
 
 export const SKILLS: Skill[] = [

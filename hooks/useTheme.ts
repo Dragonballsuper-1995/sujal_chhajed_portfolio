@@ -10,20 +10,31 @@ export const useTheme = () => {
     const [theme, setTheme] = useState<Theme>(() => {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('theme');
-            if (saved === 'dark' || saved === 'light') return saved;
+            if (saved === 'dark' || saved === 'light') {
+                // Apply immediately on initial load to avoid flash
+                document.documentElement.classList.toggle('dark', saved === 'dark');
+                return saved;
+            }
         }
         return 'light';
     });
 
-    // Sync theme with DOM and localStorage
+    const toggleTheme = useCallback(() => {
+        setTheme(prev => {
+            const newTheme = prev === 'light' ? 'dark' : 'light';
+            // Update DOM and local storage directly here rather than waiting for useEffect
+            // This prevents a render-cycle delay before the CSS actually updates
+            localStorage.setItem('theme', newTheme);
+            document.documentElement.classList.toggle('dark', newTheme === 'dark');
+            return newTheme;
+        });
+    }, []);
+
+    // Effect just to ensure it's synced if changed externally, though mostly handled by toggleTheme now
     useEffect(() => {
         localStorage.setItem('theme', theme);
         document.documentElement.classList.toggle('dark', theme === 'dark');
     }, [theme]);
-
-    const toggleTheme = useCallback(() => {
-        setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
-    }, []);
 
     return { theme, setTheme, toggleTheme };
 };

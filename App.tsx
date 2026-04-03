@@ -1,15 +1,12 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { Send } from 'lucide-react';
 
 import CustomCursor from './components/CustomCursor';
 import BackgroundGrid from './components/BackgroundGrid';
-import ChatAssistant from './components/ChatAssistant';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import LoadingScreen from './components/LoadingScreen';
-import ContactForm from './components/ContactForm';
 import ToastNotification from './components/ToastNotification';
-import CommandPalette from './components/CommandPalette';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -17,9 +14,14 @@ import Skills from './components/Skills';
 import ProjectsSection from './components/ProjectsSection';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
-import ProjectCaseStudy from './components/ProjectCaseStudy';
 import MobileNavBar from './components/MobileNavBar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
+
+// Lazy loaded components (not needed for initial visual render)
+const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
+const ContactForm = lazy(() => import('./components/ContactForm'));
+const CommandPalette = lazy(() => import('./components/CommandPalette'));
+const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
 
 import { useTheme, useScrollSpy } from './hooks';
 import { PERSONAL_INFO } from './constants';
@@ -217,10 +219,12 @@ const App: React.FC = () => {
               </SheetTitle>
             </SheetHeader>
             <div className="p-6 md:p-8 h-full overflow-y-auto pb-20">
-              <ContactForm
-                onSuccess={handleFormSuccess}
-                onError={handleFormError}
-              />
+              <Suspense fallback={<div className="flex items-center justify-center h-full"><span className="animate-pulse">Loading form...</span></div>}>
+                <ContactForm
+                  onSuccess={handleFormSuccess}
+                  onError={handleFormError}
+                />
+              </Suspense>
             </div>
           </SheetContent>
         </Sheet>
@@ -228,22 +232,31 @@ const App: React.FC = () => {
         {/* Project Case Study Sheet (Feature #5 Implementation) */}
         <Sheet open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
           <SheetContent className="w-full sm:max-w-3xl p-0 border-l-4 border-black dark:border-neo-dark-border">
-            {selectedProject && <ProjectCaseStudy project={selectedProject} />}
+            {selectedProject && (
+              <Suspense fallback={<div className="flex items-center justify-center h-full p-10"><span className="animate-pulse">Loading project details...</span></div>}>
+                <ProjectCaseStudy project={selectedProject} />
+              </Suspense>
+            )}
           </SheetContent>
         </Sheet>
 
-        <CommandPalette
-          theme={theme}
-          toggleTheme={toggleTheme}
-          scrollToSection={scrollToSection}
-          setIsContactOpen={setIsContactOpen}
-          setIsChatOpen={setIsChatOpen}
-          isOpen={isCmdPaletteOpen}
-          setIsOpen={setIsCmdPaletteOpen}
-        />
+        <Suspense fallback={null}>
+          <CommandPalette
+            theme={theme}
+            toggleTheme={toggleTheme}
+            scrollToSection={scrollToSection}
+            setIsContactOpen={setIsContactOpen}
+            setIsChatOpen={setIsChatOpen}
+            isOpen={isCmdPaletteOpen}
+            setIsOpen={setIsCmdPaletteOpen}
+          />
+        </Suspense>
 
         <ScrollToTopButton />
-        <ChatAssistant isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
+
+        <Suspense fallback={null}>
+          <ChatAssistant isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
+        </Suspense>
 
         {/* New Mobile Bottom Navigation */}
         <MobileNavBar

@@ -1,97 +1,69 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { NavSection } from '../types';
 
 /**
  * Custom hook for tracking which section is currently visible in the viewport.
- * Uses IntersectionObserver to avoid layout thrashing on scroll.
+ * Updates as user scrolls through the page.
  */
 export const useScrollSpy = () => {
     const [activeSection, setActiveSection] = useState<NavSection>(NavSection.HERO);
-    // Keep track of section visibility state
-    const visibilityMap = useRef<Record<string, number>>({});
 
     useEffect(() => {
+        let ticking = false;
         const sections = Object.values(NavSection);
 
-        // Initialize visibility map
-        sections.forEach(section => {
-            visibilityMap.current[section] = 0;
-        });
+        const updateActiveSection = () => {
+            const scrollY = window.scrollY;
+            const viewportHeight = window.innerHeight;
+            const triggerPoint = scrollY + viewportHeight * 0.35;
+            const docHeight = document.documentElement.scrollHeight;
 
-        const handleIntersect = (entries: IntersectionObserverEntry[]) => {
-            let maxVisibility = 0;
-            let currentActive = activeSection;
-
-            // Check if we are at the bottom of the page
-            const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
-
-            if (isAtBottom) {
+            // If near bottom of page, always show CONTACT
+            if (scrollY + viewportHeight >= docHeight - 100) {
                 setActiveSection(NavSection.CONTACT);
                 return;
             }
 
-            entries.forEach(entry => {
-                visibilityMap.current[entry.target.id] = entry.intersectionRatio;
-            });
+            // Check if we're past the contact section start
+            const contactEl = document.getElementById(NavSection.CONTACT);
+            if (contactEl && triggerPoint >= contactEl.offsetTop) {
+                setActiveSection(NavSection.CONTACT);
+                return;
+            }
 
-            // Find the section with the highest visibility
-            for (const section of sections) {
-                const ratio = visibilityMap.current[section] || 0;
-                if (ratio > maxVisibility) {
-                    maxVisibility = ratio;
-                    currentActive = section as NavSection;
+            let active = NavSection.HERO;
+
+            for (const sectionId of sections) {
+                const el = document.getElementById(sectionId);
+                if (el) {
+                    const top = el.offsetTop;
+                    const height = el.offsetHeight;
+
+                    if (triggerPoint >= top && triggerPoint < top + height) {
+                        active = sectionId as NavSection;
+                        break;
+                    }
                 }
             }
 
-            // Only update if we found a section with meaningful visibility
-            // Otherwise keep the current active section
-            if (maxVisibility > 0 && currentActive !== activeSection) {
-                 setActiveSection(currentActive);
+            setActiveSection(active);
+        };
+
+        const onScroll = () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    updateActiveSection();
+                    ticking = false;
+                });
+                ticking = true;
             }
         };
 
-        // Create the observer with multiple thresholds to accurately track visibility
-        const observer = new IntersectionObserver(handleIntersect, {
-            root: null,
-            // Track visibility at various percentages
-            threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
-            // Offset the margin to trigger section changes a bit earlier when scrolling down
-            rootMargin: "-20% 0px -20% 0px"
-        });
+        window.addEventListener('scroll', onScroll, { passive: true });
+        updateActiveSection();
 
-        // Observe all sections
-        sections.forEach(sectionId => {
-            const el = document.getElementById(sectionId);
-            if (el) {
-                observer.observe(el);
-            }
-        });
-
-        // Add a scroll listener just for the bottom-of-page check
-        // We use a simple debounce/throttle for this since we only care about the very bottom
-        let timeoutId: number;
-        const checkBottom = () => {
-            if (timeoutId) {
-                window.cancelAnimationFrame(timeoutId);
-            }
-            timeoutId = window.requestAnimationFrame(() => {
-                const isAtBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100;
-                if (isAtBottom) {
-                    setActiveSection(NavSection.CONTACT);
-                }
-            });
-        };
-
-        window.addEventListener('scroll', checkBottom, { passive: true });
-
-        return () => {
-            observer.disconnect();
-            window.removeEventListener('scroll', checkBottom);
-            if (timeoutId) {
-                window.cancelAnimationFrame(timeoutId);
-            }
-        };
-    }, [activeSection]);
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     return activeSection;
 };

@@ -51,6 +51,12 @@ const ScrollAnimation: React.FC<ScrollAnimationProps> = ({
   style,
   animateOnMount = false,
 }) => {
+  // Hardware acceleration for smoother animations and better scroll performance
+  const combinedStyle: React.CSSProperties = {
+    willChange: variant === 'blur' ? 'transform, opacity, filter' : 'transform, opacity',
+    ...style,
+  };
+
   // If animateOnMount is true, use animate prop directly instead of whileInView
   if (animateOnMount) {
     return (
@@ -60,7 +66,7 @@ const ScrollAnimation: React.FC<ScrollAnimationProps> = ({
         animate="visible"
         transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
         className={className}
-        style={style}
+        style={combinedStyle}
       >
         {children}
       </motion.div>
@@ -75,7 +81,7 @@ const ScrollAnimation: React.FC<ScrollAnimationProps> = ({
       viewport={{ once, margin: viewportMargin }}
       transition={{ duration, delay, ease: [0.22, 1, 0.36, 1] }}
       className={className}
-      style={style}
+      style={combinedStyle}
     >
       {children}
     </motion.div>

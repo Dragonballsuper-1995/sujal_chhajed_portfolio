@@ -16,10 +16,14 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
   const [isVisible, setIsVisible] = useState(false);
   const [isEnabled, setIsEnabled] = useState(false);
 
-  const blendModeClass = highContrast ? 'mix-blend-normal' : 'mix-blend-difference';
-  const strokeClass = highContrast ? 'bg-neo-black' : 'bg-white';
-  const ringBorderClass = highContrast ? 'border-neo-black' : 'border-white';
-  const ringHoverBgClass = highContrast ? 'bg-neo-black/10' : 'bg-white/10';
+  // Defaulting to a safer blend mode (or no blend mode) to avoid compositing lag during scroll.
+  // Using mix-blend-mode heavily impacts scrolling performance, especially over complex backgrounds.
+  const blendModeClass = highContrast ? 'mix-blend-normal' : 'mix-blend-normal';
+
+  // Adjusted colors for normal blend mode to ensure visibility across both themes
+  const strokeClass = highContrast ? 'bg-neo-black' : 'bg-neo-pink';
+  const ringBorderClass = highContrast ? 'border-neo-black' : 'border-neo-pink';
+  const ringHoverBgClass = highContrast ? 'bg-neo-black/10' : 'bg-neo-pink/20';
 
   // React to DevTools device toggles / pointer changes.
   useEffect(() => {
@@ -47,9 +51,25 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
       return;
     }
 
+    let isScrolling = false;
+    let scrollTimeout: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      isScrolling = true;
+      setIsVisible(false); // Hide cursor while scrolling for better performance
+
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+        setIsVisible(true);
+      }, 150);
+    };
+
     // Use direct DOM manipulation for position updates (no React re-renders)
     const moveCursor = (e: MouseEvent) => {
-      setIsVisible(true);
+      if (isScrolling) return; // Do not move cursor during scroll
+
+      if (!isVisible) setIsVisible(true);
 
       const { clientX, clientY } = e;
 
@@ -78,6 +98,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
     const handleMouseEnter = () => setIsVisible(true);
 
     // Use passive listeners for better scroll performance
+    window.addEventListener('scroll', handleScroll, { passive: true });
     window.addEventListener('mousemove', moveCursor, { passive: true });
     window.addEventListener('mouseover', handleMouseOver, { passive: true });
     window.addEventListener('mousedown', handleMouseDown);
@@ -86,12 +107,14 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
     document.addEventListener('mouseenter', handleMouseEnter);
 
     return () => {
+      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('mousemove', moveCursor);
       window.removeEventListener('mouseover', handleMouseOver);
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
+      clearTimeout(scrollTimeout);
       document.body.classList.remove('has-custom-cursor');
     };
   }, [isEnabled]);

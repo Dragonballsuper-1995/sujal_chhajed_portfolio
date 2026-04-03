@@ -117,6 +117,25 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
     let lastMoveTime = 0;
     const THROTTLE_MS = 16;
 
+    let isScrolling = false;
+    let scrollTimeout: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      isScrolling = true;
+      clearTimeout(scrollTimeout);
+
+      // Immediately remove hover effect to lighten render load during scroll
+      if (mouse.x !== -1000 || mouse.y !== -1000) {
+        mouse.x = -1000;
+        mouse.y = -1000;
+        requestDraw();
+      }
+
+      scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+      }, 150); // Resume hover effects 150ms after scrolling stops
+    };
+
     const bindPointerListeners = () => {
       // Remove any existing listeners first.
       if (handleMouseMove) window.removeEventListener('mousemove', handleMouseMove);
@@ -127,6 +146,8 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
       if (isCoarsePointer) return;
 
       handleMouseMove = (e: MouseEvent) => {
+        if (isScrolling) return; // Do not process mouse moves or trigger renders while scrolling
+
         const now = performance.now();
         if (now - lastMoveTime < THROTTLE_MS) return; // Skip if within throttle window
         lastMoveTime = now;
@@ -146,6 +167,7 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
       document.addEventListener('mouseleave', handleMouseLeave);
     };
 
+    window.addEventListener('scroll', handleScroll, { passive: true });
     bindPointerListeners();
 
     const handlePointerModeChange = () => {
@@ -160,8 +182,10 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
       if (handleMouseMove) window.removeEventListener('mousemove', handleMouseMove);
       if (handleMouseLeave) document.removeEventListener('mouseleave', handleMouseLeave);
+      clearTimeout(scrollTimeout);
 
       coarseMql.removeEventListener('change', handlePointerModeChange);
 

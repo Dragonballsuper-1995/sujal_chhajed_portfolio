@@ -3,10 +3,9 @@ import React, { useEffect, useRef } from 'react';
 
 interface BackgroundGridProps {
   theme: 'light' | 'dark';
-  isChatOpen?: boolean;
 }
 
-const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme, isChatOpen = false }) => {
+const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -128,7 +127,6 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme, isChatOpen = fal
       if (isCoarsePointer) return;
 
       handleMouseMove = (e: MouseEvent) => {
-        if (isChatOpen) return; // Pause tracking when chat is open
         const now = performance.now();
         if (now - lastMoveTime < THROTTLE_MS) return; // Skip if within throttle window
         lastMoveTime = now;
@@ -169,7 +167,7 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme, isChatOpen = fal
 
       if (rafId != null) cancelAnimationFrame(rafId);
     };
-  }, [theme, isChatOpen]);
+  }, [theme]);
 
   return (
     <canvas

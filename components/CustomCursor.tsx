@@ -6,13 +6,9 @@ interface CustomCursorProps {
    * Useful on semi-transparent backdrops where `mix-blend-difference` can vanish.
    */
   highContrast?: boolean;
-  /**
-   * Pauses cursor updates when chat is open to save performance.
-   */
-  isChatOpen?: boolean;
 }
 
-const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false, isChatOpen = false }) => {
+const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const followerRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -53,7 +49,6 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false, isCha
 
     // Use direct DOM manipulation for position updates (no React re-renders)
     const moveCursor = (e: MouseEvent) => {
-      if (isChatOpen) return; // Pause updates while chat is open
       setIsVisible(true);
 
       const { clientX, clientY } = e;
@@ -99,10 +94,9 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false, isCha
       document.removeEventListener('mouseenter', handleMouseEnter);
       document.body.classList.remove('has-custom-cursor');
     };
-  }, [isEnabled, isChatOpen]);
+  }, [isEnabled]);
 
-  // Hide entirely if disabled or chat is open
-  if (!isEnabled || isChatOpen) return null;
+  if (!isEnabled) return null;
 
   return (
     <>
@@ -110,7 +104,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false, isCha
       <div
         ref={cursorRef}
         aria-hidden="true"
-        className={`fixed top-0 left-0 z-[10000] pointer-events-none ${blendModeClass}`}
+        className={`fixed top-0 left-0 z-[100000] pointer-events-none ${blendModeClass}`}
       >
         {/* Visual Crosshair Element */}
         <div className={`
@@ -130,7 +124,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false, isCha
         ref={followerRef}
         aria-hidden="true"
         className={`
-          fixed top-0 left-0 z-[9999] pointer-events-none
+          fixed top-0 left-0 z-[99999] pointer-events-none
           border-2 ${ringBorderClass}
           ${blendModeClass}
           rounded-full

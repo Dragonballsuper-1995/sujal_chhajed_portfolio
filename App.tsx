@@ -174,8 +174,7 @@ const App: React.FC = () => {
       {/* Backdrop for Chat Modal */}
       {isChatOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out] will-change-transform [transform:translateZ(0)]"
-          style={{ willChange: 'transform, backdrop-filter' }}
+          className="fixed inset-0 z-50 bg-black/80 animate-[fadeIn_0.3s_ease-out]"
           onClick={() => setIsChatOpen(false)}
           aria-hidden="true"
         />
@@ -183,8 +182,8 @@ const App: React.FC = () => {
 
       {/* Faster transition for main content to ensure it's ready behind the loader */}
       <main className={`min-h-svh flex flex-col font-sans bg-neo-white dark:bg-neo-dark-bg text-neo-black dark:text-neo-dark-text relative transition-opacity duration-100 ${!isLoading ? 'opacity-100' : 'opacity-0'}`}>
-        <CustomCursor highContrast={isChatOpen && theme === 'light'} isChatOpen={isChatOpen} />
-        <BackgroundGrid theme={theme} isChatOpen={isChatOpen} />
+        <CustomCursor highContrast={isChatOpen && theme === 'light'} />
+        <BackgroundGrid theme={theme} />
 
         <Header
           theme={theme}
@@ -220,12 +219,14 @@ const App: React.FC = () => {
               </SheetTitle>
             </SheetHeader>
             <div className="p-6 md:p-8 h-full overflow-y-auto pb-20">
-              <Suspense fallback={<div className="flex items-center justify-center h-full"><span className="animate-pulse">Loading form...</span></div>}>
-                <ContactForm
-                  onSuccess={handleFormSuccess}
-                  onError={handleFormError}
-                />
-              </Suspense>
+              {isContactOpen && (
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><span className="animate-pulse">Loading form...</span></div>}>
+                  <ContactForm
+                    onSuccess={handleFormSuccess}
+                    onError={handleFormError}
+                  />
+                </Suspense>
+              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -241,20 +242,26 @@ const App: React.FC = () => {
           </SheetContent>
         </Sheet>
 
-        <Suspense fallback={null}>
-          <CommandPalette
-            theme={theme}
-            toggleTheme={toggleTheme}
-            scrollToSection={scrollToSection}
-            setIsContactOpen={setIsContactOpen}
-            setIsChatOpen={setIsChatOpen}
-            isOpen={isCmdPaletteOpen}
-            setIsOpen={setIsCmdPaletteOpen}
-          />
-        </Suspense>
+        {isCmdPaletteOpen && (
+          <Suspense fallback={null}>
+            <CommandPalette
+              theme={theme}
+              toggleTheme={toggleTheme}
+              scrollToSection={scrollToSection}
+              setIsContactOpen={setIsContactOpen}
+              setIsChatOpen={setIsChatOpen}
+              isOpen={isCmdPaletteOpen}
+              setIsOpen={setIsCmdPaletteOpen}
+            />
+          </Suspense>
+        )}
 
         <ScrollToTopButton />
 
+        {/* We keep the ChatAssistant mounted so its toggle button is always visible, but the modal itself only opens when state is true.
+            Wait, if ChatAssistant contains the toggle button, it needs to be mounted immediately!
+            Let me check ChatAssistant.tsx. Yes, it returns BOTH the chat window and the toggle button.
+            So ChatAssistant CANNOT be lazy-loaded conditionally, or the button would disappear. */}
         <Suspense fallback={null}>
           <ChatAssistant isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
         </Suspense>

@@ -6,9 +6,13 @@ interface CustomCursorProps {
    * Useful on semi-transparent backdrops where `mix-blend-difference` can vanish.
    */
   highContrast?: boolean;
+  /**
+   * Pauses cursor updates when chat is open to save performance.
+   */
+  isChatOpen?: boolean;
 }
 
-const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => {
+const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false, isChatOpen = false }) => {
   const cursorRef = useRef<HTMLDivElement>(null);
   const followerRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState(false);
@@ -49,6 +53,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
 
     // Use direct DOM manipulation for position updates (no React re-renders)
     const moveCursor = (e: MouseEvent) => {
+      if (isChatOpen) return; // Pause updates while chat is open
       setIsVisible(true);
 
       const { clientX, clientY } = e;
@@ -94,9 +99,10 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
       document.removeEventListener('mouseenter', handleMouseEnter);
       document.body.classList.remove('has-custom-cursor');
     };
-  }, [isEnabled]);
+  }, [isEnabled, isChatOpen]);
 
-  if (!isEnabled) return null;
+  // Hide entirely if disabled or chat is open
+  if (!isEnabled || isChatOpen) return null;
 
   return (
     <>

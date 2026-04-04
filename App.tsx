@@ -174,7 +174,8 @@ const App: React.FC = () => {
       {/* Backdrop for Chat Modal */}
       {isChatOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out] will-change-transform [transform:translateZ(0)]"
+          style={{ willChange: 'transform, backdrop-filter' }}
           onClick={() => setIsChatOpen(false)}
           aria-hidden="true"
         />
@@ -182,8 +183,8 @@ const App: React.FC = () => {
 
       {/* Faster transition for main content to ensure it's ready behind the loader */}
       <main className={`min-h-svh flex flex-col font-sans bg-neo-white dark:bg-neo-dark-bg text-neo-black dark:text-neo-dark-text relative transition-opacity duration-100 ${!isLoading ? 'opacity-100' : 'opacity-0'}`}>
-        <CustomCursor highContrast={isChatOpen && theme === 'light'} />
-        <BackgroundGrid theme={theme} />
+        <CustomCursor highContrast={isChatOpen && theme === 'light'} isChatOpen={isChatOpen} />
+        <BackgroundGrid theme={theme} isChatOpen={isChatOpen} />
 
         <Header
           theme={theme}

@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 interface LoadingScreenProps {
   onComplete: () => void;
+  onAnimationFinished?: () => void;
   name: string;
 }
 
@@ -16,11 +18,68 @@ const loadingTexts = [
     'AWAKENING AI ASSISTANT...',
 ];
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, name }) => {
+const gridContainerVariants = {
+    hidden: { opacity: 1 },
+    visible: { opacity: 1 },
+};
+
+const squareVariants = {
+    hidden: { opacity: 1, scale: 1 },
+    visible: (customDelay: number) => ({
+        opacity: 0,
+        scale: 0,
+        transition: {
+            duration: 0.3, // Exactly 0.3s as requested
+            ease: "easeInOut", // Pleasing, smooth ease
+            delay: customDelay // Apply random delay via custom prop
+        }
+    }),
+};
+
+// Helper function to shuffle an array
+const shuffleArray = (array: number[]) => {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+};
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, onAnimationFinished, name }) => {
     const [progress, setProgress] = useState(0);
     const [isCompleting, setIsCompleting] = useState(false);
     const [isContentHidden, setIsContentHidden] = useState(false);
     const [statusText, setStatusText] = useState(loadingTexts[0]);
+
+    // Calculate perfect squares dynamically
+    const [gridData, setGridData] = useState({ cols: 0, rows: 0, squareSize: 0 });
+    const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
+
+    // Set up the grid dynamically on mount/resize
+    useEffect(() => {
+        const calculateGrid = () => {
+            // Divide the longest side of the screen by 8 to get a chunky square size
+            const longestSide = Math.max(window.innerWidth, window.innerHeight);
+            const size = Math.ceil(longestSide / 8);
+
+            const newCols = Math.ceil(window.innerWidth / size);
+            const newRows = Math.ceil(window.innerHeight / size);
+
+            setGridData({ cols: newCols, rows: newRows, squareSize: size });
+
+            // Recalculate shuffled array for random animation
+            const totalSquares = newCols * newRows;
+            const indices = Array.from({ length: totalSquares }, (_, i) => i);
+            setShuffledIndices(shuffleArray(indices));
+        };
+
+        // Initial calculate
+        calculateGrid();
+
+        window.addEventListener('resize', calculateGrid);
+        return () => window.removeEventListener('resize', calculateGrid);
+    }, []);
 
     // A single, optimized effect to handle all loading screen animations
     useEffect(() => {
@@ -57,12 +116,12 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, name }) => {
                 // 1. Tell App to render content underneath (opacity 0 -> 1)
                 onComplete();
 
-                // 2. Trigger fade out AND curtain lift almost simultaneously
-                // Small buffer (150ms) ensures the underlying app has painted
+                // 2. Trigger fade out and grid reveal almost simultaneously
+                // Small buffer ensures the underlying app has painted
                 setTimeout(() => {
                     setIsContentHidden(true); // Fade out text
-                    setIsCompleting(true);    // Lift curtain
-                }, 150);
+                    setIsCompleting(true);    // Trigger grid reveal
+                }, 100);
             }
         };
 
@@ -76,19 +135,52 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, name }) => {
     }, [onComplete]);
 
 
+    const squaresCount = gridData.cols * gridData.rows;
+    const squares = Array.from({ length: squaresCount });
+
     return (
-        <div 
-            className={`
-                fixed inset-0 z-[1000] bg-neo-black flex flex-col justify-between p-4 sm:p-8 font-sans
-                transition-transform duration-700 ease-[cubic-bezier(0.87,0,0.13,1)] will-change-transform
-                w-screen h-screen max-w-full max-h-full overflow-hidden
-                ${isCompleting ? '-translate-y-full' : 'translate-y-0'}
-            `}
-        >
-            {/* Content Container - Fades out AS the slide moves up */}
+        <div className={`fixed inset-0 z-[1000] font-sans w-screen h-screen max-w-full max-h-full overflow-hidden ${isCompleting ? 'pointer-events-none bg-transparent' : 'bg-neo-black'}`}>
+
+            {/* Grid Overlay */}
+            <motion.div
+                className="absolute inset-0 grid"
+                style={{
+                    gridTemplateColumns: `repeat(${gridData.cols}, ${gridData.squareSize}px)`,
+                    gridTemplateRows: `repeat(${gridData.rows}, ${gridData.squareSize}px)`
+                }}
+                variants={gridContainerVariants}
+                initial="hidden"
+                animate={isCompleting ? "visible" : "hidden"}
+                // Notify parent completely after animation finishes to unmount
+                onAnimationComplete={() => {
+                    if (isCompleting && onAnimationFinished) {
+                        onAnimationFinished();
+                    }
+                }}
+                id="loading-screen-container"
+            >
+                {squares.map((_, index) => {
+                    // Find the random rank (0 to totalSquares-1) for this specific square
+                    const shuffleRank = shuffledIndices.indexOf(index);
+                    // Slight increase in delay multiplier because there are fewer total blocks
+                    // 0.015s * ~40-64 blocks creates a pleasing ~0.6s to ~0.9s overall stagger
+                    const randomDelay = shuffleRank * 0.015;
+
+                    return (
+                        <motion.div
+                            key={index}
+                            className="bg-neo-black w-full h-full"
+                            variants={squareVariants}
+                            custom={randomDelay}
+                        />
+                    );
+                })}
+            </motion.div>
+
+            {/* Content Container - Fades out before grid reveals */}
             <div className={`
-                flex flex-col justify-between h-full w-full text-white
-                transition-opacity duration-300 ease-out
+                absolute inset-0 flex flex-col justify-between p-4 sm:p-8 text-white
+                transition-opacity duration-300 ease-out z-10
                 ${isContentHidden ? 'opacity-0' : 'opacity-100'}
             `}>
                 {/* Top Label */}

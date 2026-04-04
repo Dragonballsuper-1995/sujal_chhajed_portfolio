@@ -77,12 +77,24 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Global keyboard listener for Ctrl+K/Cmd+K to open Command Palette
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCmdPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   const handleLoadingComplete = useCallback(() => {
     setIsLoading(false);
-    // Reduced timeout to match the faster 700ms animation in LoadingScreen
-    setTimeout(() => {
-      setIsLoaderMounted(false);
-    }, 850);
+  }, []);
+
+  const handleAnimationFullyComplete = useCallback(() => {
+    setIsLoaderMounted(false);
   }, []);
 
   // Preload images optimized: Defer to idle time to prioritize FCP
@@ -169,7 +181,13 @@ const App: React.FC = () => {
 
   return (
     <>
-      {isLoaderMounted && <LoadingScreen onComplete={handleLoadingComplete} name={PERSONAL_INFO.name} />}
+      {isLoaderMounted && (
+        <LoadingScreen
+          onComplete={handleLoadingComplete}
+          onAnimationFinished={handleAnimationFullyComplete}
+          name={PERSONAL_INFO.name}
+        />
+      )}
 
       {/* Backdrop for Chat Modal */}
       {isChatOpen && (
@@ -180,8 +198,8 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Faster transition for main content to ensure it's ready behind the loader */}
-      <main className={`min-h-svh flex flex-col font-sans bg-neo-white dark:bg-neo-dark-bg text-neo-black dark:text-neo-dark-text relative transition-opacity duration-100 ${!isLoading ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Main content is instantly ready at opacity-100; the LoadingScreen grid will block reveal it */}
+      <main className="min-h-svh flex flex-col font-sans bg-neo-white dark:bg-neo-dark-bg text-neo-black dark:text-neo-dark-text relative">
         <CustomCursor highContrast={isChatOpen && theme === 'light'} />
         <BackgroundGrid theme={theme} />
 
@@ -258,10 +276,6 @@ const App: React.FC = () => {
 
         <ScrollToTopButton />
 
-        {/* We keep the ChatAssistant mounted so its toggle button is always visible, but the modal itself only opens when state is true.
-            Wait, if ChatAssistant contains the toggle button, it needs to be mounted immediately!
-            Let me check ChatAssistant.tsx. Yes, it returns BOTH the chat window and the toggle button.
-            So ChatAssistant CANNOT be lazy-loaded conditionally, or the button would disappear. */}
         <Suspense fallback={null}>
           <ChatAssistant isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
         </Suspense>

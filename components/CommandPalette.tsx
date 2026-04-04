@@ -96,18 +96,6 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  // Global keyboard listener for Ctrl+K toggle
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setIsOpen(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [setIsOpen]);
-
   // Keyboard navigation within palette
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {

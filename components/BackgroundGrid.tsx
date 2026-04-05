@@ -3,15 +3,12 @@ import React, { useEffect, useRef } from 'react';
 
 interface BackgroundGridProps {
   theme: 'light' | 'dark';
-  isPaused?: boolean;
 }
 
-const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme, isPaused = false }) => {
+const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    if (isPaused) return;
-
     // Avoid heavy canvas animation on touch devices (mobile scrolling jank)
     // Must adapt when DevTools toggles device mode.
     const coarseMql = window.matchMedia('(pointer: coarse)');
@@ -170,7 +167,7 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme, isPaused = false
 
       if (rafId != null) cancelAnimationFrame(rafId);
     };
-  }, [theme, isPaused]);
+  }, [theme]);
 
   return (
     <canvas

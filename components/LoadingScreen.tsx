@@ -152,16 +152,9 @@ const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, onAnimationFi
                 initial="hidden"
                 animate={isCompleting ? "visible" : "hidden"}
                 // Notify parent completely after animation finishes to unmount
-                // Using setTimeout based on max staggered duration to ensure we wait for all children.
-                onAnimationStart={() => {
+                onAnimationComplete={() => {
                     if (isCompleting && onAnimationFinished) {
-                        // Max random rank is totalSquares - 1.
-                        // Delay is rank * 0.015, duration is 0.3s.
-                        // Add an extra 50ms buffer.
-                        const totalSquares = gridData.cols * gridData.rows;
-                        const maxDelay = (totalSquares - 1) * 0.015;
-                        const totalDuration = (maxDelay + 0.3) * 1000;
-                        setTimeout(onAnimationFinished, totalDuration + 50);
+                        onAnimationFinished();
                     }
                 }}
                 id="loading-screen-container"

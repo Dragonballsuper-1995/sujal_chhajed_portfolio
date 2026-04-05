@@ -10,7 +10,52 @@ import { NavSection } from '../types';
 import { CHARACTER_TRAITS } from '../constants';
 import ScrollAnimation from './ui/ScrollAnimation';
 
+import { useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
+
 const About: React.FC = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sectionRef.current || !contentRef.current) return;
+
+    // The Brutalist Block Reveal:
+    // This section overlaps the previous one
+    const ctx = gsap.context(() => {
+      // The overlapping effect
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "top bottom",
+        end: "top top",
+        scrub: true,
+        animation: gsap.fromTo(
+          sectionRef.current,
+          { y: "20%" },
+          { y: "0%", ease: "none" }
+        )
+      });
+
+      // We can also add a heavy shadow that disappears as it locks in
+      gsap.fromTo(sectionRef.current,
+        { boxShadow: "0px -50px 50px rgba(0,0,0,0.5)" },
+        {
+          boxShadow: "0px 0px 0px rgba(0,0,0,0)",
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top bottom",
+            end: "top top",
+            scrub: true
+          }
+        }
+      );
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const renderTraitIcon = (type: string) => {
     switch (type) {
@@ -42,10 +87,11 @@ const About: React.FC = () => {
   };
 
   return (
-    <Section id={NavSection.ABOUT} className="border-b-4 border-black dark:border-neo-dark-border">
+    <Section ref={sectionRef} id={NavSection.ABOUT} className="border-t-8 border-b-4 border-black dark:border-neo-dark-border bg-neo-white dark:bg-neo-dark-bg relative z-20">
       {/* Wavy underline animation is now in index.css */}
 
-      <ScrollAnimation variant="fadeUp" className="flex flex-col items-center mb-16">
+      <ScrollAnimation variant="fadeUp" className="flex flex-col items-center mb-16 pt-12">
+        <div ref={contentRef} className="flex flex-col items-center">
         <div className="bg-neo-black text-white px-4 py-1 font-mono text-sm font-bold mb-4 uppercase tracking-widest transform -rotate-2">
           File: profile_data.txt
         </div>
@@ -53,6 +99,7 @@ const About: React.FC = () => {
           The <span className="wavy-underline text-neo-pink"><DecryptedText text="MAN" /></span><br />
           Behind The <span className="bg-neo-green text-black px-2 relative z-20"><DecryptedText text="CODE" /></span>
         </h2>
+        </div>
       </ScrollAnimation>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-12">

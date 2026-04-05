@@ -25,13 +25,54 @@ const PHRASES = [
   "NLP EXPERT", "PYTHON WIZARD", "TECHNOLOGY NERD"
 ];
 
+import { useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
+
 const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!sectionRef.current) return;
+
+    // Pin the Hero section so the About section slides OVER it
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: sectionRef.current,
+        start: "top top",
+        end: "bottom top",
+        pin: true,
+        pinSpacing: false, // Don't add padding below, let next section overlap
+      });
+
+      // Select the inner content to animate, not the pinned section itself
+      const content = sectionRef.current?.querySelector('.hero-content');
+      if (content && sectionRef.current) {
+        gsap.to(content, {
+          y: -150, // Move it up slightly while being covered for parallax
+          opacity: 0, // Fade out content as it gets covered
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: true
+          }
+        });
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <Section
+      ref={sectionRef}
       id={NavSection.HERO}
-      className="min-h-svh flex flex-col justify-center items-center text-center relative overflow-hidden"
+      className="min-h-svh flex flex-col justify-center items-center text-center relative overflow-hidden z-0"
     >
-      <div className="relative z-10 max-w-5xl mx-auto px-4 pt-10 md:pt-20 flex flex-col items-center">
+      <div className="hero-content relative z-10 max-w-5xl mx-auto px-4 pt-10 md:pt-20 flex flex-col items-center">
         
         {/* Feature 1: Live Status Widget - Delayed to appear after loader curtain lifts */}
         <ScrollAnimation variant="fadeIn" delay={0.6} animateOnMount>

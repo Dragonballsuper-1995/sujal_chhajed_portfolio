@@ -71,26 +71,31 @@ const Skills: React.FC = () => {
     const ctx = gsap.context(() => {
       // Create tweens for each row
       const createMarquee = (rowTarget: HTMLDivElement, direction: number) => {
-        // Calculate the exact width of half the row (since we duplicated the content)
-        // We assume the first child is the first half
-        const firstHalf = rowTarget.children[0] as HTMLElement;
-        const width = firstHalf.offsetWidth;
+        // Calculate the exact width of one set of skills
+        // We assume the first child is the first set
+        const firstSet = rowTarget.children[0] as HTMLElement;
+        const width = firstSet.offsetWidth;
 
-        // Set initial x
-        gsap.set(rowTarget, { x: 0 });
-
-        // Create the looping animation
-        const tl = gsap.to(rowTarget, {
-          x: direction === 1 ? -width : width,
-          ease: "none",
-          duration: 20, // Base duration
-          repeat: -1,
-          modifiers: {
-            x: gsap.utils.unitize(x => parseFloat(x) % width)
-          }
-        });
-
-        return tl;
+        if (direction === 1) {
+          // Moving Left
+          gsap.set(rowTarget, { x: 0 });
+          return gsap.to(rowTarget, {
+            x: -width,
+            ease: "none",
+            duration: 20, // Base duration
+            repeat: -1,
+          });
+        } else {
+          // Moving Right
+          // Start shifted left by one full set width, animate to 0
+          gsap.set(rowTarget, { x: -width });
+          return gsap.to(rowTarget, {
+            x: 0,
+            ease: "none",
+            duration: 20,
+            repeat: -1,
+          });
+        }
       };
 
       if (!row1Ref.current || !row2Ref.current) return;
@@ -163,7 +168,7 @@ const Skills: React.FC = () => {
 
         {/* Second row randomized */}
         <ScrollAnimation variant="slideRight" delay={0.3} className="flex overflow-hidden group py-4" style={{ willChange: 'transform' }}>
-          <div ref={row2Ref} className="flex shrink-0 gap-6 pr-6 w-max relative -left-[100%]">
+          <div ref={row2Ref} className="flex shrink-0 gap-6 pr-6 w-max">
             <div className="flex shrink-0 gap-6 pr-6">
               {shuffledSkills.map((skill, idx) => (
                 <SkillCard key={`r2-${idx}`} skill={skill} />

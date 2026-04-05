@@ -2,7 +2,12 @@
 import React from 'react';
 import { NavSection } from '../types';
 import { SKILLS } from '../constants';
+import { useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DecryptedText } from './ui/DecryptedText';
+
+gsap.registerPlugin(ScrollTrigger);
 import ScrollAnimation from './ui/ScrollAnimation';
 
 // Helper to shuffle array
@@ -54,6 +59,86 @@ const SkillCard: React.FC<SkillCardProps> = ({ skill }) => {
   );
 };
 
+interface MarqueeRowProps {
+  items: { name: string; icon: string; level: number }[];
+  direction: 1 | -1;
+}
+
+const MarqueeRow: React.FC<MarqueeRowProps> = ({ items, direction }) => {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const tweenRef = useRef<gsap.core.Tween | null>(null);
+
+  useEffect(() => {
+    if (!rowRef.current) return;
+
+    const xPercent = direction === 1 ? -50 : 0;
+    const xPercentEnd = direction === 1 ? 0 : -50;
+
+    gsap.set(rowRef.current, { xPercent });
+
+    const tween = gsap.to(rowRef.current, {
+      xPercent: xPercentEnd,
+      repeat: -1,
+      duration: 30, // Base duration
+      ease: "none",
+    });
+
+    tweenRef.current = tween;
+
+    // Add ScrollTrigger to modify timeScale based on scroll velocity
+    ScrollTrigger.create({
+      trigger: document.body,
+      start: "top top",
+      end: "bottom bottom",
+      onUpdate: (self) => {
+        // self.getVelocity() returns the scroll velocity
+        // We calculate a multiplier, mapping base speed (1) up to a max when scrolling fast
+        const velocity = Math.abs(self.getVelocity());
+        let timeScale = 1 + (velocity / 500);
+
+        // Cap the maximum speed multiplier
+        if (timeScale > 5) timeScale = 5;
+
+        // Apply the new timescale to the tween smoothly
+        gsap.to(tween, {
+          timeScale: timeScale,
+          duration: 0.2, // Smooth transition
+          overwrite: true,
+          onComplete: () => {
+            // Once scroll stops/slows, return to base speed
+            gsap.to(tween, {
+              timeScale: 1,
+              duration: 1,
+              ease: "power2.out"
+            });
+          }
+        });
+      }
+    });
+
+    return () => {
+      tweenRef.current?.kill();
+      ScrollTrigger.getAll().forEach(t => t.kill());
+    };
+  }, [direction]);
+
+  const handleMouseEnter = () => tweenRef.current?.pause();
+  const handleMouseLeave = () => tweenRef.current?.play();
+
+  return (
+    <div
+      className="flex shrink-0 gap-6 w-max"
+      ref={rowRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {[...items, ...items, ...items, ...items].map((skill, idx) => (
+        <SkillCard key={`mq-${idx}`} skill={skill} />
+      ))}
+    </div>
+  );
+};
+
 const Skills: React.FC = () => {
   // We shuffle the second row for randomization while keeping the first row ordered (or as is in constants)
   const shuffledSkills = React.useMemo(() => shuffleArray(SKILLS), []);
@@ -68,32 +153,13 @@ const Skills: React.FC = () => {
       </ScrollAnimation>
 
       <div className="flex flex-col gap-8">
-        {/* Added py-4 to container to prevent hover clipping */}
+        {/* Removed CSS marquee and used GSAP instead */}
         <ScrollAnimation variant="slideLeft" delay={0.2} className="flex overflow-hidden group py-4" style={{ willChange: 'transform' }}>
-          <div className="flex shrink-0 animate-marquee gap-6 pr-6 group-hover:[animation-play-state:paused]">
-            {[...SKILLS, ...SKILLS].map((skill, idx) => (
-              <SkillCard key={`r1-${idx}`} skill={skill} />
-            ))}
-          </div>
-          <div className="flex shrink-0 animate-marquee gap-6 pr-6 group-hover:[animation-play-state:paused]" aria-hidden="true">
-            {[...SKILLS, ...SKILLS].map((skill, idx) => (
-              <SkillCard key={`r1-dup-${idx}`} skill={skill} />
-            ))}
-          </div>
+          <MarqueeRow items={SKILLS} direction={1} />
         </ScrollAnimation>
 
-        {/* Second row randomized */}
         <ScrollAnimation variant="slideRight" delay={0.3} className="flex overflow-hidden group py-4" style={{ willChange: 'transform' }}>
-          <div className="flex shrink-0 animate-marquee-reverse gap-6 pr-6 group-hover:[animation-play-state:paused]">
-            {[...shuffledSkills, ...shuffledSkills].map((skill, idx) => (
-              <SkillCard key={`r2-${idx}`} skill={skill} />
-            ))}
-          </div>
-          <div className="flex shrink-0 animate-marquee-reverse gap-6 pr-6 group-hover:[animation-play-state:paused]" aria-hidden="true">
-            {[...shuffledSkills, ...shuffledSkills].map((skill, idx) => (
-              <SkillCard key={`r2-dup-${idx}`} skill={skill} />
-            ))}
-          </div>
+          <MarqueeRow items={shuffledSkills} direction={-1} />
         </ScrollAnimation>
       </div>
     </div>

@@ -192,7 +192,7 @@ const App: React.FC = () => {
       {/* Backdrop for Chat Modal */}
       {isChatOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 animate-[fadeIn_0.3s_ease-out]"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]"
           onClick={() => setIsChatOpen(false)}
           aria-hidden="true"
         />
@@ -201,7 +201,7 @@ const App: React.FC = () => {
       {/* Main content is instantly ready at opacity-100; the LoadingScreen grid will block reveal it */}
       <main className="min-h-svh flex flex-col font-sans bg-neo-white dark:bg-neo-dark-bg text-neo-black dark:text-neo-dark-text relative">
         <CustomCursor highContrast={isChatOpen && theme === 'light'} />
-        <BackgroundGrid theme={theme} />
+        <BackgroundGrid theme={theme} isPaused={isChatOpen || isLoaderMounted} />
 
         <Header
           theme={theme}

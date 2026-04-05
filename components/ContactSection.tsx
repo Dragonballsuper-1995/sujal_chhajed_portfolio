@@ -1,7 +1,6 @@
 
-import React, { useRef, useEffect } from 'react';
-import { Mail, Copy, ArrowRight, Code, Terminal, Zap, Hash } from 'lucide-react';
-import { gsap } from 'gsap';
+import React from 'react';
+import { Mail, Copy, ArrowRight } from 'lucide-react';
 import Section from './Section';
 import NeoButton from './NeoButton';
 import Tooltip from './Tooltip';
@@ -25,61 +24,9 @@ const getSocialHoverClass = (platform: string) => {
   }
 };
 
-const ContactSection: React.FC<ContactSectionProps> = ({ setIsContactOpen, copyToClipboard }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Basic parallax effect based on mouse movement over the container
-    const container = containerRef.current;
-    if (!container) return;
-
-    const stickers = container.querySelectorAll('.parallax-sticker');
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      // Calculate mouse position relative to the center of the container (-1 to 1)
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-
-      stickers.forEach((sticker) => {
-        // Different depth multipliers based on a data attribute
-        const depth = parseFloat((sticker as HTMLElement).dataset.depth || "1");
-
-        gsap.to(sticker, {
-          x: x * 30 * depth,
-          y: y * 30 * depth,
-          rotation: x * 10 * depth,
-          ease: "power2.out",
-          duration: 0.5
-        });
-      });
-    };
-
-    const handleMouseLeave = () => {
-      gsap.to(stickers, {
-        x: 0,
-        y: 0,
-        rotation: 0,
-        ease: "elastic.out(1, 0.3)",
-        duration: 1.5
-      });
-    };
-
-    // Use passive listener for better performance
-    container.addEventListener('mousemove', handleMouseMove, { passive: true });
-    container.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      container.removeEventListener('mousemove', handleMouseMove);
-      container.removeEventListener('mouseleave', handleMouseLeave);
-    };
-  }, []);
-
-  return (
+const ContactSection: React.FC<ContactSectionProps> = ({ setIsContactOpen, copyToClipboard }) => (
   <Section id={NavSection.CONTACT}>
     <ScrollAnimation variant="scale" duration={0.6}>
-      {/* Outer container ref for parallax events */}
-      <div ref={containerRef} className="relative group/parallax">
       <div className="grid grid-cols-1 lg:grid-cols-5 border-4 border-black dark:border-neo-dark-border bg-white dark:bg-neo-dark-surface shadow-neo-xl dark:shadow-neo-lg-dark">
         {/* Left Column: Contact Info */}
         <div className="lg:col-span-2 bg-neo-purple p-8 md:p-10 flex flex-col justify-between text-white border-b-4 lg:border-b-0 lg:border-r-4 border-black dark:border-neo-dark-border relative overflow-hidden group">
@@ -150,33 +97,6 @@ const ContactSection: React.FC<ContactSectionProps> = ({ setIsContactOpen, copyT
         {/* Right Column: Contact CTA */}
         <div className="lg:col-span-3 p-8 md:p-10 bg-white dark:bg-neo-dark-surface flex flex-col justify-center items-center text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
-
-          {/* GSAP Parallax Stickers */}
-          <div
-            className="parallax-sticker absolute top-10 left-10 p-3 bg-neo-blue border-2 border-black dark:border-neo-dark-border rounded-lg shadow-neo hidden md:block"
-            data-depth="1.5"
-          >
-            <Code size={24} className="text-black" />
-          </div>
-          <div
-            className="parallax-sticker absolute bottom-16 left-12 p-2 bg-neo-green border-2 border-black dark:border-neo-dark-border rounded-full shadow-neo hidden md:block"
-            data-depth="0.8"
-          >
-            <Zap size={20} className="text-black" />
-          </div>
-          <div
-            className="parallax-sticker absolute top-20 right-16 p-4 bg-neo-pink border-2 border-black dark:border-neo-dark-border rounded-sm rotate-12 shadow-neo hidden md:block"
-            data-depth="1.2"
-          >
-            <Terminal size={28} className="text-black" />
-          </div>
-          <div
-            className="parallax-sticker absolute bottom-20 right-12 p-3 bg-neo-orange border-2 border-black dark:border-neo-dark-border rounded-full -rotate-12 shadow-neo hidden md:block"
-            data-depth="2.0"
-          >
-            <Hash size={24} className="text-black" />
-          </div>
-
           <div className="relative z-10 max-w-md space-y-8">
             <div className="inline-block p-4 border-4 border-black dark:border-neo-dark-border rounded-full bg-neo-yellow shadow-neo mb-4">
               <Mail size={48} className="text-black" />
@@ -199,10 +119,8 @@ const ContactSection: React.FC<ContactSectionProps> = ({ setIsContactOpen, copyT
           </div>
         </div>
       </div>
-      </div>
     </ScrollAnimation>
   </Section>
-  );
-};
+);
 
 export default React.memo(ContactSection);

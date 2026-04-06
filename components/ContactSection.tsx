@@ -35,11 +35,13 @@ const ContactSection: React.FC<ContactSectionProps> = ({ setIsContactOpen, copyT
 
     const stickers = container.querySelectorAll('.parallax-sticker');
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      // Calculate mouse position relative to the center of the container (-1 to 1)
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+    let rafId: number | null = null;
+    let targetX = 0;
+    let targetY = 0;
+    let isMouseMoving = false;
+
+    const renderParallax = () => {
+      if (!isMouseMoving) return;
 
       stickers.forEach((sticker) => {
         // Different depth multipliers and directions based on data attributes
@@ -48,13 +50,26 @@ const ContactSection: React.FC<ContactSectionProps> = ({ setIsContactOpen, copyT
         const dirY = parseFloat((sticker as HTMLElement).dataset.dirY || "1");
 
         gsap.to(sticker, {
-          x: x * 30 * depth * dirX,
-          y: y * 30 * depth * dirY,
-          rotation: x * 10 * depth,
+          x: targetX * 30 * depth * dirX,
+          y: targetY * 30 * depth * dirY,
+          rotation: targetX * 10 * depth,
           ease: "power2.out",
           duration: 0.5
         });
       });
+      isMouseMoving = false;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      // Calculate mouse position relative to the center of the container (-1 to 1)
+      targetX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      targetY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
+
+      if (!isMouseMoving) {
+        isMouseMoving = true;
+        rafId = requestAnimationFrame(renderParallax);
+      }
     };
 
     const handleMouseLeave = () => {
@@ -73,6 +88,9 @@ const ContactSection: React.FC<ContactSectionProps> = ({ setIsContactOpen, copyT
     return () => {
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('mouseleave', handleMouseLeave);
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+      }
     };
   }, []);
 

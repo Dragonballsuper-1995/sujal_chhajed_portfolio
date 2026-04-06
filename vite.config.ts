@@ -19,6 +19,9 @@ export default defineConfig(({ mode }) => {
               if (id.includes('lucide-react')) {
                 return 'vendor-lucide';
               }
+              if (id.includes('gsap')) {
+                return 'vendor-gsap';
+              }
               return 'vendor'; // all other dependencies
             }
           }

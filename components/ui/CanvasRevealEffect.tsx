@@ -138,6 +138,14 @@ const CanvasRevealEffect: React.FC<CanvasRevealEffectProps> = ({
           return;
       }
 
+      // Group dots by opacity level for grouped drawing
+      const dotsByOpacity: Record<string, {x: number, y: number}[]> = {};
+      for (const opacity of opacities) {
+         if (opacity > 0) {
+             dotsByOpacity[opacity.toString()] = [];
+         }
+      }
+
       // Draw Loop (Scanline order)
       for (let j = 0; j < rows; j++) {
         for (let i = 0; i < cols; i++) {
@@ -162,12 +170,23 @@ const CanvasRevealEffect: React.FC<CanvasRevealEffectProps> = ({
                 const x = i * gap;
                 const y = j * gap;
 
-                ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                ctx.beginPath();
-                ctx.arc(x + gap/2, y + gap/2, dotSize / 2, 0, Math.PI * 2);
-                ctx.fill();
+                dotsByOpacity[opacity.toString()].push({ x: x + gap/2, y: y + gap/2 });
             }
         }
+      }
+
+      // Draw each opacity level as a single path
+      for (const opacityStr in dotsByOpacity) {
+          const dots = dotsByOpacity[opacityStr];
+          if (dots.length > 0) {
+              ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacityStr})`;
+              ctx.beginPath();
+              for (const dot of dots) {
+                  // Draw rectangles instead of arcs for performance
+                  ctx.rect(dot.x - dotSize / 2, dot.y - dotSize / 2, dotSize, dotSize);
+              }
+              ctx.fill();
+          }
       }
       
       animationFrameId = requestAnimationFrame(draw);

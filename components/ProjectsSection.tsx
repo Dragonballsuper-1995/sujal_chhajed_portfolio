@@ -1,8 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Section from './Section';
 import ProjectCard from './ProjectCard';
 import ProjectSkeleton from './ProjectSkeleton';
@@ -10,8 +8,6 @@ import { NavSection, Project } from '../types';
 import { PROJECTS } from '../constants';
 import { DecryptedText } from './ui/DecryptedText';
 import ScrollAnimation from './ui/ScrollAnimation';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface ProjectsSectionProps {
   onProjectClick: (project: Project) => void;
@@ -22,7 +18,6 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick, theme
   const [isLoadingProjects, setIsLoadingProjects] = useState(true);
   const [loadedProjects, setLoadedProjects] = useState<Project[]>([]);
   const [activeCategory, setActiveCategory] = useState('All');
-  const sectionRef = useRef<HTMLElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,42 +48,6 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick, theme
   const filteredProjects = useMemo(() => loadedProjects.filter(project =>
     activeCategory === 'All' || project.category === activeCategory
   ), [loadedProjects, activeCategory]);
-
-  // Set up the GSAP horizontal scroll effect on desktop
-  useEffect(() => {
-    // We only want to run this if projects are loaded and we are on desktop
-    const isDesktop = window.matchMedia("(min-width: 768px)").matches;
-    if (isLoadingProjects || !isDesktop || !scrollContainerRef.current || !sectionRef.current) return;
-
-    const container = scrollContainerRef.current;
-
-    // Determine the total width of the content vs the viewport
-    const totalWidth = container.scrollWidth;
-    const viewportWidth = window.innerWidth;
-
-    // The amount we need to scroll horizontally is the difference
-    const amountToScroll = totalWidth - viewportWidth;
-
-    // Only apply if the content is actually wider than the screen
-    if (amountToScroll <= 0) return;
-
-    const ctx = gsap.context(() => {
-      gsap.to(container, {
-        x: -amountToScroll,
-        ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top top",
-          end: () => `+=${amountToScroll}`, // Pin for the distance we need to scroll
-          pin: true,
-          scrub: 1, // Smooth scrubbing
-          invalidateOnRefresh: true // Recalculate on resize
-        }
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, [isLoadingProjects, filteredProjects]);
 
   const scrollCarousel = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
@@ -126,8 +85,8 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick, theme
   };
 
   return (
-    <Section ref={sectionRef} id={NavSection.PROJECTS} className="overflow-hidden">
-      <ScrollAnimation variant="blur" className="flex flex-col items-center mb-8 pt-8">
+    <Section id={NavSection.PROJECTS} className="overflow-hidden md:overflow-visible">
+      <ScrollAnimation variant="blur" className="flex flex-col items-center mb-8">
         <h2 className="text-5xl md:text-6xl font-black uppercase mb-4 text-center dark:text-neo-dark-text">
           <DecryptedText text="Featured" /> <span className="text-neo-purple"><DecryptedText text="Works" /></span>
         </h2>
@@ -174,20 +133,21 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick, theme
         </div>
 
         <div 
-          className={`
-            flex flex-row overflow-x-auto md:overflow-visible overflow-y-hidden overscroll-x-contain snap-x snap-mandatory md:snap-none gap-6 px-8 pb-8 md:pb-0 md:px-0 scrollbar-hide w-max
-          `}
           ref={scrollContainerRef}
+          className={`
+            md:grid md:grid-cols-2 md:gap-12 md:min-h-[600px] md:content-start
+            flex flex-row overflow-x-auto overflow-y-hidden overscroll-x-contain snap-x snap-mandatory gap-6 px-8 pb-8 md:pb-0 md:px-0 scrollbar-hide
+          `}
         >
           {isLoadingProjects ? (
             Array.from({ length: 4 }).map((_, index) => (
-              <div key={`skeleton-${index}`} className="min-w-[85vw] md:min-w-[500px] snap-center h-full">
+              <div key={`skeleton-${index}`} className="min-w-[85vw] md:min-w-0 snap-center h-full">
                  <ProjectSkeleton />
               </div>
             ))
           ) : (
             filteredProjects.map((project, index) => (
-              <div key={project.id} className="min-w-[85vw] md:min-w-[500px] snap-center h-full">
+              <div key={project.id} className="min-w-[85vw] md:min-w-0 snap-center h-full">
                  <ScrollAnimation variant="fadeUp" delay={index * 0.1} className="h-full">
                     <ProjectCard project={project} onClick={onProjectClick} theme={theme} />
                  </ScrollAnimation>

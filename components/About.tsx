@@ -42,7 +42,7 @@ const About: React.FC = () => {
   };
 
   return (
-    <Section id={NavSection.ABOUT} className="border-b-4 border-black dark:border-neo-dark-border">
+    <Section id={NavSection.ABOUT} className="border-b-4 border-black dark:border-neo-dark-border pb-32">
       {/* Wavy underline animation is now in index.css */}
 
       <ScrollAnimation variant="fadeUp" className="flex flex-col items-center mb-16">
@@ -160,7 +160,7 @@ const About: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {CHARACTER_TRAITS.map((trait, index) => (
-            <ScrollAnimation key={trait.id} variant="scale" delay={index * 0.1}>
+            <ScrollAnimation key={trait.id} variant="scale" delay={index * 0.1} className="relative z-10 hover:z-50">
               <HoverCard className="relative block h-full w-full">
                 <HoverCardTrigger className="h-full w-full">
                   <div className={`${trait.bgClass} ${trait.textColor} p-6 border-4 border-black dark:border-neo-dark-border shadow-neo hover:-translate-y-2 hover:shadow-neo-lg transition-all group h-full flex flex-col justify-between relative overflow-hidden`}>

@@ -59,6 +59,9 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
       // Theme-aware base color (low opacity)
       const baseColor = theme === 'light' ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)';
 
+      ctx.fillStyle = baseColor;
+      ctx.beginPath();
+
       for (let r = 0; r <= rows; r++) {
         for (let c = 0; c <= cols; c++) {
           const x = offsetX + c * space;
@@ -71,8 +74,6 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
           const hoverRadius = 200;
 
           let radius = baseRadius;
-          // Keep color consistent (monochrome low opacity)
-          const color = baseColor;
 
           if (dist < hoverRadius) {
             // Interactive effect
@@ -82,12 +83,12 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ theme }) => {
             radius = baseRadius + (intensity * 4); // Grows up to ~5.5px
           }
 
-          ctx.beginPath();
+          // Using ctx.rect instead of ctx.arc for better performance
+          ctx.moveTo(x + radius, y);
           ctx.arc(x, y, radius, 0, Math.PI * 2);
-          ctx.fillStyle = color;
-          ctx.fill();
         }
       }
+      ctx.fill();
     };
 
     const requestDraw = () => {

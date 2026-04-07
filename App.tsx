@@ -1,15 +1,12 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { Send } from 'lucide-react';
 
 import CustomCursor from './components/CustomCursor';
 import BackgroundGrid from './components/BackgroundGrid';
-import ChatAssistant from './components/ChatAssistant';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import LoadingScreen from './components/LoadingScreen';
-import ContactForm from './components/ContactForm';
 import ToastNotification from './components/ToastNotification';
-import CommandPalette from './components/CommandPalette';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -17,9 +14,14 @@ import Skills from './components/Skills';
 import ProjectsSection from './components/ProjectsSection';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
-import ProjectCaseStudy from './components/ProjectCaseStudy';
 import MobileNavBar from './components/MobileNavBar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
+
+// Lazy loaded components (not needed for initial visual render)
+const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
+const ContactForm = lazy(() => import('./components/ContactForm'));
+const CommandPalette = lazy(() => import('./components/CommandPalette'));
+const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
 
 import { useTheme, useScrollSpy } from './hooks';
 import { PERSONAL_INFO } from './constants';
@@ -75,12 +77,24 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Global keyboard listener for Ctrl+K/Cmd+K to open Command Palette
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCmdPaletteOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
+
   const handleLoadingComplete = useCallback(() => {
     setIsLoading(false);
-    // Reduced timeout to match the faster 700ms animation in LoadingScreen
-    setTimeout(() => {
-      setIsLoaderMounted(false);
-    }, 850);
+  }, []);
+
+  const handleAnimationFullyComplete = useCallback(() => {
+    setIsLoaderMounted(false);
   }, []);
 
   // Preload images optimized: Defer to idle time to prioritize FCP
@@ -167,19 +181,25 @@ const App: React.FC = () => {
 
   return (
     <>
-      {isLoaderMounted && <LoadingScreen onComplete={handleLoadingComplete} name={PERSONAL_INFO.name} />}
+      {isLoaderMounted && (
+        <LoadingScreen
+          onComplete={handleLoadingComplete}
+          onAnimationFinished={handleAnimationFullyComplete}
+          name={PERSONAL_INFO.name}
+        />
+      )}
 
       {/* Backdrop for Chat Modal */}
       {isChatOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.3s_ease-out]"
+          className="fixed inset-0 z-50 bg-black/80 animate-[fadeIn_0.3s_ease-out]"
           onClick={() => setIsChatOpen(false)}
           aria-hidden="true"
         />
       )}
 
-      {/* Faster transition for main content to ensure it's ready behind the loader */}
-      <main className={`min-h-svh flex flex-col font-sans bg-neo-white dark:bg-neo-dark-bg text-neo-black dark:text-neo-dark-text relative transition-opacity duration-100 ${!isLoading ? 'opacity-100' : 'opacity-0'}`}>
+      {/* Main content is instantly ready at opacity-100; the LoadingScreen grid will block reveal it */}
+      <main className="min-h-svh flex flex-col font-sans bg-neo-white dark:bg-neo-dark-bg text-neo-black dark:text-neo-dark-text relative">
         <CustomCursor highContrast={isChatOpen && theme === 'light'} />
         <BackgroundGrid theme={theme} />
 
@@ -217,10 +237,14 @@ const App: React.FC = () => {
               </SheetTitle>
             </SheetHeader>
             <div className="p-6 md:p-8 h-full overflow-y-auto pb-20">
-              <ContactForm
-                onSuccess={handleFormSuccess}
-                onError={handleFormError}
-              />
+              {isContactOpen && (
+                <Suspense fallback={<div className="flex items-center justify-center h-full"><span className="animate-pulse">Loading form...</span></div>}>
+                  <ContactForm
+                    onSuccess={handleFormSuccess}
+                    onError={handleFormError}
+                  />
+                </Suspense>
+              )}
             </div>
           </SheetContent>
         </Sheet>
@@ -228,22 +252,33 @@ const App: React.FC = () => {
         {/* Project Case Study Sheet (Feature #5 Implementation) */}
         <Sheet open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
           <SheetContent className="w-full sm:max-w-3xl p-0 border-l-4 border-black dark:border-neo-dark-border">
-            {selectedProject && <ProjectCaseStudy project={selectedProject} />}
+            {selectedProject && (
+              <Suspense fallback={<div className="flex items-center justify-center h-full p-10"><span className="animate-pulse">Loading project details...</span></div>}>
+                <ProjectCaseStudy project={selectedProject} />
+              </Suspense>
+            )}
           </SheetContent>
         </Sheet>
 
-        <CommandPalette
-          theme={theme}
-          toggleTheme={toggleTheme}
-          scrollToSection={scrollToSection}
-          setIsContactOpen={setIsContactOpen}
-          setIsChatOpen={setIsChatOpen}
-          isOpen={isCmdPaletteOpen}
-          setIsOpen={setIsCmdPaletteOpen}
-        />
+        {isCmdPaletteOpen && (
+          <Suspense fallback={null}>
+            <CommandPalette
+              theme={theme}
+              toggleTheme={toggleTheme}
+              scrollToSection={scrollToSection}
+              setIsContactOpen={setIsContactOpen}
+              setIsChatOpen={setIsChatOpen}
+              isOpen={isCmdPaletteOpen}
+              setIsOpen={setIsCmdPaletteOpen}
+            />
+          </Suspense>
+        )}
 
         <ScrollToTopButton />
-        <ChatAssistant isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
+
+        <Suspense fallback={null}>
+          <ChatAssistant isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
+        </Suspense>
 
         {/* New Mobile Bottom Navigation */}
         <MobileNavBar

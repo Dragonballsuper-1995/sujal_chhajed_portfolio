@@ -47,20 +47,27 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
       return;
     }
 
+    let mouseX = -1000;
+    let mouseY = -1000;
+    let rafId: number;
+
+    const renderCursor = () => {
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+      }
+      if (followerRef.current) {
+        followerRef.current.style.transform = `translate3d(${mouseX}px, ${mouseY}px, 0)`;
+      }
+      rafId = requestAnimationFrame(renderCursor);
+    };
+
+    rafId = requestAnimationFrame(renderCursor);
+
     // Use direct DOM manipulation for position updates (no React re-renders)
     const moveCursor = (e: MouseEvent) => {
       setIsVisible(true);
-
-      const { clientX, clientY } = e;
-
-      // Direct style manipulation - bypasses React state updates
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0)`;
-      }
-
-      if (followerRef.current) {
-        followerRef.current.style.transform = `translate3d(${clientX}px, ${clientY}px, 0)`;
-      }
+      mouseX = e.clientX;
+      mouseY = e.clientY;
     };
 
     const handleMouseOver = (e: MouseEvent) => {
@@ -93,6 +100,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
       document.removeEventListener('mouseleave', handleMouseLeave);
       document.removeEventListener('mouseenter', handleMouseEnter);
       document.body.classList.remove('has-custom-cursor');
+      cancelAnimationFrame(rafId);
     };
   }, [isEnabled]);
 
@@ -104,7 +112,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
       <div
         ref={cursorRef}
         aria-hidden="true"
-        className={`fixed top-0 left-0 z-[10000] pointer-events-none ${blendModeClass}`}
+        className={`fixed top-0 left-0 z-[100000] pointer-events-none ${blendModeClass}`}
       >
         {/* Visual Crosshair Element */}
         <div className={`
@@ -124,7 +132,7 @@ const CustomCursor: React.FC<CustomCursorProps> = ({ highContrast = false }) => 
         ref={followerRef}
         aria-hidden="true"
         className={`
-          fixed top-0 left-0 z-[9999] pointer-events-none
+          fixed top-0 left-0 z-[99999] pointer-events-none
           border-2 ${ringBorderClass}
           ${blendModeClass}
           rounded-full

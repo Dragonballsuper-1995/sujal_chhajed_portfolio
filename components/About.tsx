@@ -1,192 +1,212 @@
-
-import React from 'react';
-import { Zap, Gamepad2, Coffee, Film } from 'lucide-react';
-import Section from './Section';
-import { Accordion, AccordionItem } from './ui/Accordion';
-import Separator from './ui/Separator';
-import { HoverCard, HoverCardTrigger, HoverCardContent } from './ui/HoverCard';
-import { DecryptedText } from './ui/DecryptedText';
+import React, { useRef, useState } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { NavSection } from '../types';
-import { CHARACTER_TRAITS } from '../constants';
-import ScrollAnimation from './ui/ScrollAnimation';
+import { PERSONAL_INFO } from '../constants';
+import { Sparkles, Terminal, ArrowUpRight, FileText } from 'lucide-react';
 
-const About: React.FC = () => {
+interface AboutProps {
+  scrollToSection?: (id: NavSection) => void;
+}
 
-  const renderTraitIcon = (type: string) => {
-    switch (type) {
-      case 'custom-f1':
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 relative z-10">
-            <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-            <line x1="4" y1="22" x2="4" y2="15" />
-            <path d="M4 9h16" />
-            <path d="M8 15V3" />
-            <path d="M12 15V3" />
-            <path d="M16 15V3" />
-          </svg>
-        );
-      case 'custom-anime':
-        return (
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-4 relative z-10">
-            <circle cx="12" cy="12" r="10" />
-            <path d="m12 8 1.5 3h3l-2.5 2 1 3-3-2-3 2 1-3-2.5-2h3z" fill="currentColor" />
-          </svg>
-        );
-      case 'lucide-coffee':
-        return <Coffee className="mb-4 relative z-10" size={32} />;
-      case 'lucide-film':
-        return <Film className="mb-4 relative z-10" size={32} />;
-      default:
-        return <Gamepad2 className="mb-4 relative z-10" size={32} />;
-    }
+/**
+ * About Section — MAJD-style 3-column composition.
+ *
+ * Characteristics:
+ * - Center card is NOT always visible: It starts hidden (opacity: 0)
+ *   and transitions in as the morphing hero card lands into this slot.
+ * - Left column ("HEY!" + bio) slides in from the left on scroll.
+ * - Right column (Narrative bio + Origin Story + CTA) slides in from the right.
+ * - Interactive 3D mouse tilt is active when hovering on the card.
+ */
+const About: React.FC<AboutProps> = ({ scrollToSection }) => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Scroll tracking as About section approaches and centers in viewport
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'start center'],
+  });
+
+  // Center card: Hidden initially, fades in & docks as Hero card completes its morph
+  const centerOpacity = useTransform(scrollYProgress, [0.35, 0.85], [0, 1]);
+  const centerScale = useTransform(scrollYProgress, [0.35, 0.85], [0.92, 1]);
+
+  // Side columns slide in as About enters view
+  const leftX = useTransform(scrollYProgress, [0.20, 0.75], [-60, 0]);
+  const leftOpacity = useTransform(scrollYProgress, [0.20, 0.70], [0, 1]);
+
+  const rightX = useTransform(scrollYProgress, [0.25, 0.80], [60, 0]);
+  const rightOpacity = useTransform(scrollYProgress, [0.25, 0.75], [0, 1]);
+
+  const headerOpacity = useTransform(scrollYProgress, [0.10, 0.50], [0, 1]);
+  const headerY = useTransform(scrollYProgress, [0.10, 0.50], [30, 0]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setMousePos({ x: x * 16, y: -y * 16 });
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setMousePos({ x: 0, y: 0 });
   };
 
   return (
-    <Section id={NavSection.ABOUT} className="border-b-4 border-black dark:border-neo-dark-border pb-32">
-      {/* Wavy underline animation is now in index.css */}
+    <section
+      ref={sectionRef}
+      id={NavSection.ABOUT}
+      className="scroll-mt-20 py-20 md:py-28 relative z-10 bg-transparent"
+    >
+      <div className="max-w-6xl mx-auto px-5 md:px-8">
+        {/* Section Header */}
+        <motion.div style={{ opacity: headerOpacity, y: headerY }} className="mb-12 relative z-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow border-2 border-black font-mono text-xs font-bold uppercase tracking-wider mb-3 shadow-neo-sm">
+            <Terminal size={13} />
+            <span>Background &amp; Philosophy</span>
+          </div>
+          <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink uppercase tracking-tight leading-none">
+            About Me
+          </h2>
+          <p className="font-mono text-sm sm:text-base text-gray-700 max-w-2xl mt-3 leading-relaxed">
+            Architecting deterministic, production-hardened machine learning systems and
+            high-throughput web applications.
+          </p>
+        </motion.div>
 
-      <ScrollAnimation variant="fadeUp" className="flex flex-col items-center mb-16">
-        <div className="bg-neo-black text-white px-4 py-1 font-mono text-sm font-bold mb-4 uppercase tracking-widest transform -rotate-2">
-          File: profile_data.txt
-        </div>
-        <h2 className="text-5xl md:text-7xl font-black uppercase text-center leading-[0.9] group">
-          The <span className="wavy-underline text-neo-pink"><DecryptedText text="MAN" /></span><br />
-          Behind The <span className="bg-neo-green text-black px-2 relative z-20"><DecryptedText text="CODE" /></span>
-        </h2>
-      </ScrollAnimation>
+        {/* ── 3-Column Composition ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-start">
+          {/* ── Left: Greeting & Identity ── */}
+          <motion.div
+            style={{ x: leftX, opacity: leftOpacity }}
+            className="lg:col-span-4 flex flex-col justify-between h-full space-y-6"
+          >
+            <div>
+              <h3 className="font-sans text-4xl sm:text-5xl lg:text-6xl font-black text-ink tracking-tight mb-4 uppercase">
+                Hey!
+              </h3>
+              <p className="font-mono text-sm sm:text-base text-gray-800 leading-relaxed">
+                I'm Sujal — an AI/ML Engineer and builder specialising in
+                fine-tuned LLM architectures, real-time inference pipelines, and resilient
+                full-stack systems.
+              </p>
+            </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center mb-12">
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <ScrollAnimation variant="slideRight" delay={0.1}>
-            <div className="relative group">
-              <div className="absolute inset-0 bg-neo-purple translate-x-4 translate-y-4 border-4 border-black transition-transform group-hover:translate-x-8 group-hover:translate-y-8"></div>
-              <div className="relative border-4 border-black bg-white p-2 z-10 transform transition-transform group-hover:-translate-y-2 group-hover:-translate-x-2">
-                <div className="aspect-[4/5] overflow-hidden border-2 border-black relative">
+            <div className="pt-4 border-t-2 border-black/15 font-mono text-xs text-gray-700 space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-neo-green animate-pulse" />
+                <span className="font-bold text-black uppercase tracking-wider">VIT Chennai &apos;26</span>
+              </div>
+              <p className="text-gray-500 font-medium">
+                Undergraduate in Computer Science &amp; Engineering
+              </p>
+            </div>
+          </motion.div>
+
+          {/* ── Center: Profile Card — Not always visible, fades in on transition ── */}
+          <div className="lg:col-span-4 flex justify-center items-start py-4">
+            <motion.div
+              style={{
+                opacity: centerOpacity,
+                scale: centerScale,
+                perspective: 1200,
+              }}
+              className="w-full max-w-[340px]"
+            >
+              <motion.div
+                style={{
+                  rotateY: isHovered ? mousePos.x : 0,
+                  rotateX: isHovered ? mousePos.y : 0,
+                  transformStyle: 'preserve-3d',
+                }}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                className="relative group bg-white border-4 border-black shadow-neo-lg overflow-hidden flex flex-col boundary-plate transition-shadow duration-300 hover:shadow-[8px_8px_0px_0px_#000]"
+                data-boundary="true"
+              >
+                {/* Photo */}
+                <div className="relative aspect-[4/5] overflow-hidden bg-black">
                   <img
                     src="/profile-pic-4.webp"
-                    alt="Sujal Chhajed"
-                    className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500 scale-100 group-hover:scale-110"
-                    loading="lazy"
-                    decoding="async"
-                    width="800"
-                    height="1000"
+                    alt="Sujal Sanjay Chhajed"
+                    className="w-full h-full object-cover object-top filter grayscale contrast-115 group-hover:filter-none group-hover:scale-105 transition-all duration-500"
                   />
-                  <div className="absolute bottom-0 left-0 w-full bg-black/80 p-2 backdrop-blur-sm transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                    <p className="text-white font-mono text-xs text-center"> &gt; SYSTEM.ROOT.USER </p>
-                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70 pointer-events-none" />
                 </div>
-              </div>
-              <div className="absolute -top-6 -right-6 bg-neo-yellow border-4 border-black p-4 rounded-full shadow-neo z-20 hidden md:block group-hover:animate-[spin_2s_linear_infinite] transition-transform" style={{ transform: 'translateZ(50px)' }}>
-                <Zap size={32} className="text-black" />
-              </div>
+                {/* Info strip */}
+                <div className="p-3.5 bg-black text-white border-t-2 border-black font-mono text-xs flex items-center justify-between shrink-0">
+                  <span className="font-bold uppercase tracking-wider text-white">Sujal Chhajed</span>
+                  <span className="text-neo-yellow text-xs font-bold">AI/ML Engineer</span>
+                </div>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* ── Right: Narrative Bio, Origin Story & CTA ── */}
+          <motion.div
+            style={{ x: rightX, opacity: rightOpacity }}
+            className="lg:col-span-4 flex flex-col justify-between h-full space-y-6"
+          >
+            <div className="space-y-4 font-mono text-sm leading-relaxed text-ink">
+              <p className="font-bold text-base text-black leading-snug">
+                I care about verified inference latency, mathematical constraint satisfaction,
+                and writing clean, deterministic code that runs reliably in production
+                environments.
+              </p>
+              <p className="text-gray-700 leading-relaxed text-xs sm:text-sm">
+                From fine-tuning open-source LLM weights (Phi-4, Llama 3.1) and compiling to
+                GGUF, to designing two-stage recommendation engines with XGBoost and crafting
+                offline-first PWA sync protocols, I focus on the bridge between machine learning
+                research and real software product.
+              </p>
             </div>
-          </ScrollAnimation>
-        </div>
 
-        <div className="lg:col-span-7 flex flex-col gap-8">
-          <ScrollAnimation variant="slideLeft" delay={0.2}>
-            <div className="bg-white dark:bg-neo-dark-surface p-8 border-l-8 border-neo-purple shadow-sm border-y-4 border-r-4 border-black dark:border-neo-dark-border">
-              <h3 className="font-black text-3xl uppercase mb-6">
-                Code, Caffeine & <span className="text-neo-purple"><DecryptedText text="Chaos" /></span>.
-              </h3>
-              <div className="prose dark:prose-invert font-mono text-lg leading-relaxed opacity-90">
-                <p className="mb-4">
-                  I’m <span className="font-bold bg-neo-yellow text-black px-1">Sujal Sanjay Chhajed</span>, a Computer Science student who treats code like a competitive sport. Whether it's training ML models or debugging a full-stack app, I bring that same intensity as the final lap of an F1 race.
-                </p>
-                <p>
-                  I don't just build software; I craft digital experiences. My philosophy? <span className="italic font-bold">"Tech Nerd with a Human Touch."</span> I believe the best code doesn't just work—it resonates.
-                </p>
-              </div>
-            </div>
-          </ScrollAnimation>
-
-          {/* Accordion Section for structured data */}
-          <ScrollAnimation variant="fadeUp" delay={0.3}>
-            <Accordion className="mt-4">
-              <AccordionItem title="Education">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-bold text-lg">B.Tech Computer Science (AI & ML)</h4>
-                  <span className="bg-black text-white text-xs px-2 py-1 dark:bg-white dark:text-black">2021 - Present</span>
-                </div>
-                <p className="mb-2 text-neo-purple font-bold">VIT Chennai</p>
-                <p className="opacity-80">Specializing in Artificial Intelligence and Machine Learning algorithms, with a focus on Deep Learning and Computer Vision.</p>
-              </AccordionItem>
-              <AccordionItem title="Technical Arsenal">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="p-2 border border-gray-200 dark:border-zinc-800">
-                    <strong className="block mb-1 text-neo-blue">Languages</strong>
-                    Python, JavaScript, TypeScript, C++, SQL
-                  </div>
-                  <div className="p-2 border border-gray-200 dark:border-zinc-800">
-                    <strong className="block mb-1 text-neo-green">Frameworks</strong>
-                    React, Next.js, TensorFlow, PyTorch, Tailwind
-                  </div>
-                  <div className="p-2 border border-gray-200 dark:border-zinc-800">
-                    <strong className="block mb-1 text-neo-orange">Tools</strong>
-                    Docker, Git, AWS, Vercel, Figma
-                  </div>
-                </div>
-              </AccordionItem>
-              <AccordionItem title="Experience">
-                <div className="mb-4 border-b border-gray-200 dark:border-zinc-700 pb-2">
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-bold">AI/ML Developer</h4>
-                    <span className="text-xs font-bold opacity-60">Freelance</span>
-                  </div>
-                  <p className="text-sm mt-1">Building custom NLP solutions and automating workflows for clients.</p>
-                </div>
-                <div>
-                  <div className="flex justify-between items-start">
-                    <h4 className="font-bold">Full Stack Developer</h4>
-                    <span className="text-xs font-bold opacity-60">Projects</span>
-                  </div>
-                  <p className="text-sm mt-1">Developed multiple high-performance web applications featured in my portfolio.</p>
-                </div>
-              </AccordionItem>
-            </Accordion>
-          </ScrollAnimation>
-        </div>
-      </div>
-
-      <Separator className="my-12 opacity-50" />
-
-      <div>
-        <ScrollAnimation variant="fadeUp" className="flex items-center gap-4 mb-8">
-          <h3 className="font-black text-xl uppercase bg-white dark:bg-neo-dark-surface border-4 border-black dark:border-neo-dark-border px-4 py-2 inline-flex items-center gap-2 shadow-neo-sm">
-            <Gamepad2 size={24} /> Character Traits
-          </h3>
-          <div className="h-1 flex-grow bg-black dark:bg-white/20"></div>
-        </ScrollAnimation>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {CHARACTER_TRAITS.map((trait, index) => (
-            <ScrollAnimation key={trait.id} variant="scale" delay={index * 0.1} className="relative z-10 hover:z-50">
-              <HoverCard className="relative block h-full w-full">
-                <HoverCardTrigger className="h-full w-full">
-                  <div className={`${trait.bgClass} ${trait.textColor} p-6 border-4 border-black dark:border-neo-dark-border shadow-neo hover:-translate-y-2 hover:shadow-neo-lg transition-all group h-full flex flex-col justify-between relative overflow-hidden`}>
-                    <div className="absolute top-2 right-2 opacity-10 group-hover:opacity-20 select-none pointer-events-none transform -rotate-12 transition-all duration-500 ease-out group-hover:scale-75">
-                      <span className={`${trait.rotateTextSize} font-black whitespace-nowrap`}>
-                        {trait.rotateText}
-                      </span>
-                    </div>
-                    {renderTraitIcon(trait.iconType)}
-                    <div className="relative z-10">
-                      <p className="font-black uppercase text-xl tracking-tighter">{trait.title}</p>
-                      <p className="text-xs font-mono opacity-90 mt-1 font-bold">{trait.subtitle}</p>
-                    </div>
-                  </div>
-                </HoverCardTrigger>
-                <HoverCardContent className="w-60">
-                  <p className="font-bold text-sm leading-tight">
-                    {trait.description}
+            {/* Origin Story */}
+            <div className="p-4 bg-neo-yellow/15 border-2 border-black shadow-neo-sm">
+              <div className="flex items-start gap-2.5">
+                <Sparkles size={16} className="text-neo-pink shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <span className="font-mono text-[10px] font-black uppercase tracking-wider text-black bg-neo-yellow px-1.5 py-0.5 border border-black inline-block">
+                    Origin Story
+                  </span>
+                  <p className="font-mono text-xs text-gray-800 leading-relaxed pt-0.5">
+                    {PERSONAL_INFO.funFact}
                   </p>
-                </HoverCardContent>
-              </HoverCard>
-            </ScrollAnimation>
-          ))}
+                </div>
+              </div>
+            </div>
+
+            {/* CTA */}
+            {scrollToSection && (
+              <div className="flex flex-wrap items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => scrollToSection(NavSection.PROJECTS)}
+                  className="inline-flex items-center gap-2 font-mono font-bold text-xs sm:text-sm px-5 py-2.5 bg-white text-black border-2 border-black shadow-neo-sm hover:bg-neo-yellow hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all group cursor-pointer"
+                >
+                  <span>Explore Projects</span>
+                  <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </button>
+
+                <a
+                  href={PERSONAL_INFO.resumeLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 font-mono font-bold text-xs sm:text-sm px-4 py-2.5 bg-neo-yellow text-black border-2 border-black shadow-neo-sm hover:bg-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all"
+                >
+                  <FileText size={14} />
+                  <span>RESUME ↗</span>
+                </a>
+              </div>
+            )}
+          </motion.div>
         </div>
       </div>
-    </Section>
+    </section>
   );
 };
 

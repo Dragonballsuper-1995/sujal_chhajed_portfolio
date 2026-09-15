@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import {
   Home, User, Zap, Briefcase, Phone,
-  Sun, Moon, Send, Bot, Terminal, X,
+  Send, Bot, Terminal, X,
   LucideIcon
 } from 'lucide-react';
 import { NavSection } from '../types';
@@ -10,8 +10,6 @@ import { NavSection } from '../types';
 // Types
 // ============================================
 interface CommandPaletteProps {
-  theme: 'light' | 'dark';
-  toggleTheme: () => void;
   scrollToSection: (id: NavSection) => void;
   setIsContactOpen: (isOpen: boolean) => void;
   setIsChatOpen: (isOpen: boolean) => void;
@@ -41,8 +39,6 @@ const NAV_SECTIONS: { id: string; label: string; section: NavSection; Icon: Luci
 // Component
 // ============================================
 const CommandPalette: React.FC<CommandPaletteProps> = ({
-  theme,
-  toggleTheme,
   scrollToSection,
   setIsContactOpen,
   setIsChatOpen,
@@ -53,7 +49,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Build actions from config + dynamic theme action
+  // Build actions from config
   const actions: Action[] = useMemo(() => [
     // Navigation actions from config
     ...NAV_SECTIONS.map(({ id, label, section, Icon }) => ({
@@ -62,18 +58,11 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       Icon,
       action: () => scrollToSection(section),
     })),
-    // Theme toggle
-    {
-      id: 'theme',
-      label: `SWITCH TO ${theme === 'light' ? 'DARK' : 'LIGHT'} MODE`,
-      Icon: theme === 'light' ? Moon : Sun,
-      action: toggleTheme,
-    },
     // Contact form
     { id: 'message', label: 'OPEN CONTACT FORM', Icon: Send, action: () => setIsContactOpen(true) },
     // AI chat
     { id: 'ai', label: 'ASK AI ASSISTANT', Icon: Bot, action: () => setIsChatOpen(true) },
-  ], [theme, toggleTheme, scrollToSection, setIsContactOpen, setIsChatOpen]);
+  ], [scrollToSection, setIsContactOpen, setIsChatOpen]);
 
   // Filter actions based on query
   const filteredActions = useMemo(() => {
@@ -142,22 +131,22 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
       />
 
       {/* Terminal Window */}
-      <div className="relative w-full max-w-2xl bg-white dark:bg-black border-4 border-black dark:border-white shadow-neo-xl dark:shadow-neo-lg-dark animate-[scaleIn_0.2s_ease-out] overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-2xl bg-white border-4 border-black shadow-neo-xl animate-[scaleIn_0.2s_ease-out] overflow-hidden flex flex-col">
 
         {/* Header */}
-        <div className="bg-gray-200 dark:bg-zinc-900 border-b-4 border-black dark:border-white p-3 flex justify-between items-center select-none shrink-0">
+        <div className="bg-gray-200 border-b-4 border-black p-3 flex justify-between items-center select-none shrink-0">
           <div className="flex gap-2">
             <div className="w-4 h-4 bg-neo-pink border-2 border-black" />
             <div className="w-4 h-4 bg-neo-yellow border-2 border-black" />
             <div className="w-4 h-4 bg-neo-green border-2 border-black" />
           </div>
-          <div className="font-mono font-bold text-sm uppercase flex items-center gap-2 text-black dark:text-white">
+          <div className="font-mono font-bold text-sm uppercase flex items-center gap-2 text-black">
             <Terminal size={16} />
             <span>COMMAND_PALETTE.exe</span>
           </div>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-black dark:text-white hover:bg-neo-pink hover:text-black p-1 border-2 border-transparent hover:border-black dark:hover:border-white transition-all"
+            className="text-black hover:bg-neo-pink hover:text-black p-1 border-2 border-transparent hover:border-black transition-all"
             aria-label="Close"
           >
             <X size={20} />
@@ -166,14 +155,14 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
 
         {/* Body */}
         <div className="p-2 font-mono flex-1 overflow-hidden flex flex-col">
-          <div className="mb-2 px-2 py-3 text-sm flex items-center border-b-4 border-black dark:border-white">
-            <span className="text-gray-500 dark:text-gray-400 mr-2 shrink-0">user@sujal.dev:~$</span>
+          <div className="mb-2 px-2 py-3 text-sm flex items-center border-b-4 border-black">
+            <span className="text-gray-500 mr-2 shrink-0">user@sujal.dev:~$</span>
             <input
               ref={inputRef}
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="bg-transparent border-none outline-none flex-1 font-bold text-black dark:text-white placeholder-gray-400 uppercase"
+              className="bg-transparent border-none outline-none flex-1 font-bold text-black placeholder-gray-400 uppercase"
               placeholder="type_command..."
               autoComplete="off"
             />
@@ -188,18 +177,18 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`
                     w-full flex items-center gap-4 p-3 transition-colors text-left
-                    border-b-2 border-dashed border-gray-300 dark:border-zinc-800 last:border-0
+                    border-b-2 border-dashed border-gray-300 last:border-0
                     ${idx === selectedIndex
-                      ? 'bg-neo-yellow dark:bg-zinc-800 text-black dark:text-white'
-                      : 'text-black dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-900'}
+                      ? 'bg-neo-yellow text-black'
+                      : 'text-black hover:bg-gray-100'}
                   `}
                 >
                   {/* Keycap */}
                   <div className={`
                     w-8 h-8 flex items-center justify-center font-black text-lg border-2 transition-colors shrink-0
                     ${idx === selectedIndex
-                      ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black'
-                      : 'border-gray-400 bg-gray-100 text-gray-500 dark:border-zinc-600 dark:bg-zinc-900 dark:text-gray-400'}
+                      ? 'border-black bg-black text-white'
+                      : 'border-gray-400 bg-gray-100 text-gray-500'}
                   `}>
                     {idx + 1}
                   </div>
@@ -212,13 +201,13 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({
                 </button>
               ))
             ) : (
-              <div className="p-8 text-center text-gray-400 font-bold uppercase border-2 border-dashed border-gray-300 dark:border-zinc-800 m-2">
+              <div className="p-8 text-center text-gray-400 font-bold uppercase border-2 border-dashed border-gray-300 m-2">
                 No commands found for "{query}"
               </div>
             )}
           </div>
 
-          <div className="mt-2 px-4 py-2 text-xs text-gray-400 dark:text-gray-500 text-center uppercase tracking-widest border-t-2 border-dashed border-gray-300 dark:border-zinc-800 pt-3">
+          <div className="mt-2 px-4 py-2 text-xs text-gray-500 text-center uppercase tracking-widest border-t-2 border-dashed border-gray-300 pt-3">
             [↑/↓] Navigate • [Enter] Select • [1-8] Quick Select
           </div>
         </div>

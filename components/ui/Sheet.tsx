@@ -169,7 +169,7 @@ export const SheetContent: React.FC<{
           transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
           ${sideClasses[side]} 
           ${getTransformClass()}
-          w-full max-w-lg md:max-w-xl 
+          w-full max-w-lg md:max-w-2xl lg:max-w-3xl
           flex flex-col
           ${className}
         `}

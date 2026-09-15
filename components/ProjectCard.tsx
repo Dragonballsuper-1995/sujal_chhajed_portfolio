@@ -1,170 +1,327 @@
-
 import React, { useState } from 'react';
-import { Github, ExternalLink, ArrowRight, BookOpen } from 'lucide-react';
+import { Github, ExternalLink, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import { Project } from '../types';
-import Tooltip from './Tooltip';
 import CanvasRevealEffect from './ui/CanvasRevealEffect';
+
+const hexToRgb = (hex: string): number[] => {
+  const cleanHex = hex.replace('#', '');
+  const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+  const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+  const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+  return [r, g, b];
+};
 
 interface ProjectCardProps {
   project: Project;
-  onClick: (project: Project) => void;
-  theme: 'light' | 'dark';
+  onCaseStudy: (project: Project) => void;
+  variant?: 'flagship' | 'archive';
 }
 
-// Helper to convert hex to rgb array
-const hexToRgb = (hex: string): number[] => {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result 
-    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] 
-    : [0, 0, 0];
-}
-
-// NEON colors for Dark Mode (High brightness to pop on Black)
-const DARK_COLORS_HEX = [
-  '#FFDE59', // Neon Yellow
-  '#FF914D', // Neon Orange
-  '#FF66C4', // Neon Pink
-  '#5CE1E6', // Neon Blue
-  '#7ED957', // Neon Green
-  '#8C52FF'  // Neon Purple
-];
-
-// SATURATED colors for Light Mode (Darker shades to pop on White)
-const LIGHT_COLORS_HEX = [
-  '#D9B918', // Darker Yellow
-  '#D96D18', // Darker Orange
-  '#D91888', // Darker Pink
-  '#0099CC', // Darker Blue
-  '#4AAD18', // Darker Green
-  '#5D18D9'  // Darker Purple
-];
-
-const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick, theme }) => {
+const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant = 'flagship' }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const isDark = theme === 'dark';
-  
-  const colorIndex = (project.id - 1) % DARK_COLORS_HEX.length;
-  
-  // Select color based on theme
-  const activeColorHex = isDark ? DARK_COLORS_HEX[colorIndex] : LIGHT_COLORS_HEX[colorIndex];
-  // const shadowColorHex = DARK_COLORS_HEX[colorIndex]; // Keep shadow neon for the border effect (unused variable removed)
-  const rgbColor = hexToRgb(activeColorHex);
-  
-  const marqueeTags = [...project.tags, ...project.tags, ...project.tags, ...project.tags];
 
-  const getWatermarkText = (category: string) => {
-    const mapping: { [key: string]: string } = {
-      'Data Science': 'DATA',
-      'Web Dev': 'WEB',
-      'AI/ML': 'AI',
-      'Frontend': 'UI',
-      'Backend': 'API',
-      'Fullstack': 'FULL',
-      'Mobile': 'APP',
-    };
-    return mapping[category] || category.toUpperCase();
-  };
+  const rgbColor = hexToRgb(project.accentColor || '#FFDE59');
 
-  const watermarkText = getWatermarkText(project.category);
-
-  return (
-    <button 
-      onClick={() => onClick(project)}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="w-full text-left group relative h-full flex flex-col overflow-hidden border-4 border-black dark:border-neo-dark-border bg-white dark:bg-neo-dark-surface shadow-neo dark:shadow-neo-dark hover:shadow-neo-lg dark:hover:shadow-neo-lg-dark hover:-translate-y-2 transition-all duration-300"
-      aria-label={`View details for ${project.title}`}
-    >
-      {/* Decorative Top Bar */}
-      <div 
-        className="h-2 w-full border-b-4 border-black dark:border-neo-dark-border"
-        style={{ backgroundColor: activeColorHex }}
-      />
-
-      {/* Main Content Container */}
-      <div className="relative flex-1 flex flex-col p-8 z-10">
-         {/* Background Watermark */}
-         <div 
-           className="absolute -right-4 top-10 text-9xl font-black opacity-5 pointer-events-none select-none z-0 rotate-12 transition-transform duration-500 group-hover:rotate-0 group-hover:scale-110"
-           style={{ color: activeColorHex }}
-         >
-           {watermarkText}
-         </div>
-
-         {/* Header */}
-         <div className="relative z-10 mb-6">
-            <div className="flex justify-between items-start gap-4">
-              <h3 className="text-2xl md:text-3xl font-black uppercase leading-tight group-hover:text-neo-purple dark:group-hover:text-neo-yellow transition-colors">
-                {project.title}
-              </h3>
-              <div 
-                className="p-2 border-2 border-black dark:border-neo-dark-border bg-white dark:bg-black transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#fff]"
-              >
-                <BookOpen size={20} />
-              </div>
-            </div>
-         </div>
-
-         {/* Description */}
-         <p className="relative z-10 font-mono text-sm md:text-base text-gray-700 dark:text-gray-300 leading-relaxed mb-8 line-clamp-3">
-           {project.description}
-         </p>
-
-         {/* Links & Action */}
-         <div className="relative z-10 mt-auto flex items-center justify-between border-t-2 border-black/10 dark:border-white/10 pt-6">
-            <div className="flex gap-3">
-              {project.github && (
-                <div 
-                  onClick={(e) => { e.stopPropagation(); window.open(project.github, '_blank'); }}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-sm transition-colors cursor-pointer"
-                >
-                  <Tooltip text="View Code">
-                     <Github size={20} />
-                  </Tooltip>
-                </div>
-              )}
-              <div 
-                onClick={(e) => { e.stopPropagation(); window.open(project.link, '_blank'); }}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-sm transition-colors cursor-pointer"
-              >
-                 <Tooltip text="Live Demo">
-                    <ExternalLink size={20} />
-                 </Tooltip>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider group-hover:underline decoration-2 underline-offset-4 decoration-neo-pink">
-               Read Case Study <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-            </div>
-         </div>
-      </div>
-
-      {/* Marquee Tags Footer */}
-      <div 
-         className="relative z-10 border-t-4 border-black dark:border-neo-dark-border py-3 overflow-hidden"
-         style={{ backgroundColor: activeColorHex }}
+  // ── ARCHIVE TIER VARIANT (Clean white at rest, floating popover on hover) ──
+  if (variant === 'archive') {
+    return (
+      <div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => {
+          if (project.caseStudy) {
+            onCaseStudy(project);
+          }
+        }}
+        className={`relative group flex flex-col justify-between overflow-hidden bg-white border-2 border-black shadow-neo-sm
+          hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all duration-200 h-full min-h-[170px] ${
+            project.caseStudy ? 'cursor-pointer' : ''
+          }`}
       >
-        <div className="flex animate-marquee whitespace-nowrap">
-          {marqueeTags.map((tag, i) => (
-             <span key={i} className="mx-4 font-black text-xs uppercase text-black tracking-widest flex items-center gap-2">
-               {tag} <span className="w-1 h-1 bg-black rounded-full"></span>
-             </span>
-          ))}
+        {/* Top Accent Strip */}
+        <div
+          className="h-1.5 w-full border-b border-black"
+          style={{ backgroundColor: project.accentColor }}
+        />
+
+        {/* Decorative Diagonal Watermark in background */}
+        <div
+          className="absolute -right-2 -bottom-3 text-7xl font-sans font-black text-black/[0.04] select-none pointer-events-none uppercase rotate-6 group-hover:rotate-0 group-hover:scale-105 transition-transform duration-300"
+          aria-hidden="true"
+        >
+          0{project.id}
+        </div>
+
+        {/* Hover Canvas Reveal Effect (Dotted live grid in accent color on hover only) */}
+        <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none mix-blend-multiply">
+          <CanvasRevealEffect
+            animationSpeed={3}
+            containerClassName="bg-transparent"
+            colors={[rgbColor, [0, 0, 0]]}
+            opacities={[0.2, 0.2, 0.3, 0.5, 0.7, 0.9]}
+            dotSize={2.5}
+            enabled={isHovered}
+          />
+        </div>
+
+        {/* Floating Brutalist Popover (Hover details without altering card height) */}
+        {isHovered && (
+          <div className="absolute bottom-[calc(100%+8px)] left-0 right-0 z-40 bg-white border-2 border-black shadow-neo p-3.5 pointer-events-none animate-fadeIn w-[115%] -left-[7.5%]">
+            <div className="flex items-center justify-between gap-1 mb-1.5 pb-1 border-b border-black/10">
+              <span className="font-mono text-[10px] font-black uppercase text-black">
+                {project.title}
+              </span>
+              <span className="font-mono text-[10px] text-muted">Click for Case Study ↗</span>
+            </div>
+            <p className="font-mono text-xs text-black leading-relaxed mb-2">
+              {project.description}
+            </p>
+            {project.primaryMetric && (
+              <p className="font-mono text-[11px] font-bold text-black flex items-center gap-1.5 mb-2 bg-neo-yellow/30 p-1 border border-black/20">
+                <span>⚡</span>
+                <span>{project.primaryMetric}</span>
+              </p>
+            )}
+            <div className="flex flex-wrap gap-1">
+              {project.tags.map((t) => (
+                <span
+                  key={t}
+                  className="font-mono text-[9px] font-bold px-1.5 py-0.5 bg-gray-100 border border-black/30 text-black"
+                >
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Card Header & Content */}
+        <div className="relative z-10 p-4 flex flex-col flex-1 justify-between">
+          <div>
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="font-mono text-[10px] font-black uppercase px-2 py-0.5 bg-black text-white">
+                {project.category}
+              </span>
+              {project.caseStudy && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCaseStudy(project);
+                  }}
+                  className="p-1 hover:bg-black hover:text-white transition-colors border border-black bg-white flex items-center gap-1 text-[10px] font-mono font-bold"
+                  title="View Case Study"
+                >
+                  <BookOpen size={12} />
+                  <span className="hidden sm:inline">Case Study</span>
+                </button>
+              )}
+            </div>
+
+            <h3 className="font-sans text-base font-black text-black leading-tight uppercase mb-1">
+              {project.title}
+            </h3>
+
+            {/* Primary Metric */}
+            {project.primaryMetric && (
+              <p className="font-mono text-xs font-bold text-black/80 mt-1">
+                ⚡ {project.primaryMetric}
+              </p>
+            )}
+          </div>
+
+          {/* Always-Visible Action Links */}
+          <div className="mt-4 pt-3 border-t border-black/15 flex gap-2">
+            {project.github && (
+              <a
+                href={project.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 flex items-center justify-center gap-1 font-mono text-xs font-bold py-1.5 px-2
+                  bg-white text-black border border-black hover:bg-black hover:text-white transition-colors"
+              >
+                <Github size={12} />
+                <span>Code</span>
+              </a>
+            )}
+            {project.link && (
+              <a
+                href={project.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex-1 flex items-center justify-center gap-1 font-mono text-xs font-bold py-1.5 px-2
+                  bg-black text-white border border-black hover:bg-white hover:text-black transition-colors"
+              >
+                <ExternalLink size={12} />
+                <span>Live ↗</span>
+              </a>
+            )}
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Hover Reveal Effect (Canvas) - Optimization: Only animate when hovered */}
-      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none mix-blend-multiply dark:mix-blend-screen">
-          <CanvasRevealEffect 
-             animationSpeed={4} 
-             containerClassName="bg-transparent"
-             colors={[rgbColor]}
-             opacities={[0.1, 0.1, 0.2, 0.2, 0.2, 0.4, 0.4, 0.4, 0.8, 1]}
-             dotSize={2}
-             enabled={isHovered}
-          />
+  // ── FLAGSHIP TIER VARIANT (Clean white at rest, live coloured dot grid on hover) ──
+  return (
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => {
+        if (project.caseStudy) {
+          onCaseStudy(project);
+        }
+      }}
+      className={`relative group flex flex-col justify-between overflow-hidden bg-white border-4 border-black shadow-neo
+        hover:-translate-x-1 hover:-translate-y-1 hover:shadow-neo-lg transition-all duration-200 h-full ${
+          project.caseStudy ? 'cursor-pointer' : ''
+        }`}
+    >
+      {/* Top Accent Strip */}
+      <div
+        className="h-2 w-full border-b-2 border-black"
+        style={{ backgroundColor: project.accentColor }}
+      />
+
+      {/* Interactive Dotted Canvas Reveal Mesh (Only visible on hover) */}
+      <div className="absolute inset-0 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none mix-blend-multiply">
+        <CanvasRevealEffect
+          animationSpeed={3.5}
+          containerClassName="bg-transparent"
+          colors={[rgbColor, [0, 0, 0]]}
+          opacities={[0.2, 0.2, 0.3, 0.5, 0.7, 0.9, 1]}
+          dotSize={3}
+          enabled={isHovered}
+        />
       </div>
-    </button>
+
+      {/* Decorative Diagonal Watermark in background */}
+      <div
+        className="absolute -right-6 -bottom-6 text-8xl font-sans font-black text-black/[0.04] select-none pointer-events-none uppercase rotate-6 group-hover:rotate-0 group-hover:scale-105 transition-transform duration-300"
+        aria-hidden="true"
+      >
+        0{project.id}
+      </div>
+
+      {/* Content Container */}
+      <div className="relative z-10 p-6 sm:p-8 flex flex-col flex-1">
+        {/* Top Badges */}
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <span className="font-mono text-xs font-black uppercase px-2.5 py-1 bg-black text-white border-2 border-black shadow-[2px_2px_0px_0px_#000]">
+            {project.category}
+          </span>
+          <span
+            className="font-mono text-xs font-bold px-2 py-0.5 border border-black"
+            style={{ backgroundColor: project.accentColor + '35' }}
+          >
+            FLAGSHIP 0{project.id}
+          </span>
+        </div>
+
+        {/* Project Title */}
+        <h3 className="font-sans text-2xl sm:text-3xl md:text-4xl font-black text-black leading-none uppercase mb-3 group-hover:underline underline-offset-4 decoration-black">
+          {project.title}
+        </h3>
+
+        {/* Tagline */}
+        {project.tagline && (
+          <p className="font-mono text-xs sm:text-sm font-bold text-muted uppercase tracking-tight mb-4">
+            {project.tagline}
+          </p>
+        )}
+
+        {/* Description */}
+        <p className="font-mono text-xs sm:text-sm text-black leading-relaxed mb-6 flex-1">
+          {project.description}
+        </p>
+
+        {/* Primary Metric Banner */}
+        {project.primaryMetric && (
+          <div
+            className="mb-6 p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-2"
+            style={{ borderLeftWidth: 6, borderLeftColor: project.accentColor }}
+          >
+            <Sparkles size={16} className="text-black" />
+            <div className="font-mono text-xs sm:text-sm font-bold text-black">
+              {project.primaryMetric}
+            </div>
+          </div>
+        )}
+
+        {/* Stack Tags */}
+        <div className="flex flex-wrap gap-1.5 mb-8">
+          {project.tags.slice(0, 3).map((tag) => (
+            <span
+              key={tag}
+              className="font-mono text-[11px] font-bold px-2 py-0.5 bg-canvas text-black border border-black shadow-[1px_1px_0px_0px_#000]"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+
+        {/* Action Button Row */}
+        <div className="mt-auto pt-4 border-t-2 border-black/15 flex flex-wrap gap-2.5 items-center">
+          {/* Live Demo */}
+          {project.link && (
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-black px-4 py-2.5
+                bg-black text-white border-2 border-black
+                shadow-neo-sm hover:bg-white hover:text-black
+                active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
+                transition-all duration-150"
+            >
+              <span>Live Demo</span>
+              <ExternalLink size={14} />
+            </a>
+          )}
+
+          {/* Deep-Dive Case Study */}
+          {project.caseStudy && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCaseStudy(project);
+              }}
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-black px-3.5 py-2.5
+                bg-white text-black border-2 border-black
+                shadow-neo-sm hover:bg-neo-yellow hover:text-black
+                active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
+                transition-all duration-150"
+            >
+              <span>Case Study</span>
+              <ArrowRight size={14} />
+            </button>
+          )}
+
+          {/* GitHub Repo */}
+          {project.github && (
+            <a
+              href={project.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-3 py-2.5
+                bg-canvas text-black border-2 border-black
+                hover:bg-white hover:shadow-neo-sm
+                active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
+                transition-all duration-150 ml-auto"
+              title="View Source on GitHub"
+            >
+              <Github size={14} />
+              <span className="hidden sm:inline">Source</span>
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

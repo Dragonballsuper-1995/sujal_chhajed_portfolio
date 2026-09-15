@@ -1,6 +1,6 @@
-
 import React from 'react';
-import { ExternalLink, ArrowRight } from 'lucide-react';
+import { ExternalLink, Github, Linkedin, Instagram } from 'lucide-react';
+import { XIcon } from './XIcon';
 import { NavSection } from '../types';
 import { PERSONAL_INFO, SOCIALS } from '../constants';
 
@@ -8,86 +8,178 @@ interface FooterProps {
   scrollToSection: (id: NavSection) => void;
 }
 
-const getSocialHoverClass = (platform: string) => {
-  switch(platform.toLowerCase()) {
-    case 'github': return 'hover:text-[#f0f6fc]';
-    case 'linkedin': return 'hover:text-[#0077b5]';
-    case 'instagram': return 'hover:text-[#E4405F]';
-    case 'twitter': return 'hover:text-[#1DA1F2]';
-    default: return 'hover:text-neo-green';
+const getSocialIcon = (platform: string) => {
+  switch (platform.toLowerCase()) {
+    case 'github':
+      return <Github size={15} />;
+    case 'linkedin':
+      return <Linkedin size={15} />;
+    case 'twitter':
+    case 'x':
+      return <XIcon size={14} />;
+    case 'instagram':
+      return <Instagram size={15} />;
+    default:
+      return <ExternalLink size={15} />;
   }
 };
 
-const Footer: React.FC<FooterProps> = ({ scrollToSection }) => (
-  <footer className="bg-neo-dark-bg text-neo-dark-text border-t-4 border-neo-dark-border relative overflow-hidden">
-    <div className="bg-neo-yellow text-black border-b-4 border-black py-2 overflow-hidden flex relative z-10">
-      <div className="animate-marquee whitespace-nowrap font-black text-lg md:text-xl uppercase tracking-wider shrink-0 min-w-full">
-        &nbsp;• AVAILABLE FOR WORK • LET'S BUILD SOMETHING AWESOME • OPEN TO COLLABORATION • FRONTEND MAGIC • AI INTEGRATION • AVAILABLE FOR WORK • LET'S BUILD SOMETHING AWESOME • OPEN TO COLLABORATION
-      </div>
-      <div className="animate-marquee whitespace-nowrap font-black text-lg md:text-xl uppercase tracking-wider shrink-0 min-w-full" aria-hidden="true">
-        &nbsp;• AVAILABLE FOR WORK • LET'S BUILD SOMETHING AWESOME • OPEN TO COLLABORATION • FRONTEND MAGIC • AI INTEGRATION • AVAILABLE FOR WORK • LET'S BUILD SOMETHING AWESOME • OPEN TO COLLABORATION
-      </div>
-    </div>
-    <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-12 gap-8 relative z-10">
-      <div className="md:col-span-6 space-y-4">
-        <button onClick={() => scrollToSection(NavSection.HERO)} className="group block text-left">
-          <h2 className="text-5xl md:text-6xl font-black uppercase tracking-tighter leading-none mb-1">
-            SUJAL<span className="text-transparent stroke-text group-hover:text-neo-pink transition-colors">.DEV</span>
+const getSocialColorClass = (platform: string) => {
+  switch (platform.toLowerCase()) {
+    case 'linkedin':
+      return 'text-[#0077B5] hover:text-white border-[#0077B5]/60 hover:border-[#0077B5] bg-[#0077B5]/15 hover:bg-[#0077B5]';
+    case 'github':
+      return 'text-[#F0F6FC] hover:text-white border-white/20 hover:border-white/60 hover:bg-white/10';
+    case 'twitter':
+    case 'x':
+      return 'text-white hover:text-gray-300 border-white/20 hover:border-white/60 hover:bg-white/10';
+    case 'instagram':
+      return 'text-[#E4405F] hover:text-[#FD1D1D] border-[#E4405F]/40 hover:border-[#E4405F] hover:bg-[#E4405F]/15';
+    default:
+      return 'text-gray-300 hover:text-white border-white/20 hover:border-white/60 hover:bg-white/10';
+  }
+};
+
+const Footer: React.FC<FooterProps> = ({ scrollToSection }) => {
+  return (
+    <footer className="bg-[#0A0A10] text-white border-t-4 border-black relative overflow-hidden select-none">
+      {/* ── Main Footer Architecture (Decluttered & Compact) ─────────── */}
+      <div className="max-w-6xl mx-auto px-5 md:px-8 pt-10 sm:pt-12 pb-4 sm:pb-6 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 relative z-10">
+        
+        {/* Left: Eye-Catching Punchline (MAJD Inspiration) */}
+        <div className="md:col-span-6 space-y-4">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-sans font-black tracking-tight leading-[0.95] text-white uppercase">
+            Engineering AI <br />
+            <span className="text-neo-yellow">That Scales.</span>
           </h2>
-        </button>
-        <p className="font-mono text-neo-dark-text-muted text-sm max-w-sm leading-relaxed">
-          Crafting digital experiences with code, creativity, and a touch of chaos.
-        </p>
-        <div className="pt-2">
-          <a href={PERSONAL_INFO.resumeLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-black font-mono text-sm uppercase bg-white text-black px-4 py-2 border-2 border-black hover:bg-neo-pink hover:text-black transition-all shadow-neo-sm hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]">
-            Download Resume <ExternalLink size={14} />
-          </a>
+          <p className="font-mono text-gray-400 text-xs sm:text-sm max-w-sm leading-relaxed">
+            Deterministic inference optimization, fine-tuned LLM architectures, and resilient full-stack systems.
+          </p>
         </div>
-      </div>
-      <div className="md:col-span-3 flex flex-col">
-        <h3 className="font-black text-neo-green uppercase text-lg mb-4 tracking-wide">Sitemap</h3>
-        <ul className="space-y-2 font-mono text-sm mb-6">
-          {Object.values(NavSection).map((section) => (
-            <li key={section}>
-              <button
-                onClick={() => scrollToSection(section)}
-                className="hover:text-neo-pink hover:translate-x-1 transition-transform uppercase text-neo-dark-text-muted hover:text-neo-dark-text"
-              >
-                {section}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-      <div className="md:col-span-3">
-        <h3 className="font-black text-neo-blue uppercase text-lg mb-4 tracking-wide">Socials</h3>
-        <ul className="space-y-2 font-mono text-sm">
-          {SOCIALS.map(social => (
-            <li key={social.platform}>
+
+        {/* Center: /Quick links */}
+        <div className="md:col-span-3 flex flex-col">
+          <span className="font-mono text-xs uppercase font-bold text-gray-400 tracking-wider mb-3">
+            /Quick links
+          </span>
+          <div className="flex flex-wrap gap-2 max-w-xs">
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(NavSection.HERO);
+              }}
+              className="px-3 py-1 bg-white text-black font-mono text-xs font-bold uppercase rounded-lg hover:bg-neo-yellow transition-colors shadow-sm cursor-pointer"
+            >
+              Home
+            </a>
+            <a
+              href="/about"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(NavSection.ABOUT);
+              }}
+              className="px-3 py-1 bg-white text-black font-mono text-xs font-bold uppercase rounded-lg hover:bg-neo-green transition-colors shadow-sm cursor-pointer"
+            >
+              About Me
+            </a>
+            <a
+              href="/skills"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(NavSection.SKILLS);
+              }}
+              className="px-3 py-1 bg-white text-black font-mono text-xs font-bold uppercase rounded-lg hover:bg-neo-blue transition-colors shadow-sm cursor-pointer"
+            >
+              Skills
+            </a>
+            <a
+              href="/projects"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(NavSection.PROJECTS);
+              }}
+              className="px-3 py-1 bg-white text-black font-mono text-xs font-bold uppercase rounded-lg hover:bg-neo-yellow transition-colors shadow-sm cursor-pointer"
+            >
+              Projects
+            </a>
+            <a
+              href="/contact"
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(NavSection.CONTACT);
+              }}
+              className="px-3 py-1 bg-white text-black font-mono text-xs font-bold uppercase rounded-lg hover:bg-neo-pink transition-colors shadow-sm cursor-pointer"
+            >
+              Contact
+            </a>
+            <a
+              href={PERSONAL_INFO.resumeLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1 bg-neo-yellow text-black font-mono text-xs font-bold uppercase rounded-lg hover:bg-white transition-colors shadow-sm inline-flex items-center gap-1"
+            >
+              <span>Resume</span>
+              <ExternalLink size={11} />
+            </a>
+          </div>
+        </div>
+
+        {/* Right: /Contact & Networks */}
+        <div className="md:col-span-3 flex flex-col">
+          <span className="font-mono text-xs uppercase font-bold text-gray-400 tracking-wider mb-3">
+            /Contact
+          </span>
+          <a
+            href={`mailto:${PERSONAL_INFO.email}`}
+            className="font-mono text-xs sm:text-sm text-gray-300 hover:text-neo-yellow transition-colors break-all mb-3"
+          >
+            {PERSONAL_INFO.email}
+          </a>
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            {SOCIALS.map((social) => (
               <a
+                key={social.platform}
                 href={social.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`hover:translate-x-1 transition-transform uppercase flex items-center gap-2 text-neo-dark-text-muted ${getSocialHoverClass(social.platform)}`}
+                className={`p-2 rounded-lg border transition-all duration-150 flex items-center justify-center ${getSocialColorClass(social.platform)}`}
+                title={social.platform}
               >
-                {social.platform} <ArrowRight size={12} className="-rotate-45" />
+                {getSocialIcon(social.platform)}
               </a>
-            </li>
-          ))}
-        </ul>
+            ))}
+          </div>
+        </div>
+
       </div>
-    </div>
-    <div className="border-t border-neo-dark-surface bg-neo-dark-bg py-4 relative z-10">
-      <div className="max-w-7xl mx-auto px-6 flex justify-center items-center font-mono text-xs text-neo-dark-text-muted">
-        <p>© {new Date().getFullYear()} Sujal Sanjay Chhajed. All rights reserved.</p>
+
+      {/* ── Architectural Name Watermark (Subtly Cropped at Base) ── */}
+      <div
+        className="w-full overflow-hidden pointer-events-none select-none z-0 flex justify-center items-end relative -mb-4 sm:-mb-6 md:-mb-8"
+        aria-hidden="true"
+      >
+        <span className="font-sans font-black text-[22vw] leading-[0.72] tracking-tighter uppercase text-white/[0.08] whitespace-nowrap block select-none translate-y-[6%]">
+          SUJAL
+        </span>
       </div>
-    </div>
-    <style>{`
-      .stroke-text {
-        -webkit-text-stroke: 1px #FAFAFA;
-      }
-    `}</style>
-  </footer>
-);
+
+      {/* ── Bottom Copyright Strip ───────────────────────────────────────── */}
+      <div className="border-t border-white/10 bg-[#0A0A10] py-5 relative z-10">
+        <div className="max-w-6xl mx-auto px-5 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-xs text-gray-500">
+          <p>© {new Date().getFullYear()} Sujal Sanjay Chhajed • Built with React 18 & Vite</p>
+          <p className="text-gray-400 font-bold">Chennai, India • Available Globally</p>
+        </div>
+      </div>
+
+      <style>{`
+        .stroke-text {
+          -webkit-text-stroke: 1.5px #FAFAFA;
+        }
+      `}</style>
+    </footer>
+  );
+};
 
 export default React.memo(Footer);

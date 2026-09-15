@@ -1,151 +1,186 @@
-
 import React from 'react';
+import { ExternalLink, Github } from 'lucide-react';
 import { Project } from '../types';
-import { ExternalLink, Github, Layers, Target, AlertTriangle, Code2 } from 'lucide-react';
-import Badge from './ui/Badge';
 
 interface ProjectCaseStudyProps {
   project: Project;
 }
 
 const ProjectCaseStudy: React.FC<ProjectCaseStudyProps> = ({ project }) => {
-  if (!project.caseStudy) return null;
+  const { caseStudy, accentColor } = project;
 
-  const { problem, solution, features, challenges, stackDetails } = project.caseStudy;
+  if (!caseStudy) {
+    return (
+      <div className="p-8 font-mono text-sm text-muted">
+        No case study available for this project.
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto bg-white dark:bg-neo-dark-surface font-sans">
-      
-      {/* Hero Image Section */}
-      <div className="relative w-full aspect-video md:aspect-[21/9] border-b-4 border-black dark:border-neo-dark-border shrink-0 overflow-hidden group">
-        <img 
-          src={project.image} 
-          alt={project.title} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-          decoding="async"
-        />
-        <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-300" />
-      </div>
-
-      {/* Content Container */}
-      <div className="p-6 md:p-8">
-        
-        {/* Header Information */}
-        <div className="mb-8 border-b-4 border-black dark:border-neo-dark-border pb-6">
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Badge variant="accent">{project.category}</Badge>
-            {project.tags.slice(0, 3).map(tag => (
-               <Badge key={tag} variant="outline" className="text-[10px]">{tag}</Badge>
-            ))}
+    <div className="h-full flex flex-col overflow-y-auto bg-canvas">
+      {/* Header strip with space reserved for close button */}
+      <div
+        className="flex-shrink-0 px-6 sm:px-8 py-5 border-b-2 border-black flex items-center gap-3 pr-16 bg-white"
+        style={{ borderLeftColor: accentColor || '#FFDE59', borderLeftWidth: 6 }}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="font-mono text-[10px] font-black uppercase px-2 py-0.5 bg-black text-white">
+              {project.category}
+            </span>
+            <span className="font-mono text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+              Engineering Deep Dive
+            </span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-black uppercase leading-tight mb-4 text-black dark:text-white">
+          <h2 className="font-sans text-xl sm:text-2xl md:text-3xl font-black text-black leading-tight uppercase tracking-tight break-words">
             {project.title}
           </h2>
-          <p className="font-mono text-gray-600 dark:text-gray-400 text-lg leading-relaxed">
-             {project.description}
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 mt-6">
-             <a 
-                href={project.link} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex-1 bg-neo-yellow text-black border-2 border-black font-bold uppercase py-3 text-center hover:shadow-neo transition-all flex items-center justify-center gap-2 hover:-translate-y-1"
-             >
-                Live Demo <ExternalLink size={16} />
-             </a>
-             {project.github && (
-                <a 
-                  href={project.github} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex-1 bg-white dark:bg-black text-black dark:text-white border-2 border-black dark:border-white font-bold uppercase py-3 text-center hover:shadow-neo transition-all flex items-center justify-center gap-2 hover:-translate-y-1"
-                >
-                  Code <Github size={16} />
-                </a>
-             )}
+          {project.tagline && (
+            <p className="font-mono text-xs sm:text-sm font-semibold text-gray-700 mt-1 leading-snug break-words">
+              {project.tagline}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 px-5 sm:px-8 py-6 sm:py-8 space-y-8 sm:space-y-10">
+
+        {/* Problem + Solution */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+          <div className="p-4 sm:p-5 bg-white border-2 border-black shadow-[3px_3px_0px_0px_#000]">
+            <h3 className="font-mono text-[11px] font-black uppercase tracking-widest text-black mb-2.5 flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-neo-pink inline-block" />
+              The Problem
+            </h3>
+            <p className="font-mono text-xs sm:text-sm text-gray-800 leading-relaxed break-words">
+              {caseStudy.problem}
+            </p>
+          </div>
+          <div className="p-4 sm:p-5 bg-white border-2 border-black shadow-[3px_3px_0px_0px_#000]">
+            <h3 className="font-mono text-[11px] font-black uppercase tracking-widest text-black mb-2.5 flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-neo-green inline-block" />
+              The Solution
+            </h3>
+            <p className="font-mono text-xs sm:text-sm text-gray-800 leading-relaxed break-words">
+              {caseStudy.solution}
+            </p>
           </div>
         </div>
 
-        {/* Detailed Case Study Grid */}
-        <div className="space-y-12">
-           
-           {/* Problem & Solution */}
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="bg-red-50 dark:bg-red-900/10 p-6 border-l-4 border-neo-pink shadow-sm">
-                 <h3 className="font-black uppercase flex items-center gap-2 mb-3 text-xl tracking-wide">
-                    <AlertTriangle size={24} className="text-neo-pink" /> The Challenge
-                 </h3>
-                 <p className="font-mono text-sm md:text-base leading-relaxed opacity-90">{problem}</p>
-              </div>
-              
-              <div className="bg-green-50 dark:bg-green-900/10 p-6 border-l-4 border-neo-green shadow-sm">
-                 <h3 className="font-black uppercase flex items-center gap-2 mb-3 text-xl tracking-wide">
-                    <Target size={24} className="text-neo-green" /> The Solution
-                 </h3>
-                 <p className="font-mono text-sm md:text-base leading-relaxed opacity-90">{solution}</p>
-              </div>
-           </div>
+        {/* Metrics — responsive grid */}
+        {caseStudy.metrics && caseStudy.metrics.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-mono text-xs font-black uppercase tracking-widest text-black flex items-center gap-2">
+              <span className="w-2.5 h-2.5 bg-neo-yellow border border-black inline-block" />
+              Production Metrics & Validation
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+              {caseStudy.metrics.map((m) => (
+                <div
+                  key={m.label}
+                  className="bg-white border-2 border-black p-3 sm:p-3.5 shadow-[2px_2px_0px_0px_#000] flex flex-col justify-between"
+                  style={{ borderTopColor: accentColor || '#FFDE59', borderTopWidth: 4 }}
+                >
+                  <p className="font-sans text-sm sm:text-base font-black text-black leading-tight break-words mb-1">
+                    {m.value}
+                  </p>
+                  <p className="font-mono text-[10px] sm:text-[11px] font-semibold text-gray-600 leading-tight">
+                    {m.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-           {/* Features */}
-           <div>
-              <h3 className="font-black uppercase text-2xl mb-6 flex items-center gap-3 border-b-4 border-black dark:border-white/20 pb-3 inline-block">
-                 <Layers size={28} /> Key Features
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                 {features.map((feature, i) => (
-                    <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-zinc-900 border-2 border-transparent hover:border-black dark:hover:border-white transition-colors">
-                       <span className="bg-neo-purple text-white w-8 h-8 flex items-center justify-center font-black text-sm shrink-0 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_#fff]">{i + 1}</span>
-                       <span className="pt-1 font-mono text-sm leading-snug">{feature}</span>
+        {/* Architecture pipeline */}
+        {caseStudy.architecture && caseStudy.architecture.length > 0 && (
+          <div className="space-y-4">
+            <h3 className="font-mono text-xs font-black uppercase tracking-widest text-black flex items-center gap-2">
+              <span className="w-2.5 h-2.5 bg-neo-blue border border-black inline-block" />
+              System Architecture & Execution Pipeline
+            </h3>
+            <div className="space-y-3 bg-white border-2 border-black p-4 sm:p-5 shadow-[3px_3px_0px_0px_#000]">
+              {caseStudy.architecture.map((step, i) => (
+                <div key={step.step} className="flex gap-3 sm:gap-4 items-start">
+                  {/* Step indicator */}
+                  <div className="flex-shrink-0 flex flex-col items-center">
+                    <div
+                      className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center border-2 border-black font-mono text-[11px] sm:text-xs font-black"
+                      style={{ backgroundColor: i === 0 ? (accentColor || '#FFDE59') : '#FFFFFF' }}
+                    >
+                      {i + 1}
                     </div>
-                 ))}
-              </div>
-           </div>
-
-           {/* Technical Stack Deep Dive */}
-           <div>
-              <h3 className="font-black uppercase text-2xl mb-6 flex items-center gap-3 border-b-4 border-black dark:border-white/20 pb-3 inline-block">
-                 <Code2 size={28} /> Tech Stack Decisions
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 {stackDetails.map((item, i) => (
-                    <div key={i} className="flex flex-col h-full border-4 border-black dark:border-neo-dark-border p-4 md:p-5 bg-white dark:bg-neo-dark-surface shadow-neo dark:shadow-neo-dark hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-neo-lg dark:hover:shadow-neo-lg-dark transition-all group min-w-0">
-                       <div className="mb-4 w-full">
-                          <span className="bg-black dark:bg-white text-neo-blue dark:text-black font-black uppercase text-xs md:text-sm tracking-wider px-2 py-1 shadow-sm group-hover:bg-neo-blue group-hover:text-black transition-colors inline-block max-w-full break-words leading-tight">
-                             {item.name}
-                          </span>
-                       </div>
-                       <p className="font-mono text-xs md:text-sm leading-relaxed text-gray-700 dark:text-gray-300 flex-grow">
-                          {item.reason}
-                       </p>
+                    {i < caseStudy.architecture!.length - 1 && (
+                      <div className="w-0.5 flex-1 bg-black/20 mt-1 min-h-[22px]" />
+                    )}
+                  </div>
+                  {/* Content */}
+                  <div className="pb-3 flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                      <span className="font-mono text-[10px] font-bold text-gray-500 uppercase">
+                        {step.step}
+                      </span>
+                      <p className="font-sans text-xs sm:text-sm font-black text-black leading-tight">
+                        {step.title}
+                      </p>
                     </div>
-                 ))}
-              </div>
-           </div>
+                    <p className="font-mono text-[11px] sm:text-xs text-gray-700 leading-relaxed break-words">
+                      {step.detail}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-           {/* Challenges */}
-           <div className="bg-gray-100 dark:bg-zinc-900 p-6 md:p-8 border-4 border-black dark:border-gray-600 border-dashed relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                 <AlertTriangle size={120} />
-              </div>
-              <h3 className="font-black uppercase text-xl mb-4 relative z-10">Development Hurdles & Learnings</h3>
-              <ul className="space-y-3 font-mono text-sm md:text-base opacity-90 relative z-10">
-                 {challenges.map((challenge, i) => (
-                    <li key={i} className="flex gap-3">
-                       <span className="text-neo-pink font-bold">»</span>
-                       {challenge}
-                    </li>
-                 ))}
-              </ul>
-           </div>
+        {/* Links */}
+        <div className="flex flex-wrap gap-2.5 pt-4 border-t-2 border-black/15">
+          {project.link && (
+            <a
+              href={project.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-4 py-2.5 bg-black text-white border-2 border-black
+                shadow-neo-sm hover:bg-neo-yellow hover:text-black hover:shadow-neo
+                active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            >
+              <span>Live Demo</span>
+              <ExternalLink size={13} />
+            </a>
+          )}
+          {project.github && (
+            <a
+              href={project.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-4 py-2.5 bg-white text-black border-2 border-black
+                shadow-neo-sm hover:bg-gray-100 hover:shadow-neo
+                active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            >
+              <Github size={13} />
+              <span>GitHub Repository</span>
+            </a>
+          )}
+          {project.huggingFace && (
+            <a
+              href={project.huggingFace}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-4 py-2.5 bg-white text-black border-2 border-black
+                shadow-neo-sm hover:bg-neo-blue hover:text-black hover:shadow-neo
+                active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            >
+              <span>Hugging Face Space ↗</span>
+            </a>
+          )}
         </div>
-        
-        {/* Footer padding */}
-        <div className="h-10"></div>
       </div>
     </div>
   );
 };
 
 export default ProjectCaseStudy;
+

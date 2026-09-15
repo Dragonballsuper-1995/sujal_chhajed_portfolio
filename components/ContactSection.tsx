@@ -1,213 +1,289 @@
-
-import React from 'react';
-import { Mail, Copy, ArrowRight, Code, Terminal, Zap, Hash } from 'lucide-react';
-import { gsap } from 'gsap';
-import Section from './Section';
-import NeoButton from './NeoButton';
-import Tooltip from './Tooltip';
+import React, { useState, useCallback } from 'react';
+import { Copy, Check, Send, Linkedin, Github, Instagram, Sparkles } from 'lucide-react';
+import { XIcon } from './XIcon';
 import { NavSection } from '../types';
-import { PERSONAL_INFO, SOCIALS } from '../constants';
-import { DecryptedText } from './ui/DecryptedText';
-import ScrollAnimation from './ui/ScrollAnimation';
+import { PERSONAL_INFO } from '../constants';
 
 interface ContactSectionProps {
-  setIsContactOpen: (isOpen: boolean) => void;
+  setIsContactOpen?: (isOpen: boolean) => void;
   copyToClipboard: (text: string, type: string) => void;
 }
 
-const getSocialHoverClass = (platform: string) => {
-  switch(platform.toLowerCase()) {
-    case 'github': return 'hover:text-black'; // Always black on hover for contrast against purple bg
-    case 'linkedin': return 'hover:text-[#0077b5]';
-    case 'instagram': return 'hover:text-[#E4405F]';
-    case 'twitter': return 'hover:text-[#1DA1F2]';
-    default: return 'hover:text-neo-green';
-  }
-};
+const FORMSPREE_URL = 'https://formspree.io/f/xqagjnpj';
 
-const ContactSection: React.FC<ContactSectionProps> = ({ setIsContactOpen, copyToClipboard }) => {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+const ContactSection: React.FC<ContactSectionProps> = ({ copyToClipboard }) => {
+  const [copied, setCopied] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
-  React.useEffect(() => {
-    // Parallax effect based on mouse movement over the container
-    const container = containerRef.current;
-    if (!container) return;
+  const handleCopy = () => {
+    navigator.clipboard.writeText(PERSONAL_INFO.email);
+    setCopied(true);
+    copyToClipboard(PERSONAL_INFO.email, 'email');
+    setTimeout(() => setCopied(false), 2500);
+  };
 
-    const stickers = container.querySelectorAll('.parallax-sticker');
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      setErrorMessage('Please fill in all fields.');
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 3000);
+      return;
+    }
 
-    let rafId: number | null = null;
-    let targetX = 0;
-    let targetY = 0;
-    let isMouseMoving = false;
+    setStatus('loading');
 
-    const renderParallax = () => {
-      if (!isMouseMoving) return;
-
-      stickers.forEach((sticker) => {
-        // Different depth multipliers and directions based on data attributes
-        const depth = parseFloat((sticker as HTMLElement).dataset.depth || "1");
-        const dirX = parseFloat((sticker as HTMLElement).dataset.dirX || "1");
-        const dirY = parseFloat((sticker as HTMLElement).dataset.dirY || "1");
-
-        gsap.to(sticker, {
-          x: targetX * 30 * depth * dirX,
-          y: targetY * 30 * depth * dirY,
-          rotation: targetX * 10 * depth,
-          ease: "power2.out",
-          duration: 0.5
-        });
+    try {
+      const response = await fetch(FORMSPREE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(form),
       });
-      isMouseMoving = false;
-    };
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = container.getBoundingClientRect();
-      // Calculate mouse position relative to the center of the container (-1 to 1)
-      targetX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      targetY = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-
-      if (!isMouseMoving) {
-        isMouseMoving = true;
-        rafId = requestAnimationFrame(renderParallax);
+      if (response.ok) {
+        setStatus('success');
+        setForm({ name: '', email: '', message: '' });
+        setTimeout(() => setStatus('idle'), 4000);
+      } else {
+        const data = await response.json();
+        setErrorMessage(data.errors?.[0]?.message || 'Failed to deliver message.');
+        setStatus('error');
+        setTimeout(() => setStatus('idle'), 3000);
       }
-    };
-
-    const handleMouseLeave = () => {
-      gsap.to(stickers, {
-        x: 0,
-        y: 0,
-        rotation: 0,
-        ease: "elastic.out(1, 0.3)",
-        duration: 1.5
-      });
-    };
-
-    container.addEventListener('mousemove', handleMouseMove, { passive: true });
-    container.addEventListener('mouseleave', handleMouseLeave);
-
-    return () => {
-      container.removeEventListener('mousemove', handleMouseMove);
-      container.removeEventListener('mouseleave', handleMouseLeave);
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-      }
-    };
-  }, []);
+    } catch {
+      setErrorMessage('Network error. Please try direct email.');
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 3000);
+    }
+  }, [form]);
 
   return (
-  <Section id={NavSection.CONTACT}>
-    <ScrollAnimation variant="scale" duration={0.6}>
-      <div ref={containerRef} className="relative group/parallax">
-      <div className="grid grid-cols-1 lg:grid-cols-5 border-4 border-black dark:border-neo-dark-border bg-white dark:bg-neo-dark-surface shadow-neo-xl dark:shadow-neo-lg-dark">
-        {/* Left Column: Contact Info */}
-        <div className="lg:col-span-2 bg-neo-purple p-8 md:p-10 flex flex-col justify-between text-white border-b-4 lg:border-b-0 lg:border-r-4 border-black dark:border-neo-dark-border relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-all duration-500 ease-out transform group-hover:scale-75">
-            <Mail size={180} />
-          </div>
-          <div className="relative z-10">
-            <h2 className="text-4xl md:text-5xl font-black uppercase leading-none mb-6">
-              <DecryptedText text="Ready to" /> <br /><span className="text-neo-green"><DecryptedText text="Start?" /></span>
-            </h2>
-            <p className="font-mono text-base mb-8 opacity-90 leading-relaxed">
-              I'm currently available for freelance projects and open to full-time opportunities.
-            </p>
-          </div>
-          <div className="space-y-6 relative z-10">
+    <section
+      id={NavSection.CONTACT}
+      className="scroll-mt-16 py-20 md:py-28 bg-transparent text-ink border-t-4 border-black relative overflow-hidden"
+    >
+      {/* Giant Decorative Monogram Watermark */}
+      <div
+        className="absolute bottom-0 right-0 sm:right-4 text-[12rem] sm:text-[16rem] md:text-[20rem] lg:text-[24rem] font-sans font-black text-black/[0.03] select-none pointer-events-none uppercase leading-none tracking-tighter z-0"
+        aria-hidden="true"
+      >
+        SC
+      </div>
+
+      <div className="max-w-6xl mx-auto px-5 md:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+
+          {/* ── Left Column: Contact Identity & Direct Channels ────────────── */}
+          <div className="lg:col-span-6 space-y-8">
+            {/* Status Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-neo-green text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm">
+              <span className="w-2 h-2 rounded-full bg-black animate-ping" />
+              <span>Available For High-Impact Roles</span>
+            </div>
+
+            {/* Headline */}
             <div>
-              <p className="font-bold font-mono text-xs uppercase opacity-70 mb-1">Email</p>
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black uppercase tracking-tight leading-[0.95] text-ink mb-4">
+                Get In <br />
+                <span className="inline-block bg-neo-yellow text-black px-3 py-0.5 mt-2 border-3 border-[3px] border-black shadow-[4px_4px_0px_0px_#000000]">
+                  Touch.
+                </span>
+              </h2>
+              <p className="font-mono text-sm sm:text-base text-gray-700 max-w-md leading-relaxed">
+                Have an AI/ML system to design, a production pipeline to optimize, or an engineering role to discuss? Reach out directly.
+              </p>
+            </div>
+
+            {/* Direct Email Card */}
+            <div className="p-5 bg-white border-4 border-black shadow-neo">
+              <span className="font-mono text-xs uppercase font-bold text-black/70 block mb-1">
+                Direct Inquiries
+              </span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <a
                   href={`mailto:${PERSONAL_INFO.email}`}
-                  className="min-w-0 flex-1 shrink font-black hover:underline underline-offset-4 decoration-2 whitespace-nowrap leading-none tracking-tight text-[clamp(0.6rem,3.6vw,1.25rem)]"
+                  className="font-mono text-sm sm:text-base font-bold text-black hover:text-neo-pink hover:underline transition-colors break-all"
                 >
                   {PERSONAL_INFO.email}
                 </a>
-                <Tooltip text="Copy Email">
-                  <button onClick={() => copyToClipboard(PERSONAL_INFO.email, 'email')} className="p-1.5 sm:p-2 bg-white/10 hover:bg-white hover:text-neo-purple border-2 border-transparent hover:border-black transition-colors rounded-none" aria-label="Copy Email">
-                    <Copy size={16} />
-                  </button>
-                </Tooltip>
-              </div>
-            </div>
-            <div>
-              <p className="font-bold font-mono text-xs uppercase opacity-70 mb-1">Phone</p>
-              <div className="flex items-center gap-3 min-w-0">
-                <a
-                  href={`tel:${PERSONAL_INFO.phone}`}
-                  className="min-w-0 flex-1 text-xl font-black hover:underline underline-offset-4 decoration-2 whitespace-nowrap"
+                <button
+                  onClick={handleCopy}
+                  className="inline-flex items-center justify-center gap-1.5 font-mono text-xs font-bold px-3.5 py-2
+                    bg-neo-yellow text-black border-2 border-black hover:bg-neo-pink transition-all shadow-neo-sm hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 whitespace-nowrap"
+                  title="Copy email to clipboard"
                 >
-                  {PERSONAL_INFO.phone}
-                </a>
-                <Tooltip text="Copy Phone">
-                  <button onClick={() => copyToClipboard(PERSONAL_INFO.phone, 'phone')} className="p-2 bg-white/10 hover:bg-white hover:text-neo-purple border-2 border-transparent hover:border-black transition-colors rounded-none" aria-label="Copy Phone Number">
-                    <Copy size={16} />
-                  </button>
-                </Tooltip>
+                  {copied ? <Check size={14} className="text-black" /> : <Copy size={14} />}
+                  <span>{copied ? 'Copied!' : 'Copy'}</span>
+                </button>
               </div>
             </div>
-            <div className="pt-6 mt-6 border-t-2 border-white/20">
-              <p className="font-bold font-mono text-xs uppercase opacity-70 mb-3">Connect</p>
-              <div className="grid grid-cols-2 gap-y-2 gap-x-4">
-                {SOCIALS.map(social => (
-                  <a
-                    key={social.platform}
-                    href={social.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`text-lg font-black inline-flex items-center gap-1 group/social transition-colors ${getSocialHoverClass(social.platform)}`}
-                  >
-                    {social.platform}
-                    <ArrowRight size={14} className="-rotate-45 opacity-0 -translate-x-2 group-hover/social:opacity-100 group-hover/social:translate-x-0 transition-all duration-300" />
-                  </a>
-                ))}
+
+            {/* Quick Context & Availability */}
+            <div className="flex flex-wrap items-center gap-6 font-mono text-xs text-gray-700 font-semibold">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-neo-green border border-black animate-pulse" />
+                <span>IST (UTC+5:30) • Available Globally</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Sparkles size={14} className="text-black" />
+                <span>Fast Response within 24h</span>
               </div>
             </div>
-          </div>
-        </div>
-        
-        {/* Right Column: Contact CTA */}
-        <div className="lg:col-span-3 p-8 md:p-10 bg-white dark:bg-neo-dark-surface flex flex-col justify-center items-center text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-grid-pattern opacity-5 pointer-events-none"></div>
 
-          {/* Parallax Stickers with different movement directions */}
-          <div className="parallax-sticker absolute top-8 left-8 text-neo-pink opacity-80" data-depth="1.5" data-dir-x="1" data-dir-y="1">
-            <Code size={48} />
-          </div>
-          <div className="parallax-sticker absolute bottom-12 right-12 text-neo-cyan opacity-80" data-depth="0.8" data-dir-x="-1" data-dir-y="-1">
-            <Terminal size={56} />
-          </div>
-          <div className="parallax-sticker absolute top-16 right-16 text-neo-yellow opacity-80" data-depth="2.0" data-dir-x="-1" data-dir-y="1">
-            <Zap size={40} />
-          </div>
-          <div className="parallax-sticker absolute bottom-8 left-16 text-neo-green opacity-80" data-depth="1.2" data-dir-x="1" data-dir-y="-1">
-            <Hash size={44} />
-          </div>
-
-          <div className="relative z-10 max-w-md space-y-8">
-            <div className="inline-block p-4 border-4 border-black dark:border-neo-dark-border rounded-full bg-neo-yellow shadow-neo mb-4">
-              <Mail size={48} className="text-black" />
-            </div>
-            <div>
-              <h3 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase mb-4 whitespace-nowrap">
-                <DecryptedText text="Let's Collabor" />
-                <span className="text-neo-pink"><DecryptedText text="ate" /></span>
-              </h3>
-              <p className="font-mono text-gray-600 dark:text-neo-dark-text-muted">
-                Have a project in mind or just want to say hi? Hit the button below to open a direct channel.
+            {/* Social Grid */}
+            <div className="pt-4 border-t-2 border-black/10">
+              <p className="font-mono text-xs font-bold text-black/70 uppercase mb-3">
+                Social Profiles & Networks
               </p>
+              <div className="flex flex-wrap gap-2.5">
+                <a
+                  href={PERSONAL_INFO.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 font-mono text-xs font-bold px-3.5 py-2
+                    bg-white text-[#181717] border-2 border-black shadow-neo-sm hover:bg-[#181717] hover:text-white hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all group"
+                >
+                  <Github size={14} className="text-[#181717] group-hover:text-white transition-colors" />
+                  <span>GitHub</span>
+                </a>
+                <a
+                  href={PERSONAL_INFO.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 font-mono text-xs font-bold px-3.5 py-2
+                    bg-white text-[#0A66C2] border-2 border-black shadow-neo-sm hover:bg-[#0A66C2] hover:text-white hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all group"
+                >
+                  <Linkedin size={14} className="text-[#0A66C2] group-hover:text-white transition-colors" />
+                  <span>LinkedIn</span>
+                </a>
+                <a
+                  href="https://x.com/sujal_chhajed"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 font-mono text-xs font-bold px-3.5 py-2
+                    bg-white text-black border-2 border-black shadow-neo-sm hover:bg-black hover:text-white hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all group"
+                >
+                  <XIcon size={14} className="text-black group-hover:text-white transition-colors" />
+                  <span>X (Twitter)</span>
+                </a>
+                <a
+                  href="https://www.instagram.com/sujalchhajed925/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 font-mono text-xs font-bold px-3.5 py-2
+                    bg-white text-[#E4405F] border-2 border-black shadow-neo-sm hover:bg-[#E4405F] hover:text-white hover:shadow-none hover:translate-x-0.5 hover:translate-y-0.5 transition-all group"
+                >
+                  <Instagram size={14} className="text-[#E4405F] group-hover:text-white transition-colors" />
+                  <span>Instagram</span>
+                </a>
+              </div>
             </div>
-            <NeoButton
-              onClick={() => setIsContactOpen(true)}
-              className="text-xl py-4 px-10 w-full md:w-auto"
-            >
-              INITIATE CONTACT
-            </NeoButton>
           </div>
+
+          {/* ── Right Column: Highlighted High-Contrast Neo-Brutalist Card ─────────── */}
+          <div className="lg:col-span-6 relative z-10">
+            <div className="bg-white border-4 border-black p-0 shadow-[8px_8px_0px_0px_#FFDE59] relative overflow-hidden">
+              {/* Form Title Banner */}
+              <div className="bg-neo-yellow px-6 py-4 border-b-4 border-black flex items-center justify-between">
+                <div>
+                  <div className="inline-block px-2 py-0.5 bg-neo-pink text-white font-mono text-[10px] font-black uppercase tracking-wider border-2 border-black shadow-[2px_2px_0px_0px_#000000] mb-1.5">
+                    DIRECT TRANSMISSION
+                  </div>
+                  <h3 className="font-sans text-xl sm:text-2xl font-black text-black uppercase tracking-tight leading-none">
+                    Send A Message
+                  </h3>
+                  <p className="font-mono text-xs text-black/80 font-bold mt-1">
+                    Delivered directly to my primary inbox
+                  </p>
+                </div>
+                <div
+                  className="w-10 h-10 bg-white border-2 border-black flex items-center justify-center text-black font-bold text-lg shadow-[2px_2px_0px_0px_#000000] rotate-2 flex-shrink-0"
+                  aria-hidden="true"
+                >
+                  ✉
+                </div>
+              </div>
+
+              {/* Form Body */}
+              <div className="p-6 sm:p-8 space-y-5 bg-white text-black">
+                {/* Status Alert */}
+                {status === 'success' && (
+                  <div className="p-4 bg-neo-green text-black border-2 border-black font-mono text-xs font-bold shadow-[3px_3px_0px_0px_#000000] animate-fadeIn">
+                    ✓ Transmission received! Thank you, I'll get back to you shortly.
+                  </div>
+                )}
+                {status === 'error' && (
+                  <div className="p-4 bg-neo-pink text-black border-2 border-black font-mono text-xs font-bold shadow-[3px_3px_0px_0px_#000000] animate-fadeIn">
+                    ⚠ {errorMessage || 'Could not deliver. Please email directly.'}
+                  </div>
+                )}
+
+                {/* Form Inputs */}
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div>
+                    <label className="font-mono text-xs font-bold uppercase tracking-wider text-black flex items-center justify-between mb-1.5">
+                      <span>Your Name / Organization</span>
+                      <span className="text-neo-pink font-black">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={form.name}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      placeholder="e.g. Alex Rivera (Google DeepMind)"
+                      className="w-full bg-[#FAF8F5] text-black font-mono text-sm border-2 border-black p-3.5 shadow-[2px_2px_0px_0px_#000000] focus:bg-white focus:outline-none focus:ring-2 focus:ring-black focus:shadow-[4px_4px_0px_0px_#FFDE59] placeholder:text-gray-500 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs font-bold uppercase tracking-wider text-black flex items-center justify-between mb-1.5">
+                      <span>Your Email Address</span>
+                      <span className="text-neo-pink font-black">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                      placeholder="alex@company.com"
+                      className="w-full bg-[#FAF8F5] text-black font-mono text-sm border-2 border-black p-3.5 shadow-[2px_2px_0px_0px_#000000] focus:bg-white focus:outline-none focus:ring-2 focus:ring-black focus:shadow-[4px_4px_0px_0px_#FFDE59] placeholder:text-gray-500 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-mono text-xs font-bold uppercase tracking-wider text-black flex items-center justify-between mb-1.5">
+                      <span>Message / Project Brief</span>
+                      <span className="text-neo-pink font-black">*</span>
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={form.message}
+                      onChange={(e) => setForm({ ...form, message: e.target.value })}
+                      placeholder="Describe your project, timeline, or engineering opportunity..."
+                      className="w-full bg-[#FAF8F5] text-black font-mono text-sm border-2 border-black p-3.5 shadow-[2px_2px_0px_0px_#000000] focus:bg-white focus:outline-none focus:ring-2 focus:ring-black focus:shadow-[4px_4px_0px_0px_#FFDE59] placeholder:text-gray-500 transition-all resize-none"
+                    />
+                  </div>
+
+                  {/* Submit Action */}
+                  <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="w-full bg-neo-yellow hover:bg-neo-pink text-black font-black uppercase py-4 px-6 border-3 border-[3px] border-black shadow-[4px_4px_0px_0px_#000000] hover:shadow-[6px_6px_0px_0px_#000000] hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Send size={16} />
+                    <span>{status === 'loading' ? 'TRANSMITTING...' : 'TRANSMIT MESSAGE'}</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-      </div>
-    </ScrollAnimation>
-  </Section>
+    </section>
   );
 };
 

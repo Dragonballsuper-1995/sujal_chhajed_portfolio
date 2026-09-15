@@ -1,99 +1,167 @@
-
-import React from 'react';
-import { ArrowDown } from 'lucide-react';
-import Section from './Section';
-import NeoButton from './NeoButton';
-import TextReveal from './TextReveal';
-import { CipherReveal } from './ui/CipherReveal';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ArrowDown, Sparkles } from 'lucide-react';
 import { NavSection } from '../types';
-import { PERSONAL_INFO } from '../constants';
-import LiveStatus from './LiveStatus';
-import ScrollAnimation from './ui/ScrollAnimation';
-import Tooltip from './Tooltip';
 
 interface HeroProps {
   scrollToSection: (id: NavSection) => void;
 }
 
-const name = PERSONAL_INFO.name;
-const lastSpaceIndex = name.lastIndexOf(' ');
-const nameLine1 = name.substring(0, lastSpaceIndex);
-const nameLine2 = name.substring(lastSpaceIndex + 1);
-
-const PHRASES = [
-  "AI DEVELOPER", "ML ENGINEER", "CS ENGINEER", "TECH ENTHUSIAST",
-  "NLP EXPERT", "PYTHON WIZARD", "TECHNOLOGY NERD"
-];
-
+/**
+ * Hero Section — Single Column Neo-Brutalist Layout
+ *
+ * Features:
+ * - Full-width single column identity & mission display.
+ * - Availability badge, subtitle plate, action CTAs, feature strip.
+ * - At the bottom center of Hero: The Profile Card.
+ * - As the user scrolls down towards About:
+ *     - The card executes a 3D perspective rotation (rotateY: 0° -> -45° -> 0°).
+ *     - The card morphs / scales up from 0.70 (~238px) to 1.0 (~340px).
+ *     - The card translates downward towards the About center slot.
+ *     - Hands off smoothly to the About center card as it lands.
+ */
 const Hero: React.FC<HeroProps> = ({ scrollToSection }) => {
+  const heroRef = useRef<HTMLElement>(null);
+
+  // Track scroll through the Hero section
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ['start start', 'end start'],
+  });
+
+  // Text parallaxes up slightly on scroll
+  const textY = useTransform(scrollYProgress, [0, 0.5], [0, -80]);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.45], [1, 0.2]);
+
+  // Card 3D scroll morph transition (Hero -> About)
+  const cardScale = useTransform(scrollYProgress, [0.05, 0.65], [0.70, 1.0]);
+  const cardRotateY = useTransform(scrollYProgress, [0.05, 0.35, 0.65], [0, -45, 0]);
+  const cardRotateX = useTransform(scrollYProgress, [0.05, 0.35, 0.65], [0, 10, 0]);
+  const cardY = useTransform(scrollYProgress, [0.05, 0.65], [0, 120]);
+  const cardOpacity = useTransform(scrollYProgress, [0.60, 0.72], [1, 0]);
+
   return (
-    <Section
+    <section
+      ref={heroRef}
       id={NavSection.HERO}
-      className="min-h-svh flex flex-col justify-center items-center text-center relative overflow-hidden"
+      className="relative bg-transparent pt-28 sm:pt-24 pb-16 overflow-visible"
     >
-      <div className="relative z-10 max-w-5xl mx-auto px-4 pt-10 md:pt-20 flex flex-col items-center">
-        
-        {/* Feature 1: Live Status Widget - Delayed to appear after loader curtain lifts */}
-        <ScrollAnimation variant="fadeIn" delay={0.6} animateOnMount>
-          <LiveStatus />
-        </ScrollAnimation>
+      <div className="max-w-6xl mx-auto px-5 md:px-8 w-full flex flex-col items-start">
+        {/* ── Text Content Block ─────────────────────────────────── */}
+        <motion.div
+          style={{ y: textY, opacity: textOpacity }}
+          className="flex flex-col items-start w-full"
+        >
+          {/* Availability Badge */}
+          <div
+            className="inline-flex items-center gap-2 px-3 py-1 bg-white border-2 border-black shadow-neo-sm mb-4 select-none animate-fadeIn boundary-plate self-start"
+            data-boundary="true"
+          >
+            <span className="w-2.5 h-2.5 rounded-full bg-neo-green animate-pulse" />
+            <span className="font-mono text-xs font-bold uppercase tracking-wider text-black">
+              Available for AI/ML &amp; Full-Stack Roles
+            </span>
+          </div>
 
-        <div className="relative mb-2">
-          {/* Main Name - Delayed further for cascade effect */}
-          <ScrollAnimation variant="blur" duration={0.8} delay={0.8} animateOnMount>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black uppercase leading-none tracking-tighter text-neo-black dark:text-neo-dark-text mb-2 drop-shadow-[4px_4px_0px_rgba(126,217,87,1)] dark:drop-shadow-[4px_4px_0px_rgba(140,82,255,1)]">
-              <span className="block">{nameLine1}</span>
-              <span className="block">{nameLine2}</span>
+          {/* Identity & Mission Headline — Full Width Display */}
+          <div className="mb-4 w-full">
+            <h1 className="font-sans text-4xl sm:text-6xl md:text-7xl lg:text-8xl text-ink leading-[0.90] tracking-tight uppercase select-none font-black">
+              Sujal Chhajed
             </h1>
-          </ScrollAnimation>
-        </div>
-
-        <ScrollAnimation variant="scale" delay={1.0} className="relative mb-10" animateOnMount>
-          <div className="inline-block relative">
-            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold font-mono uppercase bg-white text-black dark:bg-black dark:text-white px-6 py-2 border-4 border-black dark:border-neo-dark-border transform -rotate-1 shadow-neo dark:shadow-neo-dark min-h-[3.5rem] md:min-h-[4.5rem] flex items-center justify-center">
-              <CipherReveal texts={PHRASES} wait={1500} />
-            </h2>
+            <p className="font-sans text-xl sm:text-2xl md:text-3xl lg:text-4xl text-ink font-black uppercase mt-1.5 leading-tight">
+              Building AI That{' '}
+              <span className="text-neo-pink underline decoration-4 underline-offset-8 decoration-black inline-block transform hover:-rotate-2 transition-transform">
+                Ships.
+              </span>
+            </p>
           </div>
-        </ScrollAnimation>
-        
-        <ScrollAnimation variant="fadeUp" delay={1.2} className="max-w-3xl mx-auto" animateOnMount>
-          <div className="text-lg md:text-xl font-mono bg-white dark:bg-neo-dark-surface dark:text-neo-dark-text border-2 border-black dark:border-neo-dark-border p-6 inline-block shadow-neo dark:shadow-neo-dark leading-relaxed hover:shadow-neo-lg dark:hover:shadow-neo-lg-dark transition-all duration-300 hover:-translate-y-1">
-            <TextReveal text={PERSONAL_INFO.tagline} mode="word" delay={0.2} />
-          </div>
-        </ScrollAnimation>
-        
-        <ScrollAnimation variant="fadeUp" delay={1.4} className="flex flex-col md:flex-row gap-6 justify-center mt-12 no-print w-full max-w-lg md:max-w-none" animateOnMount>
-          <NeoButton onClick={() => scrollToSection(NavSection.PROJECTS)} className="text-xl py-4 px-10 w-full md:w-auto">
-            View My Work
-          </NeoButton>
-          <NeoButton variant="accent" onClick={() => scrollToSection(NavSection.CONTACT)} className="text-xl py-4 px-10 w-full md:w-auto">
-            Let's Talk
-          </NeoButton>
-        </ScrollAnimation>
 
-        {/* Scroll Down Button */}
-        <ScrollAnimation variant="fadeIn" delay={1.8} className="mt-16 md:mt-24 mb-10 no-print" animateOnMount>
-          <Tooltip text="Scroll Down" position="left">
+          {/* Technical Scope Subtitle Box */}
+          <div
+            className="max-w-xl mb-4 p-3.5 sm:p-4 bg-white border-2 border-black shadow-neo-sm relative z-10 boundary-plate self-start"
+            data-boundary="true"
+          >
+            <p className="font-mono text-xs sm:text-sm text-ink font-medium leading-relaxed mb-2">
+              AI/ML Engineer &amp; Full-Stack Developer specializing in fine-tuned LLM architectures,
+              real-time inference optimization, and resilient full-stack systems.
+            </p>
+            <div className="flex items-center gap-2 font-mono text-[11px] sm:text-xs text-muted">
+              <span className="w-2 h-2 rounded-full bg-neo-yellow border border-black inline-block" />
+              <span>8+ Production Deployments • Sub-100ms Target Latency</span>
+            </div>
+          </div>
+
+          {/* Action CTAs */}
+          <div className="flex flex-wrap gap-2.5 sm:gap-3 items-center mb-4">
             <button
-              aria-label="Scroll to about section"
-              onClick={() => scrollToSection(NavSection.ABOUT)}
-              className="
-                group flex items-center justify-center 
-                w-[60px] h-[60px] 
-                bg-neo-yellow dark:bg-neo-purple 
-                border-4 border-black dark:border-white
-                shadow-neo-lg dark:shadow-neo-lg-dark 
-                hover:shadow-neo-xl dark:hover:shadow-neo-xl 
-                transition-all duration-300 hover:-translate-y-2
-                cursor-pointer animate-bounce
-              "
+              onClick={() => scrollToSection(NavSection.PROJECTS)}
+              className="inline-flex items-center gap-2 font-mono font-bold text-xs sm:text-sm px-5 py-2.5
+                bg-neo-yellow text-black border-2 border-black
+                shadow-neo hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo-lg
+                active:translate-x-1 active:translate-y-1 active:shadow-neo-press
+                transition-all duration-150 group"
             >
-              <ArrowDown size={28} strokeWidth={3} className="text-black dark:text-white relative z-10 group-hover:scale-110 transition-transform" />
+              <span>Explore Projects</span>
+              <ArrowDown size={14} className="group-hover:translate-y-0.5 transition-transform" />
             </button>
-          </Tooltip>
-        </ScrollAnimation>
+          </div>
+
+          {/* Feature Strip */}
+          <div
+            className="p-2.5 sm:p-3 bg-white border-2 border-black shadow-neo-sm inline-flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] sm:text-xs text-ink relative z-10 boundary-plate self-start"
+            data-boundary="true"
+          >
+            <span className="flex items-center gap-1.5 font-bold">
+              <Sparkles size={13} className="text-neo-pink" /> 4 Fine-Tuned GGUF Models
+            </span>
+            <span className="hidden sm:inline text-black/30 font-bold">•</span>
+            <span className="font-medium">100% Deterministic Constraint Grounding</span>
+            <span className="hidden sm:inline text-black/30 font-bold">•</span>
+            <span className="font-medium">Offline-First LWW Cross-Device Sync</span>
+          </div>
+        </motion.div>
+
+        {/* ── Profile Card at Bottom of Hero (Scroll-Linked 3D Morph) ── */}
+        <div className="w-full flex justify-center mt-8 pb-4 overflow-visible">
+          <motion.div
+            style={{
+              scale: cardScale,
+              rotateY: cardRotateY,
+              rotateX: cardRotateX,
+              y: cardY,
+              opacity: cardOpacity,
+              perspective: 1200,
+              transformStyle: 'preserve-3d',
+            }}
+            className="w-[340px] max-w-[85vw] origin-top"
+          >
+            <div
+              className="relative group bg-white border-4 border-black shadow-neo-lg overflow-hidden flex flex-col boundary-plate transition-shadow duration-300 hover:shadow-[8px_8px_0px_0px_#000]"
+              data-boundary="true"
+            >
+              {/* Photo Container */}
+              <div className="relative aspect-[4/5] overflow-hidden bg-black">
+                <img
+                  src="/profile-pic-4.webp"
+                  alt="Sujal Sanjay Chhajed"
+                  className="w-full h-full object-cover object-top filter grayscale contrast-115 group-hover:filter-none group-hover:scale-105 transition-all duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70 pointer-events-none" />
+                <div className="absolute top-3 right-3 px-2 py-0.5 bg-neo-yellow text-black border border-black font-mono text-[10px] font-bold uppercase shadow-sm">
+                  AI/ML
+                </div>
+              </div>
+
+              {/* Bottom Bar Info Strip */}
+              <div className="p-3.5 bg-black text-white border-t-2 border-black font-mono text-xs flex items-center justify-between shrink-0">
+                <span className="font-bold uppercase tracking-wider text-white">Sujal Chhajed</span>
+                <span className="text-neo-yellow text-xs font-bold">AI/ML Engineer</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
       </div>
-    </Section>
+    </section>
   );
 };
 

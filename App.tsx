@@ -1,29 +1,25 @@
 
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
-import { Send } from 'lucide-react';
 
-import CustomCursor from './components/CustomCursor';
-import BackgroundGrid from './components/BackgroundGrid';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import LoadingScreen from './components/LoadingScreen';
 import ToastNotification from './components/ToastNotification';
 import Header from './components/Header';
-import Hero from './components/Hero';
-import About from './components/About';
+import HeroAboutStage from './components/HeroAboutStage';
 import Skills from './components/Skills';
 import ProjectsSection from './components/ProjectsSection';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
-import MobileNavBar from './components/MobileNavBar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
+import BackgroundGrid from './components/BackgroundGrid';
+import HeroShader from './components/HeroShader';
 
 // Lazy loaded components (not needed for initial visual render)
-const ChatAssistant = lazy(() => import('./components/ChatAssistant'));
 const ContactForm = lazy(() => import('./components/ContactForm'));
 const CommandPalette = lazy(() => import('./components/CommandPalette'));
 const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
 
-import { useTheme, useScrollSpy } from './hooks';
+import { useScrollSpy } from './hooks';
 import { PERSONAL_INFO } from './constants';
 import { NavSection, Project } from './types';
 
@@ -54,9 +50,31 @@ const useGlobalScrollReveal = (isLoaded: boolean) => {
 };
 
 
+const pathToSection = (path: string): NavSection | null => {
+  const clean = path.replace(/^\/+|\/+$/g, '').toLowerCase();
+  if (!clean || clean === 'home' || clean === 'hero') return NavSection.HERO;
+  if (clean === 'about') return NavSection.ABOUT;
+  if (clean === 'skills') return NavSection.SKILLS;
+  if (clean === 'projects') return NavSection.PROJECTS;
+  if (clean === 'contact') return NavSection.CONTACT;
+  return null;
+};
+
+const sectionToPath = (section: NavSection): string => {
+  if (section === NavSection.HERO) return '/';
+  return `/${section}`;
+};
+
 const App: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoaderMounted, setIsLoaderMounted] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    // If arriving directly at a sub-path like /skills or /about, skip initial splash loader
+    const initial = pathToSection(window.location.pathname);
+    return !initial || initial === NavSection.HERO;
+  });
+  const [isLoaderMounted, setIsLoaderMounted] = useState(() => {
+    const initial = pathToSection(window.location.pathname);
+    return !initial || initial === NavSection.HERO;
+  });
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
@@ -64,19 +82,54 @@ const App: React.FC = () => {
   // Sheet state for Project Case Study
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  // Custom hooks for theme and scroll spy
-  const { theme, toggleTheme } = useTheme();
+  // Custom hook for scroll spy
   const activeSection = useScrollSpy();
   const [toast, setToast] = useState({ message: '', visible: false, type: 'success' as 'success' | 'error' });
 
-  // Force scroll to top on page load/refresh - override browser's scroll restoration
+  const scrollToSection = useCallback((id: NavSection, updateHistory = true) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }
+    if (updateHistory) {
+      const targetPath = sectionToPath(id);
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({ section: id }, '', targetPath);
+      }
+    }
+  }, []);
+
+  // On page load or refresh: if URL has a section path (/about, /skills), jump to it directly
   useEffect(() => {
     if ('scrollRestoration' in history) {
       history.scrollRestoration = 'manual';
     }
-    window.scrollTo(0, 0);
-  }, []);
 
+    const initialSection = pathToSection(window.location.pathname);
+    if (initialSection && initialSection !== NavSection.HERO) {
+      setIsLoading(false);
+      setIsLoaderMounted(false);
+      // Allow DOM to settle before jumping
+      const timer = setTimeout(() => {
+        scrollToSection(initialSection, false);
+      }, 60);
+      return () => clearTimeout(timer);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [scrollToSection]);
+
+  // Handle browser back and forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const section = pathToSection(window.location.pathname);
+      if (section) {
+        scrollToSection(section, false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [scrollToSection]);
   // Global keyboard listener for Ctrl+K/Cmd+K to open Command Palette
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -97,35 +150,7 @@ const App: React.FC = () => {
     setIsLoaderMounted(false);
   }, []);
 
-  // Preload images optimized: Defer to idle time to prioritize FCP
-  useEffect(() => {
-    const preloadImages = () => {
-      const imageUrls = [
-        '/logo-light.svg',
-        '/logo-dark.svg',
-        '/profile-pic-4.webp'
-      ];
-      imageUrls.forEach(url => { (new Image()).src = url; });
-    };
-
-    // Use requestIdleCallback if available, otherwise fallback to timeout
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(preloadImages);
-    } else {
-      setTimeout(preloadImages, 2000);
-    }
-  }, []);
-
   useGlobalScrollReveal(!isLoading);
-
-  // Theme and scroll spy logic now handled by custom hooks
-
-  const scrollToSection = useCallback((id: NavSection) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, []);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, visible: true, type });
@@ -198,43 +223,35 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Main content is instantly ready at opacity-100; the LoadingScreen grid will block reveal it */}
-      <main className="min-h-svh flex flex-col font-sans bg-neo-white dark:bg-neo-dark-bg text-neo-black dark:text-neo-dark-text relative">
-        <CustomCursor highContrast={isChatOpen && theme === 'light'} />
-        <BackgroundGrid theme={theme} />
+      {/* Main content */}
+      <main className="min-h-svh flex flex-col font-sans bg-canvas text-ink relative">
+        {/* Global Ambient Pastel WebGL Shader */}
+        <HeroShader />
+
+        {/* Persistent Canvas Interactive Dot Grid */}
+        <BackgroundGrid />
 
         <Header
-          theme={theme}
-          toggleTheme={toggleTheme}
           activeSection={activeSection}
           scrollToSection={scrollToSection}
           openCommandPalette={() => setIsCmdPaletteOpen(true)}
         />
 
-        <Hero scrollToSection={scrollToSection} />
-        <About />
+        <HeroAboutStage scrollToSection={scrollToSection} />
         <Skills />
-
-        {/* Pass click handler and theme to ProjectsSection */}
-        <ProjectsSection onProjectClick={handleProjectClick} theme={theme} />
+        <ProjectsSection onProjectClick={handleProjectClick} />
 
         <ContactSection
-          setIsContactOpen={setIsContactOpen}
           copyToClipboard={copyToClipboard}
         />
-
-        {/* Spacer for mobile navbar - only before footer */}
-        <div className="pb-20 md:pb-0" />
 
         <Footer scrollToSection={scrollToSection} />
 
         {/* Contact Sheet */}
         <Sheet open={isContactOpen} onOpenChange={setIsContactOpen}>
-          <SheetContent className="w-full sm:max-w-xl p-0 border-l-4 border-black dark:border-neo-dark-border">
-            <SheetHeader className="p-4 border-b-4 border-black dark:border-neo-dark-border bg-neo-yellow text-black">
-              <SheetTitle className="flex items-center gap-2">
-                <Send size={20} /> New Message
-              </SheetTitle>
+          <SheetContent className="w-full sm:max-w-xl p-0 border-l border-ink">
+            <SheetHeader className="p-4 border-b border-ink bg-neo-yellow text-ink">
+              <SheetTitle>New Message</SheetTitle>
             </SheetHeader>
             <div className="p-6 md:p-8 h-full overflow-y-auto pb-20">
               {isContactOpen && (
@@ -251,7 +268,7 @@ const App: React.FC = () => {
 
         {/* Project Case Study Sheet (Feature #5 Implementation) */}
         <Sheet open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
-          <SheetContent className="w-full sm:max-w-3xl p-0 border-l-4 border-black dark:border-neo-dark-border">
+          <SheetContent className="w-full sm:max-w-3xl p-0 border-l border-ink overflow-y-auto">
             {selectedProject && (
               <Suspense fallback={<div className="flex items-center justify-center h-full p-10"><span className="animate-pulse">Loading project details...</span></div>}>
                 <ProjectCaseStudy project={selectedProject} />
@@ -263,8 +280,6 @@ const App: React.FC = () => {
         {isCmdPaletteOpen && (
           <Suspense fallback={null}>
             <CommandPalette
-              theme={theme}
-              toggleTheme={toggleTheme}
               scrollToSection={scrollToSection}
               setIsContactOpen={setIsContactOpen}
               setIsChatOpen={setIsChatOpen}
@@ -275,17 +290,6 @@ const App: React.FC = () => {
         )}
 
         <ScrollToTopButton />
-
-        <Suspense fallback={null}>
-          <ChatAssistant isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
-        </Suspense>
-
-        {/* New Mobile Bottom Navigation */}
-        <MobileNavBar
-          activeSection={activeSection}
-          scrollToSection={scrollToSection}
-          openCommandPalette={() => setIsCmdPaletteOpen(true)}
-        />
 
         <ToastNotification
           message={toast.message}

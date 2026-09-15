@@ -1,218 +1,86 @@
-
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
 
 interface LoadingScreenProps {
   onComplete: () => void;
-  onAnimationFinished?: () => void;
-  name: string;
+  onAnimationFinished: () => void;
+  name?: string;
 }
 
-const loadingTexts = [
-    'INITIALIZING ASSETS...',
-    'CONNECTING TO GRID...',
-    'CALIBRATING PIXELS...',
-    'LOADING CREATIVITY MODULES...',
-    'DECOMPRESSING IDEAS...',
-    'RENDERING NEO-BRUTALIST VIBES...',
-    'AWAKENING AI ASSISTANT...',
-];
+const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, onAnimationFinished }) => {
+  const [phase, setPhase] = useState<'sc' | 'morph' | 'full' | 'fadeout'>('sc');
 
-const gridContainerVariants = {
-    hidden: { opacity: 1 },
-    visible: { opacity: 1 },
-};
+  useEffect(() => {
+    // Phase timeline (deliberate boot sequence):
+    // 0ms    → show "SC" monogram
+    // 700ms  → begin morph to "Sujal—"
+    // 1300ms → show full name "Sujal Chhajed"
+    // 2100ms → trigger onComplete (site ready) and start fadeout
+    // 2500ms → unmount loader cleanly
 
-const squareVariants = {
-    hidden: { opacity: 1, scale: 1 },
-    visible: (customDelay: number) => ({
-        opacity: 0,
-        scale: 0,
-        transition: {
-            duration: 0.3, // Exactly 0.3s as requested
-            ease: "easeInOut", // Pleasing, smooth ease
-            delay: customDelay // Apply random delay via custom prop
-        }
-    }),
-};
+    const t1 = setTimeout(() => setPhase('morph'), 700);
+    const t2 = setTimeout(() => setPhase('full'), 1300);
+    const t3 = setTimeout(() => {
+      onComplete();
+      setPhase('fadeout');
+    }, 2100);
+    const t4 = setTimeout(() => onAnimationFinished(), 2500);
 
-// Helper function to shuffle an array
-const shuffleArray = (array: number[]) => {
-    const newArray = [...array];
-    for (let i = newArray.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
-    }
-    return newArray;
-};
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+  }, [onComplete, onAnimationFinished]);
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, onAnimationFinished, name }) => {
-    const [progress, setProgress] = useState(0);
-    const [isCompleting, setIsCompleting] = useState(false);
-    const [isContentHidden, setIsContentHidden] = useState(false);
-    const [statusText, setStatusText] = useState(loadingTexts[0]);
+  return (
+    <div
+      aria-hidden="true"
+      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-canvas
+        transition-opacity duration-150
+        ${phase === 'fadeout' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+    >
+      <div className="relative flex flex-col items-center gap-4 text-center px-4" style={{ minWidth: 260 }}>
+        <div className="relative overflow-hidden w-full flex justify-center py-2" style={{ minHeight: 64 }}>
+          {/* SC — shown initially */}
+          <span
+            className={`block font-sans text-ink font-black text-6xl leading-none tracking-tight select-none
+              transition-all duration-300 ease-out
+              ${phase === 'sc' ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-3 scale-95 absolute'}`}
+          >
+            SC
+          </span>
 
-    // Calculate perfect squares dynamically
-    const [gridData, setGridData] = useState({ cols: 0, rows: 0, squareSize: 0 });
-    const [shuffledIndices, setShuffledIndices] = useState<number[]>([]);
+          {/* Morph phase — animating in */}
+          <span
+            className={`block font-sans text-ink font-black text-4xl sm:text-5xl leading-none tracking-tight select-none
+              transition-all duration-300 ease-out
+              ${phase === 'morph' ? 'opacity-100 translate-y-0' : phase === 'full' || phase === 'fadeout' ? 'opacity-0 -translate-y-2 absolute' : 'opacity-0 translate-y-3 absolute'}`}
+          >
+            Sujal—
+          </span>
 
-    // Set up the grid dynamically on mount/resize
-    useEffect(() => {
-        const calculateGrid = () => {
-            // Divide the longest side of the screen by 8 to get a chunky square size
-            const longestSide = Math.max(window.innerWidth, window.innerHeight);
-            const size = Math.ceil(longestSide / 8);
-
-            const newCols = Math.ceil(window.innerWidth / size);
-            const newRows = Math.ceil(window.innerHeight / size);
-
-            setGridData({ cols: newCols, rows: newRows, squareSize: size });
-
-            // Recalculate shuffled array for random animation
-            const totalSquares = newCols * newRows;
-            const indices = Array.from({ length: totalSquares }, (_, i) => i);
-            setShuffledIndices(shuffleArray(indices));
-        };
-
-        // Initial calculate
-        calculateGrid();
-
-        window.addEventListener('resize', calculateGrid);
-        return () => window.removeEventListener('resize', calculateGrid);
-    }, []);
-
-    // A single, optimized effect to handle all loading screen animations
-    useEffect(() => {
-        // --- Status Text Cycling ---
-        const textInterval = setInterval(() => {
-            setStatusText(currentText => {
-                const currentIndex = loadingTexts.indexOf(currentText);
-                const nextIndex = (currentIndex + 1) % loadingTexts.length;
-                return loadingTexts[nextIndex];
-            });
-        }, 400);
-
-        // --- Progress Bar Animation using requestAnimationFrame for smoothness ---
-        let startTime: number | null = null;
-        let animationFrameId: number;
-        // Faster initial load (1.5s instead of 2.0s)
-        const duration = 1500; 
-
-        const animateProgress = (timestamp: number) => {
-            if (!startTime) startTime = timestamp;
-            const elapsedTime = timestamp - startTime;
-            const progressValue = Math.min(100, Math.floor((elapsedTime / duration) * 100));
-            
-            setProgress(progressValue);
-
-            if (elapsedTime < duration) {
-                animationFrameId = requestAnimationFrame(animateProgress);
-            } else {
-                // Animation finished
-                setProgress(100);
-                clearInterval(textInterval); // Stop cycling text
-                setStatusText('READY.');
-                
-                // 1. Tell App to render content underneath (opacity 0 -> 1)
-                onComplete();
-
-                // 2. Trigger fade out and grid reveal almost simultaneously
-                // Small buffer ensures the underlying app has painted
-                setTimeout(() => {
-                    setIsContentHidden(true); // Fade out text
-                    setIsCompleting(true);    // Trigger grid reveal
-                }, 100);
-            }
-        };
-
-        animationFrameId = requestAnimationFrame(animateProgress);
-
-        // Cleanup function to clear timers if the component unmounts
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-            clearInterval(textInterval);
-        };
-    }, [onComplete]);
-
-
-    const squaresCount = gridData.cols * gridData.rows;
-    const squares = Array.from({ length: squaresCount });
-
-    return (
-        <div className={`fixed inset-0 z-[1000] font-sans w-screen h-screen max-w-full max-h-full overflow-hidden ${isCompleting ? 'pointer-events-none bg-transparent' : 'bg-neo-black'}`}>
-
-            {/* Grid Overlay */}
-            <motion.div
-                className="absolute inset-0 grid"
-                style={{
-                    gridTemplateColumns: `repeat(${gridData.cols}, ${gridData.squareSize}px)`,
-                    gridTemplateRows: `repeat(${gridData.rows}, ${gridData.squareSize}px)`
-                }}
-                variants={gridContainerVariants}
-                initial="hidden"
-                animate={isCompleting ? "visible" : "hidden"}
-                // Notify parent completely after animation finishes to unmount
-                onAnimationComplete={() => {
-                    if (isCompleting && onAnimationFinished) {
-                        onAnimationFinished();
-                    }
-                }}
-                id="loading-screen-container"
-            >
-                {squares.map((_, index) => {
-                    // Find the random rank (0 to totalSquares-1) for this specific square
-                    const shuffleRank = shuffledIndices.indexOf(index);
-                    // Slight increase in delay multiplier because there are fewer total blocks
-                    // 0.015s * ~40-64 blocks creates a pleasing ~0.6s to ~0.9s overall stagger
-                    const randomDelay = shuffleRank * 0.015;
-
-                    return (
-                        <motion.div
-                            key={index}
-                            className="bg-neo-black w-full h-full"
-                            variants={squareVariants}
-                            custom={randomDelay}
-                        />
-                    );
-                })}
-            </motion.div>
-
-            {/* Content Container - Fades out before grid reveals */}
-            <div className={`
-                absolute inset-0 flex flex-col justify-between p-4 sm:p-8 text-white
-                transition-opacity duration-300 ease-out z-10
-                ${isContentHidden ? 'opacity-0' : 'opacity-100'}
-            `}>
-                {/* Top Label */}
-                <div className="text-sm sm:text-xl font-bold tracking-tighter">
-                    SYSTEM BOOT // V.2.0
-                </div>
-                
-                {/* Center Progress Display */}
-                <div className="flex flex-col items-center w-full">
-                    {/* Percentage Text */}
-                    <div className="text-[clamp(3.25rem,15vw,9rem)] font-black leading-none">
-                        {progress}%
-                    </div>
-                    
-                    {/* Progress Bar Container */}
-                    <div className="w-full max-w-md h-4 bg-gray-900 mt-4 sm:mt-8 border-4 border-white">
-                        {/* Actual Filling Bar */}
-                        <div 
-                            className="h-full bg-white transition-all duration-75 ease-linear" 
-                            style={{ width: `${progress}%` }}
-                        ></div>
-                    </div>
-                </div>
-                
-                {/* Bottom Status */}
-                <div className="flex justify-between text-[10px] sm:text-sm font-mono w-full uppercase pb-[env(safe-area-inset-bottom,0px)]">
-                    <span role="status" aria-live="polite">{statusText}</span>
-                    <span>© {new Date().getFullYear()} {name}</span>
-                </div>
-            </div>
+          {/* Full name — final state */}
+          <span
+            className={`block font-sans text-ink font-black text-3xl sm:text-4xl leading-none tracking-tight select-none
+              transition-all duration-300 ease-out
+              ${phase === 'full' || phase === 'fadeout' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 absolute'}`}
+          >
+            Sujal Chhajed
+          </span>
         </div>
-    );
+
+        {/* Minimal neo-brutalist progress track */}
+        <div className="w-48 h-2 bg-white border-2 border-black shadow-[2px_2px_0px_0px_#000] overflow-hidden">
+          <div
+            className="h-full bg-neo-yellow transition-all duration-700 ease-out"
+            style={{
+              width: phase === 'sc' ? '25%' : phase === 'morph' ? '65%' : '100%'
+            }}
+          />
+        </div>
+
+        <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted">
+          {phase === 'sc' ? 'Initializing...' : phase === 'morph' ? 'Loading Core Stack...' : 'System Ready'}
+        </span>
+      </div>
+    </div>
+  );
 };
 
-export default React.memo(LoadingScreen);
+export default LoadingScreen;

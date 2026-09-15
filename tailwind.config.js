@@ -1,4 +1,3 @@
-
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -10,10 +9,25 @@ export default {
     "./services/**/*.{js,ts,jsx,tsx}",
   ],
   safelist: [
-    // Classes come from data (e.g. CHARACTER_TRAITS in constants.ts), so we safelist them.
-    { pattern: /^bg-neo-(red|orange|yellow|blue)$/ },
-    { pattern: /^text-(8|9)xl$/, variants: ['md'] },
     'text-white',
+    'text-black',
+    'bg-neo-yellow',
+    'bg-neo-blue',
+    'bg-neo-green',
+    'bg-neo-pink',
+    'bg-neo-purple',
+    'bg-neo-orange',
+    'bg-neo-red',
+    'hover:bg-neo-yellow',
+    'hover:bg-neo-blue',
+    'hover:bg-neo-green',
+    'hover:bg-neo-pink',
+    'hover:bg-neo-purple',
+    'text-neo-green',
+    'text-neo-blue',
+    'text-neo-pink',
+    'text-neo-yellow',
+    'text-neo-purple',
   ],
   darkMode: 'class',
   theme: {
@@ -21,8 +35,13 @@ export default {
       fontFamily: {
         mono: ['"Space Mono"', 'Courier New', 'monospace'],
         sans: ['"Archivo Black"', 'Verdana', 'sans-serif'],
+        body: ['"Space Mono"', 'Courier New', 'monospace'],
       },
       colors: {
+        canvas: '#FAF8F5',
+        ink: '#050505',
+        muted: '#5A5A5A',
+        surface: '#FFFFFF',
         neo: {
           yellow: '#FFDE59',
           orange: '#FF914D',
@@ -32,32 +51,34 @@ export default {
           purple: '#8C52FF',
           red: '#E10600',
           black: '#050505',
-          white: '#FAFAFA',
+          white: '#FAF8F5',
           dark: {
-            bg: '#000000',
-            surface: '#000000',
+            bg: '#050505',
+            surface: '#0E0E12',
             border: '#FFFFFF',
             text: '#FFFFFF',
             'text-muted': '#A3A3A3',
           }
-        }
+        },
       },
       boxShadow: {
-        'neo': '4px 4px 0px 0px rgba(0,0,0,1)',
-        'neo-sm': '2px 2px 0px 0px rgba(0,0,0,1)',
-        'neo-lg': '8px 8px 0px 0px rgba(0,0,0,1)',
-        'neo-xl': '12px 12px 0px 0px rgba(0,0,0,1)',
+        'neo-sm': '2px 2px 0px 0px rgba(5,5,5,1)',
+        'neo': '4px 4px 0px 0px rgba(5,5,5,1)',
+        'neo-lg': '6px 6px 0px 0px rgba(5,5,5,1)',
+        'neo-xl': '8px 8px 0px 0px rgba(5,5,5,1)',
+        'neo-press': '0px 0px 0px 0px rgba(5,5,5,1)',
+        'neo-white': '4px 4px 0px 0px rgba(255,255,255,1)',
+        'neo-sm-white': '2px 2px 0px 0px rgba(255,255,255,1)',
         'neo-dark': '4px 4px 0px 0px #FFFFFF',
         'neo-sm-dark': '2px 2px 0px 0px #FFFFFF',
         'neo-lg-dark': '8px 8px 0px 0px #FFFFFF',
       },
       animation: {
-        'marquee': 'marquee 25s linear infinite',
-        'marquee-reverse': 'marqueeReverse 25s linear infinite',
-        'blob': 'blob 7s infinite',
-        'glitch': 'glitch 1s linear infinite',
-        'spin-slow': 'spin 8s linear infinite',
-        'wave': 'wave 1s ease-in-out infinite',
+        'marquee': 'marquee 22s linear infinite',
+        'marquee-reverse': 'marqueeReverse 22s linear infinite',
+        'fadeIn': 'fadeIn 0.3s ease-out forwards',
+        'slideUp': 'slideUp 0.3s ease-out forwards',
+        'pulse-subtle': 'pulseSubtle 4s ease-in-out infinite',
       },
       keyframes: {
         marquee: {
@@ -68,33 +89,21 @@ export default {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(0)' },
         },
-        blob: {
-          '0%': { transform: 'translate(0px, 0px) scale(1)' },
-          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
-          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
-          '100%': { transform: 'translate(0px, 0px) scale(1)' },
-        },
-        glitch: {
-          '2%, 64%': { transform: 'translate(2px,0) skew(0deg)' },
-          '4%, 60%': { transform: 'translate(-2px,0) skew(0deg)' },
-          '62%': { transform: 'translate(0,0) skew(5deg)' },
-        },
-        slideIn: {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        slideDown: {
-          '0%': { opacity: '0', transform: 'translateY(-20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        wave: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-8px)' },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(16px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        pulseSubtle: {
+          '0%, 100%': { opacity: '0.04' },
+          '50%': { opacity: '0.09' },
         }
+      },
+      maxWidth: {
+        'reading': '68ch',
       }
     },
   },

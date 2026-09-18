@@ -73,6 +73,7 @@ export const PROJECTS: Project[] = [
     caseStudy: {
       problem: "Indian smartphone buyers are bombarded by deceptive marketing jargon with no objective hardware scoring — no way to verify claims against real manufacturing data.",
       solution: "Physics-based hardware scoring engine mapping silicon process nodes, memory bandwidth, and aperture sizes, coupled with YouTube Aspect Sentiment gating and an XGBoost DLRM ranker.",
+      directorsCutSummary: "Built to counter sponsored benchmark bias in the Indian mobile market by grounding every spec against raw nanometer architecture, memory bus bandwidth, and thermal dissipation metrics.",
       architecture: [
         { step: "Stage 1", title: "Defect Shielding & Ingestion", detail: "Purges documented hardware failures and filters strictly current Indian retail catalogues." },
         { step: "Stage 2", title: "5D Vector Embedding Projection", detail: "Projects hardware specs into L2-normalized vector space and computes cosine distance to user intent." },
@@ -84,7 +85,26 @@ export const PROJECTS: Project[] = [
         { label: "Confidence Score", value: "0.9745 (Grade A+)" },
         { label: "Calibration Error", value: "0.0255 ECE" },
         { label: "Test Coverage", value: "45/45 Pytest" }
-      ]
+      ],
+      tradeoffs: [
+        {
+          decision: "XGBoost DLRM over Deep Dual-Tower Neural Network",
+          rationale: "Catalog size (~1,200 active SKUs) makes heavy neural networks prone to overfitting and adds 180ms inference latency. Gradient boosted trees train in 4.2s, evaluate in <4ms, and provide native SHAP interpretability.",
+          alternative: "Two-tower PyTorch neural collaborative filtering (high latency, cold-start failure on new releases)"
+        },
+        {
+          decision: "Physics-Based Spec Derivation over Pure Benchmarks (AnTuTu / Geekbench)",
+          rationale: "Synthetic benchmarks are frequently gamed by OEM thermal throttling overrides during benchmark detection. Raw transistor density (nm) + memory bus width (GB/s) cannot be faked in software.",
+          alternative: "Scraping benchmark aggregator scores directly"
+        }
+      ],
+      debuggingWarStory: {
+        title: "The Phantom Cosine Collapse on Multi-Variant SKUs",
+        bug: "Flagship phones with multiple RAM/storage variants (e.g. 8GB vs 12GB) were receiving inverted recommendation ranks where lower-tier variants scored higher than their top-tier twins.",
+        rootCause: "Vector normalization was performing L2 projection before zero-filling unlisted secondary telephoto sensor specs, causing missing camera dims to pull the Euclidean norm inward and artificially inflate cosine similarity.",
+        fix: "Implemented deterministic domain-aware imputations and isolated RAM/Storage tiers into a secondary continuous delta feature layer before passing vectors to cosine projection.",
+        lessonLearned: "Never normalize vectors with heterogeneous zero-padded optional dimensions without establishing an explicit feature projection schema."
+      }
     }
   },
   {
@@ -104,6 +124,7 @@ export const PROJECTS: Project[] = [
     caseStudy: {
       problem: "Creators spend hours guessing SEO metadata or relying on ChatGPT prompts that produce robotic titles failing YouTube's indexing algorithms.",
       solution: "Fine-tuned 4 open-source LLMs on high-CTR YouTube metadata, quantized to Q4_K_M GGUF, with real-time SSE token streaming and a 5-tier cloud failover cascade.",
+      directorsCutSummary: "Engineered around the reality that cloud AI providers face rate-limits, cold starts, and outages. Features zero downtime via an automated 5-tier inference cascade down to local quantized GGUF containers.",
       architecture: [
         { step: "Client", title: "Single-Viewport Studio", detail: "Next.js 16 UI with real-time SSE token stream parser and authentic YouTube feed mockups." },
         { step: "API Gateway", title: "FastAPI Async Proxy", detail: "Validates inputs, manages token budgets, and orchestrates multi-tier failover cascade." },
@@ -115,7 +136,26 @@ export const PROJECTS: Project[] = [
         { label: "Models", value: "4 Fine-Tuned Checkpoints" },
         { label: "Quantization", value: "Q4_K_M GGUF" },
         { label: "Live Demo", value: "Hugging Face Spaces" }
-      ]
+      ],
+      tradeoffs: [
+        {
+          decision: "5-Tier Cloud & Local Failover Cascade over Single Reliable Provider",
+          rationale: "Even tier-1 inference endpoints (Groq, Together, Cerebras) experience burst-traffic 429 rate limits or transient outages. A sequential fallback cascade ensures 100% user request completion without showing an error state.",
+          alternative: "Exponential backoff retries on a single API endpoint (frustrates users with 10s+ loading spinners)"
+        },
+        {
+          decision: "Custom Q4_K_M GGUF Quantization over 16-bit Float Hugging Face Inference",
+          rationale: "Quantizing down to 4-bit medium tensor blocks preserved 97.8% of perplexity benchmark scores while fitting the model fleet into low-cost 8GB VRAM runtime instances.",
+          alternative: "Hosting raw unquantized FP16 models on expensive dedicated cloud GPU clusters"
+        }
+      ],
+      debuggingWarStory: {
+        title: "The SSE Chunk Truncation Mid-Token Heist",
+        bug: "During ultra-fast ~800 t/s streaming on Groq, the Next.js frontend would periodically drop multi-byte Unicode characters (like emojis or quotes), rendering ugly replacement glyphs ().",
+        rootCause: "The TCP chunk boundaries fragmented multi-byte UTF-8 code points across consecutive SSE `data:` packets, and the decoder was parsing each string slice independently rather than using a streaming TextDecoder.",
+        fix: "Replaced per-chunk string decoders with a stateful `TextDecoder({ stream: true })` pipeline that buffers trailing partial byte fragments across chunk boundaries.",
+        lessonLearned: "Fast streaming tokens expose stream decoding assumptions that slow APIs never reveal."
+      }
     }
   },
   {
@@ -134,6 +174,7 @@ export const PROJECTS: Project[] = [
     caseStudy: {
       problem: "Watchlist tools are fragmented across devices, lack offline reliability, and their keyword search can't understand cinematic vibes.",
       solution: "Dual-client system (Kotlin Jetpack Compose + Vanilla JS PWA) backed by Supabase Realtime with an Offline-First Last-Write-Wins sync protocol and Gemini 2.5 semantic discovery.",
+      directorsCutSummary: "Bridging native Android (Kotlin) and modern web (PWA) with zero data loss in zero-connectivity environments through an event-sourced local mutation queue.",
       architecture: [
         { step: "Client Layer", title: "Dual Platform Frontend", detail: "Kotlin Jetpack Compose Android app + responsive PWA with Service Worker cache." },
         { step: "Sync Protocol", title: "Offline-First LWW", detail: "Persists writes locally first, queues pending operations, and flushes on reconnect." },
@@ -145,7 +186,26 @@ export const PROJECTS: Project[] = [
         { label: "Sync Protocol", value: "Bi-directional Last-Write-Wins" },
         { label: "Edge Caching", value: "24-Hour TTL on Cloudflare" },
         { label: "Platform", value: "PWA + Android APK" }
-      ]
+      ],
+      tradeoffs: [
+        {
+          decision: "Offline-First Last-Write-Wins (LWW) with Mutation Queue over CRDTs",
+          rationale: "Full CRDT state vectors introduce significant payload bloat and complex serialization in Kotlin/SQLite and JavaScript/IndexedDB. For single-user media list tracking, deterministic wall-clock LWW with an atomic local queue gave identical consistency at 90% less code complexity.",
+          alternative: "Yjs / Automerge state-based CRDTs (heavy dependencies, difficult Kotlin native interop)"
+        },
+        {
+          decision: "Cloudflare Edge Worker Proxy for Gemini AI vs Client-Side Direct SDK",
+          rationale: "Direct client API keys get ripped immediately in public PWAs or APK decompilations. The edge worker encapsulates key rotation, enforces IP rate limits, and caches identical semantic queries for 24 hours at 0ms origin latency.",
+          alternative: "Embedding restricted API keys inside client builds"
+        }
+      ],
+      debuggingWarStory: {
+        title: "The Clock-Skew Phantom Resurrection Loop",
+        bug: "Deleting an anime title on an Android device while traveling across time zones caused the deleted entry to resurrect itself immediately once the phone reconnected to WiFi.",
+        rootCause: "Local client timestamps used device time (`System.currentTimeMillis()`) for mutation records. The phone's clock was 4 minutes behind the Supabase server, making the server's earlier update look newer than the client's deletion under LWW comparison.",
+        fix: "Transitioned all sync causality checks from raw local wall-clock time to monotonic logical sequence counters paired with server-calibrated NTP delta offsets on connection handshake.",
+        lessonLearned: "Never trust client wall-clock time for distributed distributed conflict resolution without logical sequence numbers."
+      }
     }
   },
 

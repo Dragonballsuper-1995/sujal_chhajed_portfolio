@@ -13,6 +13,7 @@ import Footer from './components/Footer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid from './components/BackgroundGrid';
 import HeroShader from './components/HeroShader';
+import DevToolsGreeting from './components/DevToolsGreeting';
 
 // Lazy loaded components (not needed for initial visual render)
 const ContactForm = lazy(() => import('./components/ContactForm'));
@@ -22,6 +23,7 @@ const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
 import { useScrollSpy } from './hooks';
 import { PERSONAL_INFO } from './constants';
 import { NavSection, Project } from './types';
+import { RecruiterProvider } from './context/RecruiterContext';
 
 // Global scroll reveal hook
 const useGlobalScrollReveal = (isLoaded: boolean) => {
@@ -65,7 +67,7 @@ const sectionToPath = (section: NavSection): string => {
   return `/${section}`;
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [isLoading, setIsLoading] = useState(() => {
     // If arriving directly at a sub-path like /skills or /about, skip initial splash loader
     const initial = pathToSection(window.location.pathname);
@@ -225,6 +227,9 @@ const App: React.FC = () => {
 
       {/* Main content */}
       <main className="min-h-svh flex flex-col font-sans bg-canvas text-ink relative">
+        {/* DevTools Console Greeting (invisible, fires once on mount) */}
+        <DevToolsGreeting />
+
         {/* Global Ambient Pastel WebGL Shader */}
         <HeroShader />
 
@@ -299,6 +304,14 @@ const App: React.FC = () => {
         />
       </main>
     </>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <RecruiterProvider>
+      <AppContent />
+    </RecruiterProvider>
   );
 };
 

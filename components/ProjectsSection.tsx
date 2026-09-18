@@ -1,24 +1,44 @@
 import React from 'react';
 import { Project, NavSection } from '../types';
-import ProjectCard from './ProjectCard';
+import ProjectCard, { isProjectMatchingRole } from './ProjectCard';
 import { FEATURED_PROJECTS, ARCHIVE_PROJECTS } from '../constants';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Filter } from 'lucide-react';
+import { useRecruiter } from '../context/RecruiterContext';
 
 interface ProjectsSectionProps {
   onProjectClick: (project: Project) => void;
 }
 
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => {
+  const { roleFilter, isRecruiterMode } = useRecruiter();
+
+  const allProjects = [...FEATURED_PROJECTS, ...ARCHIVE_PROJECTS];
+  const matchingProjects = allProjects.filter(p => isProjectMatchingRole(p, roleFilter));
+  const totalMatching = matchingProjects.length;
+
   return (
     <section id={NavSection.PROJECTS} className="scroll-mt-20 py-20 md:py-28 border-t-4 border-black bg-transparent relative z-10">
       <div className="max-w-6xl mx-auto px-5 md:px-8 relative z-10">
 
         {/* Section Header (Unboxed, High Visibility) */}
         <div className="mb-12 relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-neo-yellow text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider mb-3 shadow-neo-sm">
-            <Sparkles size={12} />
-            <span>Proven Architectures</span>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-neo-yellow text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm">
+              <Sparkles size={12} />
+              <span>Proven Architectures</span>
+            </div>
+
+            {roleFilter !== 'all' && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm animate-fadeIn">
+                <Filter size={12} />
+                <span>Role Filter: {roleFilter.toUpperCase()}</span>
+                <span className="bg-neo-yellow text-black px-1.5 py-0.2 text-[10px]">
+                  {totalMatching} Matched
+                </span>
+              </div>
+            )}
           </div>
+
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
               <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink leading-none uppercase tracking-tight">
@@ -30,7 +50,9 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => 
             </div>
 
             <div className="font-mono text-xs font-bold px-3.5 py-1.5 bg-white border-2 border-black text-ink uppercase shadow-neo-sm shrink-0 self-start sm:self-end">
-              3 Flagships • 5 Open-Source
+              {roleFilter === 'all'
+                ? '3 Flagships • 5 Open-Source'
+                : `${totalMatching} of ${allProjects.length} Projects Matched (${roleFilter.toUpperCase()})`}
             </div>
           </div>
         </div>
@@ -58,7 +80,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => 
             </p>
           </div>
           <span className="font-mono text-xs font-bold px-3 py-1.5 bg-neo-yellow border-2 border-black text-black shadow-neo-sm shrink-0 self-start sm:self-auto">
-            Hover card for details
+            {isRecruiterMode ? 'Recruiter Mode Active (Expanded)' : 'Hover card for details'}
           </span>
         </div>
 

@@ -10,12 +10,29 @@ export interface ArchitectureStep {
   detail: string;
 }
 
+export interface EngineeringTradeoff {
+  decision: string;
+  rationale: string;
+  alternative: string;
+}
+
+export interface DebuggingWarStory {
+  title: string;
+  bug: string;
+  rootCause: string;
+  fix: string;
+  lessonLearned?: string;
+}
+
 export interface CaseStudy {
   problem: string;
   solution: string;
   architecture?: ArchitectureStep[];
   metrics?: ProjectMetric[];
   huggingFace?: string;
+  tradeoffs?: EngineeringTradeoff[];
+  debuggingWarStory?: DebuggingWarStory;
+  directorsCutSummary?: string;
 }
 
 export interface Project {

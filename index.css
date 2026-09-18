@@ -19,6 +19,7 @@ body {
 
 /* Section navigation directly jumps without scrolling */
 html {
+  position: relative;
   scroll-behavior: auto !important;
 }
 

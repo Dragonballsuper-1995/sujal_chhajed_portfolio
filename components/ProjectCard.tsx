@@ -1,7 +1,77 @@
 import React, { useState } from 'react';
-import { Github, ExternalLink, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
+import { Github, ExternalLink, ArrowRight, BookOpen, Sparkles, Zap, CheckCircle2 } from 'lucide-react';
 import { Project } from '../types';
 import CanvasRevealEffect from './ui/CanvasRevealEffect';
+import { useRecruiter, RoleFilter } from '../context/RecruiterContext';
+
+export const isProjectMatchingRole = (project: Project, role: RoleFilter): boolean => {
+  if (role === 'all') return true;
+  const category = (project.category || '').toLowerCase();
+  const title = (project.title || '').toLowerCase();
+  const tags = (project.tags || []).map(t => t.toLowerCase());
+
+  if (role === 'ai-ml') {
+    return (
+      category.includes('ai') ||
+      category.includes('ml') ||
+      title.includes('phonos') ||
+      title.includes('metagen') ||
+      title.includes('alphagaze') ||
+      title.includes('anomlogbert') ||
+      title.includes('proctoring') ||
+      tags.some(t =>
+        t.includes('bert') ||
+        t.includes('xgboost') ||
+        t.includes('transformers') ||
+        t.includes('pytorch') ||
+        t.includes('llama') ||
+        t.includes('hugging') ||
+        t.includes('scikit') ||
+        t.includes('gemini')
+      )
+    );
+  }
+
+  if (role === 'fullstack') {
+    return (
+      category.includes('fullstack') ||
+      category.includes('full-stack') ||
+      category.includes('web') ||
+      title.includes('loopa') ||
+      title.includes('urban escapade') ||
+      title.includes('proctoring') ||
+      tags.some(t =>
+        t.includes('react') ||
+        t.includes('next') ||
+        t.includes('fastapi') ||
+        t.includes('kotlin') ||
+        t.includes('supabase') ||
+        t.includes('html') ||
+        t.includes('css') ||
+        t.includes('node')
+      )
+    );
+  }
+
+  if (role === 'data-eng') {
+    return (
+      category.includes('data') ||
+      title.includes('fpl') ||
+      title.includes('phonos') ||
+      title.includes('alphagaze') ||
+      tags.some(t =>
+        t.includes('xgboost') ||
+        t.includes('pandas') ||
+        t.includes('actions') ||
+        t.includes('prophet') ||
+        t.includes('python') ||
+        t.includes('sql')
+      )
+    );
+  }
+
+  return true;
+};
 
 const hexToRgb = (hex: string): number[] => {
   const cleanHex = hex.replace('#', '');
@@ -19,8 +89,10 @@ interface ProjectCardProps {
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant = 'flagship' }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { isRecruiterMode, roleFilter } = useRecruiter();
 
   const rgbColor = hexToRgb(project.accentColor || '#FFDE59');
+  const isRoleMatch = roleFilter === 'all' || isProjectMatchingRole(project, roleFilter);
 
   // ── ARCHIVE TIER VARIANT (Clean white at rest, floating popover on hover) ──
   if (variant === 'archive') {
@@ -34,8 +106,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
           }
         }}
         className={`relative group flex flex-col justify-between overflow-hidden bg-white border-2 border-black shadow-neo-sm
-          hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all duration-200 h-full min-h-[170px] ${
+          hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all duration-200 ${
+            isRecruiterMode ? 'h-auto min-h-[220px]' : 'h-full min-h-[170px]'
+          } ${
             project.caseStudy ? 'cursor-pointer' : ''
+          } ${
+            roleFilter !== 'all' && !isRoleMatch
+              ? 'opacity-40 grayscale contrast-75 hover:opacity-100 hover:grayscale-0'
+              : ''
+          } ${
+            roleFilter !== 'all' && isRoleMatch ? 'ring-2 ring-neo-yellow' : ''
           }`}
       >
         {/* Top Accent Strip */}
@@ -64,8 +144,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
           />
         </div>
 
-        {/* Floating Brutalist Popover (Hover details without altering card height) */}
-        {isHovered && (
+        {/* Floating Brutalist Popover (Only in standard mode on hover, unhidden directly in recruiter mode) */}
+        {!isRecruiterMode && isHovered && (
           <div className="absolute bottom-[calc(100%+8px)] left-0 right-0 z-40 bg-white border-2 border-black shadow-neo p-3.5 pointer-events-none animate-fadeIn w-[115%] -left-[7.5%]">
             <div className="flex items-center justify-between gap-1 mb-1.5 pb-1 border-b border-black/10">
               <span className="font-mono text-[10px] font-black uppercase text-black">
@@ -98,10 +178,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
         {/* Card Header & Content */}
         <div className="relative z-10 p-4 flex flex-col flex-1 justify-between">
           <div>
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="font-mono text-[10px] font-black uppercase px-2 py-0.5 bg-black text-white">
-                {project.category}
-              </span>
+            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="font-mono text-[10px] font-black uppercase px-2 py-0.5 bg-black text-white">
+                  {project.category}
+                </span>
+                {roleFilter !== 'all' && isRoleMatch && (
+                  <span className="font-mono text-[9px] font-black uppercase px-1.5 py-0.5 bg-neo-yellow text-black border border-black shadow-[1px_1px_0px_0px_#000]">
+                    ★ MATCH
+                  </span>
+                )}
+              </div>
               {project.caseStudy && (
                 <button
                   type="button"
@@ -124,9 +211,38 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
 
             {/* Primary Metric */}
             {project.primaryMetric && (
-              <p className="font-mono text-xs font-bold text-black/80 mt-1">
+              <p className={`font-mono text-xs font-bold mt-1 ${
+                isRecruiterMode
+                  ? 'text-black bg-neo-yellow/30 p-1 border border-black/20'
+                  : 'text-black/80'
+              }`}>
                 ⚡ {project.primaryMetric}
               </p>
+            )}
+
+            {/* Recruiter Mode Content Expansion: Description, All Tags, and Architecture Unhidden Directly on Surface */}
+            {isRecruiterMode && (
+              <div className="mt-2.5 pt-2 border-t border-black/15 space-y-2">
+                <p className="font-mono text-xs text-black leading-relaxed">
+                  {project.description}
+                </p>
+                <div className="flex flex-wrap gap-1 pt-0.5">
+                  {project.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="font-mono text-[9px] font-bold px-1.5 py-0.5 bg-canvas border border-black/30 text-black"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                {project.caseStudy?.architecture && project.caseStudy.architecture.length > 0 && (
+                  <div className="text-[10px] font-mono text-gray-800 bg-canvas p-1.5 border border-black/20">
+                    <span className="font-black text-black uppercase">Pipeline: </span>
+                    {project.caseStudy.architecture.map(a => a.title).join(' → ')}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -177,6 +293,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
       className={`relative group flex flex-col justify-between overflow-hidden bg-white border-4 border-black shadow-neo
         hover:-translate-x-1 hover:-translate-y-1 hover:shadow-neo-lg transition-all duration-200 h-full ${
           project.caseStudy ? 'cursor-pointer' : ''
+        } ${
+          roleFilter !== 'all' && !isRoleMatch
+            ? 'opacity-40 grayscale contrast-75 hover:opacity-100 hover:grayscale-0'
+            : ''
+        } ${
+          roleFilter !== 'all' && isRoleMatch ? 'ring-4 ring-neo-yellow' : ''
         }`}
     >
       {/* Top Accent Strip */}
@@ -208,10 +330,18 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
       {/* Content Container */}
       <div className="relative z-10 p-6 sm:p-8 flex flex-col flex-1">
         {/* Top Badges */}
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <span className="font-mono text-xs font-black uppercase px-2.5 py-1 bg-black text-white border-2 border-black shadow-[2px_2px_0px_0px_#000]">
-            {project.category}
-          </span>
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-mono text-xs font-black uppercase px-2.5 py-1 bg-black text-white border-2 border-black shadow-[2px_2px_0px_0px_#000]">
+              {project.category}
+            </span>
+            {roleFilter !== 'all' && isRoleMatch && (
+              <span className="font-mono text-xs font-black uppercase px-2 py-0.5 bg-neo-yellow text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+                <CheckCircle2 size={12} />
+                <span>Role Match</span>
+              </span>
+            )}
+          </div>
           <span
             className="font-mono text-xs font-bold px-2 py-0.5 border border-black"
             style={{ backgroundColor: project.accentColor + '35' }}
@@ -250,9 +380,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
           </div>
         )}
 
-        {/* Stack Tags */}
-        <div className="flex flex-wrap gap-1.5 mb-8">
-          {project.tags.slice(0, 3).map((tag) => (
+        {/* Stack Tags (All tags shown in recruiter mode, top 3 in standard view) */}
+        <div className="flex flex-wrap gap-1.5 mb-6">
+          {(isRecruiterMode ? project.tags : project.tags.slice(0, 3)).map((tag) => (
             <span
               key={tag}
               className="font-mono text-[11px] font-bold px-2 py-0.5 bg-canvas text-black border border-black shadow-[1px_1px_0px_0px_#000]"
@@ -260,7 +390,61 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
               {tag}
             </span>
           ))}
+          {!isRecruiterMode && project.tags.length > 3 && (
+            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 text-muted self-center">
+              +{project.tags.length - 3} more
+            </span>
+          )}
         </div>
+
+        {/* Recruiter Speedrun Mode: Direct In-Line Architecture Brief & Production Metrics */}
+        {isRecruiterMode && project.caseStudy && (
+          <div className="mb-6 p-4 bg-canvas border-2 border-black shadow-neo-sm space-y-3">
+            <div className="flex items-center justify-between border-b border-black/20 pb-2 flex-wrap gap-1">
+              <span className="font-mono text-xs font-black uppercase text-black flex items-center gap-1.5">
+                <Zap size={14} className="fill-black" />
+                Recruiter Architecture Brief
+              </span>
+              <span className="font-mono text-[10px] font-bold px-2 py-0.5 bg-black text-white">
+                In-Line Direct Inspection
+              </span>
+            </div>
+
+            {/* Key Architecture Stages */}
+            {project.caseStudy.architecture && project.caseStudy.architecture.length > 0 && (
+              <div className="space-y-1.5">
+                <div className="font-mono text-[10px] font-black uppercase text-muted tracking-wider">
+                  // Architecture Workflow Stages:
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {project.caseStudy.architecture.map((arch, idx) => (
+                    <div key={idx} className="bg-white p-2 border border-black/30 text-xs font-mono">
+                      <span className="font-bold text-black">{arch.step}: {arch.title}</span>
+                      <p className="text-[11px] text-gray-700 mt-0.5 leading-snug">{arch.detail}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Key Verified Production Metrics */}
+            {project.caseStudy.metrics && project.caseStudy.metrics.length > 0 && (
+              <div className="pt-2 border-t border-black/15">
+                <div className="font-mono text-[10px] font-black uppercase text-muted tracking-wider mb-1.5">
+                  // Verified Production Metrics:
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  {project.caseStudy.metrics.map((m, idx) => (
+                    <div key={idx} className="bg-white p-1.5 border border-black/30 text-center font-mono">
+                      <div className="text-[10px] text-muted font-bold truncate">{m.label}</div>
+                      <div className="text-xs font-black text-black truncate">{m.value}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action Button Row */}
         <div className="mt-auto pt-4 border-t-2 border-black/15 flex flex-wrap gap-2.5 items-center">
@@ -325,4 +509,4 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
   );
 };
 
-export default React.memo(ProjectCard);
+export default React.memo(ProjectCard);

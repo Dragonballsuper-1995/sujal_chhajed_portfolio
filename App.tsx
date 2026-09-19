@@ -135,6 +135,9 @@ const AppContent: React.FC = () => {
   // Global keyboard listener for Ctrl+K/Cmd+K to open Command Palette
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (['input', 'textarea'].includes(targetTag)) return;
+
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setIsCmdPaletteOpen(prev => !prev);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface LoadingScreenProps {
   onComplete: () => void;
@@ -6,81 +6,149 @@ interface LoadingScreenProps {
   name?: string;
 }
 
-const LoadingScreen: React.FC<LoadingScreenProps> = ({ onComplete, onAnimationFinished }) => {
-  const [phase, setPhase] = useState<'sc' | 'morph' | 'full' | 'fadeout'>('sc');
+const LOADING_TEXTS = [
+  'INITIALIZING ASSETS...',
+  'CONNECTING TO GRID...',
+  'CALIBRATING PIXELS...',
+  'COMPILING NEURAL WEIGHTS...',
+  'DECOMPRESSING MODULES...',
+  'AWAKENING AI ASSISTANT...',
+  'SYSTEM READY.',
+];
+
+const LoadingScreen: React.FC<LoadingScreenProps> = ({
+  onComplete,
+  onAnimationFinished,
+  name = 'Sujal Sanjay Chhajed',
+}) => {
+  const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState(LOADING_TEXTS[0]);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [isContentHidden, setIsContentHidden] = useState(false);
+  const animFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
-    // Phase timeline (deliberate boot sequence):
-    // 0ms    → show "SC" monogram
-    // 700ms  → begin morph to "Sujal—"
-    // 1300ms → show full name "Sujal Chhajed"
-    // 2100ms → trigger onComplete (site ready) and start fadeout
-    // 2500ms → unmount loader cleanly
+    // Fast, snappy boot duration (~1100ms total progress)
+    const duration = 1100;
 
-    const t1 = setTimeout(() => setPhase('morph'), 700);
-    const t2 = setTimeout(() => setPhase('full'), 1300);
-    const t3 = setTimeout(() => {
-      onComplete();
-      setPhase('fadeout');
-    }, 2100);
-    const t4 = setTimeout(() => onAnimationFinished(), 2500);
+    // Fast status cycling (~160ms per line)
+    const textInterval = setInterval(() => {
+      setStatusText((current) => {
+        const idx = LOADING_TEXTS.indexOf(current);
+        if (idx === -1 || idx >= LOADING_TEXTS.length - 2) return current;
+        return LOADING_TEXTS[idx + 1];
+      });
+    }, 160);
 
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    let startTime: number | null = null;
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const pct = Math.min(100, Math.floor((elapsed / duration) * 100));
+
+      setProgress(pct);
+
+      if (elapsed < duration) {
+        animFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        setProgress(100);
+        clearInterval(textInterval);
+        setStatusText('SYSTEM READY.');
+
+        // 1. Tell parent app to mount content underneath
+        onComplete();
+
+        // 2. Snappy buffer (120ms) then lift curtain
+        setTimeout(() => {
+          setIsContentHidden(true);
+          setIsCompleting(true);
+        }, 120);
+
+        // 3. Unmount loader once curtain has lifted
+        setTimeout(() => {
+          onAnimationFinished();
+        }, 750);
+      }
+    };
+
+    animFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      clearInterval(textInterval);
+    };
   }, [onComplete, onAnimationFinished]);
 
   return (
     <div
       aria-hidden="true"
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-canvas
-        transition-opacity duration-150
-        ${phase === 'fadeout' ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+      className={`fixed inset-0 z-[9999] bg-[#050505] text-white flex flex-col justify-between p-6 sm:p-10 font-sans select-none overflow-hidden transition-transform duration-600 ease-[cubic-bezier(0.87,0,0.13,1)] will-change-transform ${
+        isCompleting ? '-translate-y-full' : 'translate-y-0'
+      }`}
     >
-      <div className="relative flex flex-col items-center gap-4 text-center px-4" style={{ minWidth: 260 }}>
-        <div className="relative overflow-hidden w-full flex justify-center py-2" style={{ minHeight: 64 }}>
-          {/* SC — shown initially */}
-          <span
-            className={`block font-sans text-ink font-black text-6xl leading-none tracking-tight select-none
-              transition-all duration-300 ease-out
-              ${phase === 'sc' ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-3 scale-95 absolute'}`}
-          >
-            SC
-          </span>
+      {/* Subtle Dot Grid Background */}
+      <div
+        className="absolute inset-0 opacity-15 pointer-events-none"
+        style={{
+          backgroundImage: `radial-gradient(rgba(255,255,255,0.2) 1px, transparent 1px)`,
+          backgroundSize: '28px 28px',
+        }}
+      />
 
-          {/* Morph phase — animating in */}
-          <span
-            className={`block font-sans text-ink font-black text-4xl sm:text-5xl leading-none tracking-tight select-none
-              transition-all duration-300 ease-out
-              ${phase === 'morph' ? 'opacity-100 translate-y-0' : phase === 'full' || phase === 'fadeout' ? 'opacity-0 -translate-y-2 absolute' : 'opacity-0 translate-y-3 absolute'}`}
-          >
-            Sujal—
-          </span>
-
-          {/* Full name — final state */}
-          <span
-            className={`block font-sans text-ink font-black text-3xl sm:text-4xl leading-none tracking-tight select-none
-              transition-all duration-300 ease-out
-              ${phase === 'full' || phase === 'fadeout' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3 absolute'}`}
-          >
-            Sujal Chhajed
-          </span>
+      {/* Main Content Container */}
+      <div
+        className={`flex flex-col justify-between h-full w-full relative z-10 transition-opacity duration-200 ease-out ${
+          isContentHidden ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        {/* Top Header Bar */}
+        <div className="flex justify-between items-center w-full">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-[#FFDE59] shadow-[0_0_8px_#FFDE59] animate-pulse" />
+            <span className="text-xs sm:text-sm font-mono font-bold tracking-tight text-white uppercase">
+              SYSTEM BOOT // V.2.6
+            </span>
+          </div>
+          <div className="font-mono text-[11px] sm:text-xs text-white/50 tracking-wider hidden sm:flex items-center gap-3">
+            <span>MEM: 64MB</span>
+            <span>//</span>
+            <span className="text-[#FFDE59]">SYS_OK</span>
+          </div>
         </div>
 
-        {/* Minimal neo-brutalist progress track */}
-        <div className="w-48 h-2 bg-white border-2 border-black shadow-[2px_2px_0px_0px_#000] overflow-hidden">
-          <div
-            className="h-full bg-neo-yellow transition-all duration-700 ease-out"
-            style={{
-              width: phase === 'sc' ? '25%' : phase === 'morph' ? '65%' : '100%'
-            }}
-          />
+        {/* Center Progress Display */}
+        <div className="flex flex-col items-center w-full my-auto py-8">
+          {/* Large Bold Percentage */}
+          <div className="text-[clamp(4.5rem,16vw,10.5rem)] font-black leading-none tracking-tighter text-white tabular-nums">
+            {progress}%
+          </div>
+
+          {/* Progress Bar Container (High-Contrast White from Deployed Loader) */}
+          <div className="w-full max-w-md sm:max-w-lg mt-4 sm:mt-8">
+            <div className="w-full h-4 bg-gray-900 border-4 border-white overflow-hidden">
+              {/* Actual Filling Bar (Solid White) */}
+              <div
+                className="h-full bg-white transition-all duration-75 ease-linear"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
         </div>
 
-        <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-muted">
-          {phase === 'sc' ? 'Initializing...' : phase === 'morph' ? 'Loading Core Stack...' : 'System Ready'}
-        </span>
+        {/* Bottom Status & Copyright */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-xs sm:text-sm font-mono uppercase pb-[env(safe-area-inset-bottom,0px)]">
+          <div className="flex items-center gap-2 text-white" role="status" aria-live="polite">
+            <span className="text-[#FFDE59] font-bold">&gt;</span>
+            <span className="tracking-wide">{statusText}</span>
+          </div>
+          <div className="text-white/60 tracking-wider text-[11px] sm:text-xs">
+            © {new Date().getFullYear()} {name}
+          </div>
+        </div>
       </div>
     </div>
   );
 };
 
-export default LoadingScreen;
+export default React.memo(LoadingScreen);

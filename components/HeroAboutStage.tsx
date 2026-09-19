@@ -6,6 +6,7 @@ import { PERSONAL_INFO } from '../constants';
 
 interface HeroAboutStageProps {
   scrollToSection: (id: NavSection) => void;
+  openResumeModal?: () => void;
 }
 
 /**
@@ -24,7 +25,7 @@ interface HeroAboutStageProps {
  *     7. Interactive 3D mouse tilt activates on hover once settled.
  * - On mobile (< 1024px), a responsive natural-flow layout is used to prevent viewport clipping.
  */
-const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection }) => {
+const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openResumeModal }) => {
   const desktopTrackRef = useRef<HTMLDivElement>(null);
   // ── Desktop Scroll Animations ──────────────────────────────────────────
   const { scrollYProgress } = useScroll({
@@ -323,15 +324,14 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection }) => {
                     <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   </button>
 
-                  <a
-                    href={PERSONAL_INFO.resumeLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 font-mono font-bold text-xs px-4 py-2.5 bg-neo-yellow text-black border-2 border-black shadow-neo-sm hover:bg-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all"
+                  <button
+                    type="button"
+                    onClick={openResumeModal}
+                    className="inline-flex items-center gap-1.5 font-mono font-bold text-xs px-4 py-2.5 bg-neo-yellow text-black border-2 border-black shadow-neo-sm hover:bg-white hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all cursor-pointer"
                   >
                     <FileText size={13} />
                     <span>RESUME ↗</span>
-                  </a>
+                  </button>
                 </div>
               </motion.div>
             </div>
@@ -497,15 +497,14 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection }) => {
               <span>Explore Projects</span>
               <ArrowUpRight size={14} />
             </button>
-            <a
-              href={PERSONAL_INFO.resumeLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 font-mono font-bold text-xs px-4 py-2.5 bg-neo-yellow text-black border-2 border-black shadow-neo"
+            <button
+              type="button"
+              onClick={openResumeModal}
+              className="inline-flex items-center gap-1.5 font-mono font-bold text-xs px-4 py-2.5 bg-neo-yellow text-black border-2 border-black shadow-neo cursor-pointer"
             >
               <FileText size={13} />
               <span>RESUME ↗</span>
-            </a>
+            </button>
           </div>
         </section>
       </div>

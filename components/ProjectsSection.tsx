@@ -10,11 +10,18 @@ interface ProjectsSectionProps {
 }
 
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => {
-  const { roleFilter, isRecruiterMode } = useRecruiter();
+  const { roleFilter, setRoleFilter } = useRecruiter();
 
   const allProjects = [...FEATURED_PROJECTS, ...ARCHIVE_PROJECTS];
   const matchingProjects = allProjects.filter(p => isProjectMatchingRole(p, roleFilter));
   const totalMatching = matchingProjects.length;
+
+  const ROLE_OPTIONS: { id: 'all' | 'ai-ml' | 'fullstack' | 'data-eng'; label: string; count: number }[] = [
+    { id: 'all', label: 'All Projects', count: allProjects.length },
+    { id: 'ai-ml', label: 'AI / ML', count: allProjects.filter(p => isProjectMatchingRole(p, 'ai-ml')).length },
+    { id: 'fullstack', label: 'Full-Stack', count: allProjects.filter(p => isProjectMatchingRole(p, 'fullstack')).length },
+    { id: 'data-eng', label: 'Data Eng', count: allProjects.filter(p => isProjectMatchingRole(p, 'data-eng')).length },
+  ];
 
   return (
     <section id={NavSection.PROJECTS} className="scroll-mt-20 py-20 md:py-28 border-t-4 border-black bg-transparent relative z-10">
@@ -31,7 +38,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => 
             {roleFilter !== 'all' && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm animate-fadeIn">
                 <Filter size={12} />
-                <span>Role Filter: {roleFilter.toUpperCase()}</span>
+                <span>Active Filter: {roleFilter.toUpperCase()}</span>
                 <span className="bg-neo-yellow text-black px-1.5 py-0.2 text-[10px]">
                   {totalMatching} Matched
                 </span>
@@ -39,7 +46,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => 
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6">
             <div>
               <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink leading-none uppercase tracking-tight">
                 Featured Projects
@@ -52,13 +59,46 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => 
             <div className="font-mono text-xs font-bold px-3.5 py-1.5 bg-white border-2 border-black text-ink uppercase shadow-neo-sm shrink-0 self-start sm:self-end">
               {roleFilter === 'all'
                 ? '3 Flagships • 5 Open-Source'
-                : `${totalMatching} of ${allProjects.length} Projects Matched (${roleFilter.toUpperCase()})`}
+                : `${totalMatching} of ${allProjects.length} Projects Matched`}
             </div>
+          </div>
+
+          {/* Role Filter Tabs Bar */}
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t-2 border-black/10">
+            <span className="font-mono text-xs font-bold text-black uppercase mr-1">
+              Role:
+            </span>
+            {ROLE_OPTIONS.map((opt) => {
+              const isActive = roleFilter === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setRoleFilter(opt.id)}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs uppercase tracking-wider transition-all duration-150 cursor-pointer ${
+                    isActive
+                      ? 'bg-neo-yellow text-black border-2 border-black shadow-neo-sm font-black -translate-y-0.5'
+                      : 'bg-white text-gray-700 hover:text-black hover:bg-canvas border-2 border-black/30 hover:border-black font-bold'
+                  }`}
+                >
+                  <span>{opt.label}</span>
+                  <span
+                    className={`text-[10px] font-bold px-1.5 py-0.2 border ${
+                      isActive
+                        ? 'bg-black text-white border-black'
+                        : 'bg-gray-100 text-gray-600 border-black/20'
+                    }`}
+                  >
+                    {opt.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* ── Tier 1: 3 Flagship Systems (Grid Row of 3 on Desktop) ──────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        {/* ── Tier 1: 3 Flagship Systems (1 column on mobile/tablet, 3 columns on desktop) ──────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-16">
           {FEATURED_PROJECTS.map((project) => (
             <ProjectCard
               key={project.id}
@@ -79,15 +119,12 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => 
               Deep NLP attention heatmaps, behavioral biometrics, automated MLOps pipelines, and web systems.
             </p>
           </div>
-          <span className="font-mono text-xs font-bold px-3 py-1.5 bg-neo-yellow border-2 border-black text-black shadow-neo-sm shrink-0 self-start sm:self-auto">
-            {isRecruiterMode ? 'Recruiter Mode Active (Expanded)' : 'Hover card for details'}
-          </span>
         </div>
 
-        {/* ── Tier 2: 5 Archive Cards (Single Row on Desktop with overflow visible for popovers) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-16 relative z-20 overflow-visible pt-8">
+        {/* ── Tier 2: 5 Archive Cards (Responsive 2/3 column layout with directly visible details) ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16 relative z-20">
           {ARCHIVE_PROJECTS.map((project) => (
-            <div key={project.id} className="relative overflow-visible">
+            <div key={project.id} className="relative">
               <ProjectCard
                 project={project}
                 onCaseStudy={onProjectClick}

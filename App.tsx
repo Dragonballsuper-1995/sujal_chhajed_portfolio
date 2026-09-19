@@ -2,7 +2,6 @@
 import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 
 import ScrollToTopButton from './components/ScrollToTopButton';
-import LoadingScreen from './components/LoadingScreen';
 import ToastNotification from './components/ToastNotification';
 import Header from './components/Header';
 import HeroAboutStage from './components/HeroAboutStage';
@@ -10,6 +9,8 @@ import Skills from './components/Skills';
 import ProjectsSection from './components/ProjectsSection';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
+import ResumeModal from './components/ResumeModal';
+import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid from './components/BackgroundGrid';
 import HeroShader from './components/HeroShader';
@@ -17,38 +18,34 @@ import DevToolsGreeting from './components/DevToolsGreeting';
 
 // Lazy loaded components (not needed for initial visual render)
 const ContactForm = lazy(() => import('./components/ContactForm'));
-const CommandPalette = lazy(() => import('./components/CommandPalette'));
 const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
 
 import { useScrollSpy } from './hooks';
-import { PERSONAL_INFO } from './constants';
 import { NavSection, Project } from './types';
 import { RecruiterProvider } from './context/RecruiterContext';
 
 // Global scroll reveal hook
-const useGlobalScrollReveal = (isLoaded: boolean) => {
+const useGlobalScrollReveal = () => {
   useEffect(() => {
-    if (isLoaded) {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.1 });
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
 
-      const timeoutId = setTimeout(() => {
-        // Exclude project cards, as they have their own observer
-        document.querySelectorAll('.reveal-on-scroll:not(section#projects .reveal-on-scroll)').forEach((el) => observer.observe(el));
-      }, 100);
+    const timeoutId = setTimeout(() => {
+      // Exclude project cards, as they have their own observer
+      document.querySelectorAll('.reveal-on-scroll:not(section#projects .reveal-on-scroll)').forEach((el) => observer.observe(el));
+    }, 100);
 
-      return () => {
-        observer.disconnect();
-        clearTimeout(timeoutId);
-      };
-    }
-  }, [isLoaded]);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeoutId);
+    };
+  }, []);
 };
 
 
@@ -68,18 +65,8 @@ const sectionToPath = (section: NavSection): string => {
 };
 
 const AppContent: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(() => {
-    // If arriving directly at a sub-path like /skills or /about, skip initial splash loader
-    const initial = pathToSection(window.location.pathname);
-    return !initial || initial === NavSection.HERO;
-  });
-  const [isLoaderMounted, setIsLoaderMounted] = useState(() => {
-    const initial = pathToSection(window.location.pathname);
-    return !initial || initial === NavSection.HERO;
-  });
   const [isContactOpen, setIsContactOpen] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isCmdPaletteOpen, setIsCmdPaletteOpen] = useState(false);
+  const [isResumeOpen, setIsResumeOpen] = useState(false);
 
   // Sheet state for Project Case Study
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -109,8 +96,6 @@ const AppContent: React.FC = () => {
 
     const initialSection = pathToSection(window.location.pathname);
     if (initialSection && initialSection !== NavSection.HERO) {
-      setIsLoading(false);
-      setIsLoaderMounted(false);
       // Allow DOM to settle before jumping
       const timer = setTimeout(() => {
         scrollToSection(initialSection, false);
@@ -132,30 +117,8 @@ const AppContent: React.FC = () => {
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [scrollToSection]);
-  // Global keyboard listener for Ctrl+K/Cmd+K to open Command Palette
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      const targetTag = (e.target as HTMLElement)?.tagName?.toLowerCase();
-      if (['input', 'textarea'].includes(targetTag)) return;
 
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setIsCmdPaletteOpen(prev => !prev);
-      }
-    };
-    window.addEventListener('keydown', handleGlobalKeyDown);
-    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, []);
-
-  const handleLoadingComplete = useCallback(() => {
-    setIsLoading(false);
-  }, []);
-
-  const handleAnimationFullyComplete = useCallback(() => {
-    setIsLoaderMounted(false);
-  }, []);
-
-  useGlobalScrollReveal(!isLoading);
+  useGlobalScrollReveal();
 
   const showToast = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, visible: true, type });
@@ -188,48 +151,24 @@ const AppContent: React.FC = () => {
     setSelectedProject(project);
   }, []);
 
-  // Body scroll lock for modal and loader
+  // Body scroll lock for modals
   useEffect(() => {
-    const shouldLock = isChatOpen || isLoaderMounted || isCmdPaletteOpen;
-    // Sheets handle their own scroll locking, so we check for others here
-    if (shouldLock) {
+    if (isContactOpen || selectedProject || isResumeOpen) {
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
-      // Reset scroll to top when loading screen is mounted
-      if (isLoaderMounted) {
-        window.scrollTo(0, 0);
-      }
-    } else if (!isContactOpen && !selectedProject) {
+    } else {
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
     }
-
-    return () => {
-      // Cleanup logic handled mostly by components
-    };
-  }, [isChatOpen, isLoaderMounted, isCmdPaletteOpen, isContactOpen, selectedProject]);
+  }, [isContactOpen, selectedProject, isResumeOpen]);
 
   return (
     <>
-      {isLoaderMounted && (
-        <LoadingScreen
-          onComplete={handleLoadingComplete}
-          onAnimationFinished={handleAnimationFullyComplete}
-          name={PERSONAL_INFO.name}
-        />
-      )}
+      {/* Desktop Custom Crosshair & Ring Follower Cursor */}
+      <CustomCursor />
 
-      {/* Backdrop for Chat Modal */}
-      {isChatOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/80 animate-[fadeIn_0.3s_ease-out]"
-          onClick={() => setIsChatOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Main content */}
-      <main className="min-h-svh flex flex-col font-sans bg-canvas text-ink relative">
+      {/* Main content with smooth entrance animation */}
+      <main className="min-h-svh flex flex-col font-sans bg-transparent text-ink relative animate-[fadeIn_0.5s_cubic-bezier(0.16,1,0.3,1)]">
         {/* DevTools Console Greeting (invisible, fires once on mount) */}
         <DevToolsGreeting />
 
@@ -242,10 +181,13 @@ const AppContent: React.FC = () => {
         <Header
           activeSection={activeSection}
           scrollToSection={scrollToSection}
-          openCommandPalette={() => setIsCmdPaletteOpen(true)}
+          openResumeModal={() => setIsResumeOpen(true)}
         />
 
-        <HeroAboutStage scrollToSection={scrollToSection} />
+        <HeroAboutStage
+          scrollToSection={scrollToSection}
+          openResumeModal={() => setIsResumeOpen(true)}
+        />
         <Skills />
         <ProjectsSection onProjectClick={handleProjectClick} />
 
@@ -253,7 +195,16 @@ const AppContent: React.FC = () => {
           copyToClipboard={copyToClipboard}
         />
 
-        <Footer scrollToSection={scrollToSection} />
+        <Footer
+          scrollToSection={scrollToSection}
+          openResumeModal={() => setIsResumeOpen(true)}
+        />
+
+        {/* In-Portfolio Resume Modal/Sheet */}
+        <ResumeModal
+          isOpen={isResumeOpen}
+          onClose={() => setIsResumeOpen(false)}
+        />
 
         {/* Contact Sheet */}
         <Sheet open={isContactOpen} onOpenChange={setIsContactOpen}>
@@ -274,7 +225,7 @@ const AppContent: React.FC = () => {
           </SheetContent>
         </Sheet>
 
-        {/* Project Case Study Sheet (Feature #5 Implementation) */}
+        {/* Project Case Study Sheet */}
         <Sheet open={!!selectedProject} onOpenChange={(open) => !open && setSelectedProject(null)}>
           <SheetContent className="w-full sm:max-w-3xl p-0 border-l border-ink overflow-y-auto">
             {selectedProject && (
@@ -284,18 +235,6 @@ const AppContent: React.FC = () => {
             )}
           </SheetContent>
         </Sheet>
-
-        {isCmdPaletteOpen && (
-          <Suspense fallback={null}>
-            <CommandPalette
-              scrollToSection={scrollToSection}
-              setIsContactOpen={setIsContactOpen}
-              setIsChatOpen={setIsChatOpen}
-              isOpen={isCmdPaletteOpen}
-              setIsOpen={setIsCmdPaletteOpen}
-            />
-          </Suspense>
-        )}
 
         <ScrollToTopButton />
 

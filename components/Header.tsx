@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { Menu, X, FileText } from 'lucide-react';
 import { NavSection } from '../types';
-import { PERSONAL_INFO } from '../constants';
 
 interface HeaderProps {
   activeSection: NavSection;
   scrollToSection: (id: NavSection) => void;
-  openCommandPalette: () => void;
+  openResumeModal: () => void;
 }
 
 const NAV_LINKS: { label: string; section: NavSection }[] = [
@@ -17,7 +16,7 @@ const NAV_LINKS: { label: string; section: NavSection }[] = [
   { label: 'Contact',  section: NavSection.CONTACT },
 ];
 
-const Header: React.FC<HeaderProps> = ({ activeSection, scrollToSection }) => {
+const Header: React.FC<HeaderProps> = ({ activeSection, scrollToSection, openResumeModal }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleNav = (e: React.MouseEvent, section: NavSection) => {
@@ -70,19 +69,18 @@ const Header: React.FC<HeaderProps> = ({ activeSection, scrollToSection }) => {
               </a>
             ))}
 
-            <a
-              href={PERSONAL_INFO.resumeLink}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
+              onClick={openResumeModal}
               className="ml-2 inline-flex items-center gap-1.5 font-mono text-xs font-bold px-3.5 py-1.5
                 bg-neo-yellow text-black border-2 border-black
                 shadow-neo-sm hover:bg-neo-green hover:shadow-neo
                 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
-                transition-all duration-150"
+                transition-all duration-150 cursor-pointer"
             >
               <FileText size={13} />
               <span>Resume ↗</span>
-            </a>
+            </button>
           </div>
 
           {/* Mobile Actions */}
@@ -114,15 +112,17 @@ const Header: React.FC<HeaderProps> = ({ activeSection, scrollToSection }) => {
                 <span>➔</span>
               </a>
             ))}
-            <a
-              href={PERSONAL_INFO.resumeLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => setMobileOpen(false)}
-              className="mt-3 font-mono text-xs font-bold uppercase py-3 px-4 bg-neo-yellow text-black border-2 border-black text-center shadow-neo-sm"
+            <button
+              type="button"
+              onClick={() => {
+                setMobileOpen(false);
+                openResumeModal();
+              }}
+              className="mt-3 font-mono text-xs font-bold uppercase py-3 px-4 bg-neo-yellow text-black border-2 border-black text-center shadow-neo-sm cursor-pointer flex items-center justify-center gap-2"
             >
-              View Full Resume (PDF) ↗
-            </a>
+              <FileText size={14} />
+              <span>View Full Resume (PDF) ↗</span>
+            </button>
           </div>
         </div>
       )}

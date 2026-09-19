@@ -95,6 +95,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
   const isRoleMatch = roleFilter === 'all' || isProjectMatchingRole(project, roleFilter);
 
   // ── ARCHIVE TIER VARIANT (Clean white at rest, floating popover on hover) ──
+  // ── ARCHIVE TIER VARIANT (Clean, balanced card with directly visible content) ──
   if (variant === 'archive') {
     return (
       <div
@@ -106,9 +107,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
           }
         }}
         className={`relative group flex flex-col justify-between overflow-hidden bg-white border-2 border-black shadow-neo-sm
-          hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all duration-200 ${
-            isRecruiterMode ? 'h-auto min-h-[220px]' : 'h-full min-h-[170px]'
-          } ${
+          hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-neo transition-all duration-200 h-full min-h-[260px] ${
             project.caseStudy ? 'cursor-pointer' : ''
           } ${
             roleFilter !== 'all' && !isRoleMatch
@@ -120,7 +119,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
       >
         {/* Top Accent Strip */}
         <div
-          className="h-1.5 w-full border-b border-black"
+          className="h-2 w-full border-b-2 border-black"
           style={{ backgroundColor: project.accentColor }}
         />
 
@@ -144,47 +143,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
           />
         </div>
 
-        {/* Floating Brutalist Popover (Only in standard mode on hover, unhidden directly in recruiter mode) */}
-        {!isRecruiterMode && isHovered && (
-          <div className="absolute bottom-[calc(100%+8px)] left-0 right-0 z-40 bg-white border-2 border-black shadow-neo p-3.5 pointer-events-none animate-fadeIn w-[115%] -left-[7.5%]">
-            <div className="flex items-center justify-between gap-1 mb-1.5 pb-1 border-b border-black/10">
-              <span className="font-mono text-[10px] font-black uppercase text-black">
-                {project.title}
-              </span>
-              <span className="font-mono text-[10px] text-muted">Click for Case Study ↗</span>
-            </div>
-            <p className="font-mono text-xs text-black leading-relaxed mb-2">
-              {project.description}
-            </p>
-            {project.primaryMetric && (
-              <p className="font-mono text-[11px] font-bold text-black flex items-center gap-1.5 mb-2 bg-neo-yellow/30 p-1 border border-black/20">
-                <span>⚡</span>
-                <span>{project.primaryMetric}</span>
-              </p>
-            )}
-            <div className="flex flex-wrap gap-1">
-              {project.tags.map((t) => (
-                <span
-                  key={t}
-                  className="font-mono text-[9px] font-bold px-1.5 py-0.5 bg-gray-100 border border-black/30 text-black"
-                >
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Card Header & Content */}
-        <div className="relative z-10 p-4 flex flex-col flex-1 justify-between">
+        <div className="relative z-10 p-3.5 sm:p-5 flex flex-col flex-1 justify-between">
           <div>
-            <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+            {/* Top Category & Match Badges */}
+            <div className="flex items-center justify-between gap-2 mb-2 sm:mb-2.5 flex-wrap">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-mono text-[10px] font-black uppercase px-2 py-0.5 bg-black text-white">
+                <span className="font-mono text-[9px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 bg-black text-white border border-black">
                   {project.category}
                 </span>
                 {roleFilter !== 'all' && isRoleMatch && (
-                  <span className="font-mono text-[9px] font-black uppercase px-1.5 py-0.5 bg-neo-yellow text-black border border-black shadow-[1px_1px_0px_0px_#000]">
+                  <span className="font-mono text-[8px] sm:text-[9px] font-black uppercase px-1 sm:px-1.5 py-0.5 bg-neo-yellow text-black border border-black shadow-[1px_1px_0px_0px_#000]">
                     ★ MATCH
                   </span>
                 )}
@@ -196,65 +165,83 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
                     e.stopPropagation();
                     onCaseStudy(project);
                   }}
-                  className="p-1 hover:bg-black hover:text-white transition-colors border border-black bg-white flex items-center gap-1 text-[10px] font-mono font-bold"
+                  className="p-1 hover:bg-black hover:text-white transition-colors border border-black bg-white flex items-center gap-1 text-[9px] sm:text-[10px] font-mono font-bold cursor-pointer"
                   title="View Case Study"
                 >
-                  <BookOpen size={12} />
-                  <span className="hidden sm:inline">Case Study</span>
+                  <BookOpen size={11} className="sm:w-3 sm:h-3" />
+                  <span>Case Study</span>
                 </button>
               )}
             </div>
 
-            <h3 className="font-sans text-base font-black text-black leading-tight uppercase mb-1">
+            {/* Title */}
+            <h3 className="font-sans text-base sm:text-lg md:text-xl font-black text-black leading-tight uppercase mb-1 sm:mb-1.5 group-hover:underline underline-offset-2 break-words min-w-0">
               {project.title}
             </h3>
 
-            {/* Primary Metric */}
-            {project.primaryMetric && (
-              <p className={`font-mono text-xs font-bold mt-1 ${
-                isRecruiterMode
-                  ? 'text-black bg-neo-yellow/30 p-1 border border-black/20'
-                  : 'text-black/80'
-              }`}>
-                ⚡ {project.primaryMetric}
+            {/* Tagline if present */}
+            {project.tagline && (
+              <p className="font-mono text-[11px] sm:text-xs font-semibold text-gray-700 uppercase tracking-tight mb-1.5 sm:mb-2.5 line-clamp-1">
+                {project.tagline}
               </p>
             )}
 
-            {/* Recruiter Mode Content Expansion: Description, All Tags, and Architecture Unhidden Directly on Surface */}
-            {isRecruiterMode && (
-              <div className="mt-2.5 pt-2 border-t border-black/15 space-y-2">
-                <p className="font-mono text-xs text-black leading-relaxed">
-                  {project.description}
-                </p>
-                <div className="flex flex-wrap gap-1 pt-0.5">
-                  {project.tags.map((t) => (
-                    <span
-                      key={t}
-                      className="font-mono text-[9px] font-bold px-1.5 py-0.5 bg-canvas border border-black/30 text-black"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                {project.caseStudy?.architecture && project.caseStudy.architecture.length > 0 && (
-                  <div className="text-[10px] font-mono text-gray-800 bg-canvas p-1.5 border border-black/20">
-                    <span className="font-black text-black uppercase">Pipeline: </span>
-                    {project.caseStudy.architecture.map(a => a.title).join(' → ')}
-                  </div>
-                )}
+            {/* Primary Metric */}
+            {project.primaryMetric && (
+              <div className="font-mono text-[11px] sm:text-xs font-bold text-black flex items-center gap-1.5 mb-2 sm:mb-3 bg-neo-yellow/25 p-1 sm:p-1.5 border border-black/20">
+                <span>⚡</span>
+                <span className="truncate">{project.primaryMetric}</span>
+              </div>
+            )}
+
+            {/* Description directly visible on card surface - clamped on mobile for cleaner height */}
+            <p className="font-mono text-[11px] sm:text-xs text-gray-800 leading-relaxed mb-2 sm:mb-3 line-clamp-2 sm:line-clamp-3">
+              {project.description}
+            </p>
+
+            {/* Tech Stack Tags - top 2 on mobile, all on desktop */}
+            <div className="flex flex-wrap gap-1 mb-2.5 sm:mb-3">
+              {project.tags.slice(0, 2).map((t) => (
+                <span
+                  key={t}
+                  className="font-mono text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 bg-canvas border border-black/30 text-black"
+                >
+                  {t}
+                </span>
+              ))}
+              {project.tags.slice(2).map((t) => (
+                <span
+                  key={t}
+                  className="hidden sm:inline-flex font-mono text-[10px] font-bold px-1.5 py-0.5 bg-canvas border border-black/30 text-black"
+                >
+                  {t}
+                </span>
+              ))}
+              {project.tags.length > 2 && (
+                <span className="sm:hidden font-mono text-[9px] font-bold px-1 py-0.5 text-muted">
+                  +{project.tags.length - 2}
+                </span>
+              )}
+            </div>
+
+            {/* Recruiter Mode Pipeline Brief (if active) */}
+            {isRecruiterMode && project.caseStudy?.architecture && project.caseStudy.architecture.length > 0 && (
+              <div className="text-[10px] font-mono text-gray-800 bg-canvas p-1.5 border border-black/20 mb-2">
+                <span className="font-black text-black uppercase">Pipeline: </span>
+                {project.caseStudy.architecture.map(a => a.title).join(' → ')}
               </div>
             )}
           </div>
 
-          {/* Always-Visible Action Links */}
-          <div className="mt-4 pt-3 border-t border-black/15 flex gap-2">
+          {/* Action Links */}
+          <div className="mt-auto pt-2 sm:pt-3 border-t border-black/15 flex gap-2">
             {project.github && (
               <a
                 href={project.github}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 flex items-center justify-center gap-1 font-mono text-xs font-bold py-1.5 px-2
+                className="flex-1 flex items-center justify-center gap-1 font-mono text-[11px] sm:text-xs font-bold py-1 sm:py-1.5 px-2
                   bg-white text-black border border-black hover:bg-black hover:text-white transition-colors"
               >
                 <Github size={12} />
@@ -267,7 +254,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
-                className="flex-1 flex items-center justify-center gap-1 font-mono text-xs font-bold py-1.5 px-2
+                className="flex-1 flex items-center justify-center gap-1 font-mono text-[11px] sm:text-xs font-bold py-1 sm:py-1.5 px-2
                   bg-black text-white border border-black hover:bg-white hover:text-black transition-colors"
               >
                 <ExternalLink size={12} />
@@ -328,22 +315,22 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
       </div>
 
       {/* Content Container */}
-      <div className="relative z-10 p-6 sm:p-8 flex flex-col flex-1">
+      <div className="relative z-10 p-4 sm:p-6 md:p-8 flex flex-col flex-1">
         {/* Top Badges */}
-        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono text-xs font-black uppercase px-2.5 py-1 bg-black text-white border-2 border-black shadow-[2px_2px_0px_0px_#000]">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 mb-2.5 sm:mb-4 flex-wrap">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="font-mono text-[10px] sm:text-xs font-black uppercase px-2 sm:px-2.5 py-0.5 sm:py-1 bg-black text-white border-2 border-black shadow-[2px_2px_0px_0px_#000]">
               {project.category}
             </span>
             {roleFilter !== 'all' && isRoleMatch && (
-              <span className="font-mono text-xs font-black uppercase px-2 py-0.5 bg-neo-yellow text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
+              <span className="font-mono text-[9px] sm:text-xs font-black uppercase px-1.5 sm:px-2 py-0.5 bg-neo-yellow text-black border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-1">
                 <CheckCircle2 size={12} />
                 <span>Role Match</span>
               </span>
             )}
           </div>
           <span
-            className="font-mono text-xs font-bold px-2 py-0.5 border border-black"
+            className="font-mono text-[10px] sm:text-xs font-bold px-2 py-0.5 border border-black"
             style={{ backgroundColor: project.accentColor + '35' }}
           >
             FLAGSHIP 0{project.id}
@@ -351,47 +338,54 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
         </div>
 
         {/* Project Title */}
-        <h3 className="font-sans text-2xl sm:text-3xl md:text-4xl font-black text-black leading-none uppercase mb-3 group-hover:underline underline-offset-4 decoration-black">
+        <h3 className="font-sans text-2xl sm:text-3xl lg:text-2xl xl:text-3xl font-black text-black leading-tight uppercase mb-1 sm:mb-3 group-hover:underline underline-offset-4 decoration-black break-words min-w-0">
           {project.title}
         </h3>
 
         {/* Tagline */}
         {project.tagline && (
-          <p className="font-mono text-xs sm:text-sm font-bold text-muted uppercase tracking-tight mb-4">
+          <p className="font-mono text-[11px] sm:text-xs md:text-sm font-bold text-muted uppercase tracking-tight mb-2.5 sm:mb-4 line-clamp-1 sm:line-clamp-none">
             {project.tagline}
           </p>
         )}
 
-        {/* Description */}
-        <p className="font-mono text-xs sm:text-sm text-black leading-relaxed mb-6 flex-1">
+        {/* Description - clamped on mobile for compact height */}
+        <p className="font-mono text-xs sm:text-sm text-black leading-relaxed mb-3 sm:mb-6 flex-1 line-clamp-3 sm:line-clamp-none">
           {project.description}
         </p>
 
         {/* Primary Metric Banner */}
         {project.primaryMetric && (
           <div
-            className="mb-6 p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-2"
+            className="mb-3 sm:mb-6 p-2 sm:p-3 bg-white border-2 border-black shadow-[2px_2px_0px_0px_#000] flex items-center gap-2 min-w-0"
             style={{ borderLeftWidth: 6, borderLeftColor: project.accentColor }}
           >
-            <Sparkles size={16} className="text-black" />
-            <div className="font-mono text-xs sm:text-sm font-bold text-black">
+            <Sparkles size={15} className="text-black shrink-0" />
+            <div className="font-mono text-xs sm:text-sm font-bold text-black truncate min-w-0">
               {project.primaryMetric}
             </div>
           </div>
         )}
 
-        {/* Stack Tags (All tags shown in recruiter mode, top 3 in standard view) */}
-        <div className="flex flex-wrap gap-1.5 mb-6">
-          {(isRecruiterMode ? project.tags : project.tags.slice(0, 3)).map((tag) => (
+        {/* Stack Tags (top 2 on mobile, up to 3 or all on desktop) */}
+        <div className="flex flex-wrap gap-1.5 mb-4 sm:mb-6">
+          {(isRecruiterMode ? project.tags : project.tags.slice(0, 3)).map((tag, idx) => (
             <span
               key={tag}
-              className="font-mono text-[11px] font-bold px-2 py-0.5 bg-canvas text-black border border-black shadow-[1px_1px_0px_0px_#000]"
+              className={`font-mono text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 bg-canvas text-black border border-black shadow-[1px_1px_0px_0px_#000] ${
+                idx >= 2 ? 'hidden sm:inline-flex' : ''
+              }`}
             >
               {tag}
             </span>
           ))}
+          {!isRecruiterMode && project.tags.length > 2 && (
+            <span className="sm:hidden font-mono text-[10px] font-bold px-1 py-0.5 text-muted self-center">
+              +{project.tags.length - 2} more
+            </span>
+          )}
           {!isRecruiterMode && project.tags.length > 3 && (
-            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 text-muted self-center">
+            <span className="hidden sm:inline font-mono text-[10px] font-bold px-1.5 py-0.5 text-muted self-center">
               +{project.tags.length - 3} more
             </span>
           )}
@@ -447,7 +441,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
         )}
 
         {/* Action Button Row */}
-        <div className="mt-auto pt-4 border-t-2 border-black/15 flex flex-wrap gap-2.5 items-center">
+        <div className="mt-auto pt-4 border-t-2 border-black/15 flex flex-wrap gap-2 items-center">
           {/* Live Demo */}
           {project.link && (
             <a
@@ -455,7 +449,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-black px-4 py-2.5
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-black px-3 sm:px-4 py-2 sm:py-2.5
                 bg-black text-white border-2 border-black
                 shadow-neo-sm hover:bg-white hover:text-black
                 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
@@ -474,7 +468,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
                 e.stopPropagation();
                 onCaseStudy(project);
               }}
-              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-black px-3.5 py-2.5
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-black px-3 sm:px-3.5 py-2 sm:py-2.5
                 bg-white text-black border-2 border-black
                 shadow-neo-sm hover:bg-neo-yellow hover:text-black
                 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none
@@ -492,7 +486,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onCaseStudy, variant
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-3 py-2.5
+              className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-2 sm:py-2.5
                 bg-canvas text-black border-2 border-black
                 hover:bg-white hover:shadow-neo-sm
                 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none

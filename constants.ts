@@ -12,6 +12,8 @@ export const PERSONAL_INFO = {
   resumeLink: "https://drive.google.com/file/d/1IZu6KY1qTSuwFVJevxrT5JkJPtKgP54t/view?usp=sharing",
   github: "https://github.com/Dragonballsuper-1995",
   linkedin: "https://www.linkedin.com/in/sujalchhajed925/",
+  portfolio: "https://sujal-chhajed.vercel.app/",
+  alternatePortfolio: "https://sujal-sanjay-chhajed.vercel.app/",
 };
 
 // -----------------------------------------------------------------------------

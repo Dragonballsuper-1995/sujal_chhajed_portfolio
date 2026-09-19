@@ -6,6 +6,7 @@ import { PERSONAL_INFO, SOCIALS } from '../constants';
 
 interface FooterProps {
   scrollToSection: (id: NavSection) => void;
+  openResumeModal?: () => void;
 }
 
 const getSocialIcon = (platform: string) => {
@@ -40,7 +41,7 @@ const getSocialColorClass = (platform: string) => {
   }
 };
 
-const Footer: React.FC<FooterProps> = ({ scrollToSection }) => {
+const Footer: React.FC<FooterProps> = ({ scrollToSection, openResumeModal }) => {
   return (
     <footer className="bg-[#0A0A10] text-white border-t-4 border-black relative overflow-hidden select-none">
       {/* ── Main Footer Architecture (Decluttered & Compact) ─────────── */}
@@ -113,15 +114,14 @@ const Footer: React.FC<FooterProps> = ({ scrollToSection }) => {
             >
               Contact
             </a>
-            <a
-              href={PERSONAL_INFO.resumeLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1 bg-neo-yellow text-black font-mono text-xs font-bold uppercase rounded-lg hover:bg-white transition-colors shadow-sm inline-flex items-center gap-1"
+            <button
+              type="button"
+              onClick={openResumeModal}
+              className="px-3 py-1 bg-neo-yellow text-black font-mono text-xs font-bold uppercase rounded-lg hover:bg-white transition-colors shadow-sm inline-flex items-center gap-1 cursor-pointer"
             >
               <span>Resume</span>
               <ExternalLink size={11} />
-            </a>
+            </button>
           </div>
         </div>
 

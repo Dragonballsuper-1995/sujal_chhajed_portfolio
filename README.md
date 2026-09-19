@@ -1,36 +1,36 @@
-﻿<h1 align="center">
+<h1 align="center">
   <br>
-  ⚡ SUJAL.DEV
+  ⚡ SUJAL CHHAJED
   <br>
-  <sub>NEO-BRUTALIST AI PORTFOLIO</sub>
+  <sub>NEO-BRUTALIST AI/ML & FULL-STACK PORTFOLIO</sub>
 </h1>
 
 <p align="center">
-  <img src="public/banner.webp" alt="Neo-Brutalism Banner" width="900" />
+  <img src="public/banner.webp" alt="Sujal Chhajed Neo-Brutalist Portfolio Banner" width="900" />
 </p>
 
 <p align="center">
-  <b>TECH NERD WITH A HUMAN TOUCH</b>
+  <b>BUILDING AI THAT SHIPS — FROM FINE-TUNED LLMS TO RESILIENT PRODUCTION SYSTEMS</b>
 </p>
 
 <p align="center">
-  <code>LOUD COLORS</code> · <code>HARD BORDERS</code> · <code>ZERO BLUR</code> · <code>BUILT TO MATCH THE SITE</code>
+  <code>TACTILE NEO-BRUTALISM</code> · <code>HIGH CONTRAST</code> · <code>ZERO JANK</code> · <code>PRODUCTION SCALE</code>
 </p>
 
 <p align="center">
   <a href="https://sujal-chhajed.vercel.app/">
-    <img alt="Live Demo" src="https://img.shields.io/badge/▶_LIVE_DEMO-FFDE59?style=for-the-badge&logoColor=050505" />
+    <img alt="Live Portfolio" src="https://img.shields.io/badge/▶_LIVE_PORTFOLIO-FFDE59?style=for-the-badge&logoColor=050505" />
   </a>
   &nbsp;
   <a href="LICENSE.txt">
-    <img alt="MIT License" src="https://img.shields.io/badge/LICENSE_MIT-9AE6B4?style=for-the-badge&logoColor=050505" />
+    <img alt="MIT License" src="https://img.shields.io/badge/LICENSE_MIT-7ED957?style=for-the-badge&logoColor=050505" />
   </a>
 </p>
 
 <br>
 
-> **BRUTALISM CHECKLIST:**  
-> ✓ Thick lines · ✓ Flat fills · ✓ Honest pixels · ✓ Tactile shadows · ✗ Blur
+> **BRUTALISM PHILOSOPHY:**  
+> ✓ Hard 2-4px black borders · ✓ Tactile neo-brutalist offset shadows (`4px 4px 0px #000`) · ✓ Vibrant high-contrast pastel accents · ✓ Instant 0ms CSS dot matrix · ✗ No gimmick loaders · ✗ No visual lag
 
 ---
 
@@ -42,95 +42,61 @@
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  SUJAL SANJAY CHHAJED                                                       │
 │  ─────────────────────────────────────────────────────────────────────────  │
-│  CS & ENGINEERING @ VIT CHENNAI                                             │
-│  SPECIALIZATION: ARTIFICIAL INTELLIGENCE & MACHINE LEARNING                 │
+│  AI/ML ENGINEER & FULL-STACK DEVELOPER @ VIT CHENNAI                        │
+│  SPECIALIZATION: FINE-TUNED LLMS, REAL-TIME INFERENCE, RESILIENT FULL-STACK │
 │                                                                             │
-│  I build things that feel alive on the web.                                 │
+│  I build end-to-end production systems that survive real-world constraints. │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
-
-Code-blooded sports junkie. Ferrari in F1, cricket strategy, and Dragon Ball Z reruns fuel my dev sprints. I build with personality so the tech never feels sterile.
 
 | | |
 |:--|:--|
 | **📍 LOCATION** | Chennai, India |
-| **🎓 FOCUS** | NLP, Computer Vision, Interactive Web |
-| **🏎️ VIBES** | F1 (Ferrari), Cricket, Anime |
+| **🎓 EDUCATION** | Computer Science & Engineering (AI/ML) @ VIT Chennai |
+| **🎯 FOCUS** | Fine-Tuned GGUF Models, DLRM Recommenders, Real-Time Streaming, Offline-First Sync |
+| **🏎️ INTERESTS** | Competitive Programming, F1 (Ferrari), Cricket Analytics, Anime |
 
 ---
 
 <br>
 
-## `02` CAPABILITIES
+## `02` ARCHITECTURAL UPGRADES (OVERHAUL FROM MASTER)
 
-> A Neo-Brutalist portfolio that **rejects minimalism**: bold fills, hard borders, raw typography. Under the hood—React + TypeScript with an AI assistant routed through a backend proxy.
+The portfolio underwent a comprehensive production overhaul moving from the initial master branch to the current release:
 
-<br>
+### 1. Eliminating Gimmicks & Friction
+- **Removed Loading Screen**: Stripped away the artificial pre-loader and dead spinner code. The application now renders immediately.
+- **Removed Unused AI Chat & Command Palette**: Purged `ChatAssistant.tsx`, `geminiService.ts`, and `CommandPalette.tsx` to streamline the bundle and eliminate unnecessary external API latency.
+- **Clean Micro-Entrance Animation**: Replaced heavy entrance barriers with a smooth, lightweight hardware-accelerated fade that loads instantly.
 
-**🤖 GEMINI-POWERED CHAT ASSISTANT**  
-Talk to an AI twin that answers questions about me using portfolio data and, when needed, a fresh look at GitHub activity.
+### 2. High-Impact Recruiter & Visitor Features
+- **In-Portfolio Resume Modal**: Added `ResumeModal.tsx` featuring an embedded Google Drive PDF viewer and a high-visibility one-click direct download button.
+- **Projects Role Filter Tabs**: Added dynamic role filtering (`All`, `AI/ML`, `Full-Stack`, `Data Eng`) with real-time count badges and smooth filtering in `ProjectsSection.tsx`.
+- **Direct-Inspection Project Cards**: Refactored `ProjectCard.tsx` archive cards to display full descriptions, primary metric banners, and technology stack badges directly on the card surface without requiring hover popovers.
+- **Recruiter Speedrun Mode**: Embedded interactive architecture pipelines and verified production metrics directly inspectable inline on each flagship project card.
 
-**🧠 PERSONA + CONTEXT**  
-Responses are guided by a curated context string (bio, projects, socials, interests) to keep the tone consistent.
+### 3. Visual & Rendering Performance Overhaul
+- **Instant 0ms CSS Dot Grid**: Implemented a native radial dot pattern on `body` in `index.css` that paints at 0ms, eliminating Flash of Unstyled Content (FOUC) on hard refreshes (`Ctrl+Shift+R`).
+- **Synchronous Google Fonts**: Replaced asynchronous `media="print"` loading with critical stylesheet loading (`display=block`) to prevent layout shift and fallback font flashing.
+- **Responsive Tablet & iPad Mini Layout**: Redesigned flagship project grid breakpoints from `md:grid-cols-3` to `lg:grid-cols-3`. Tablet devices (768px–1023px, such as iPad Mini) now display spacious, fully readable cards with responsive typography scaling (`break-words min-w-0`).
+- **Interactive Ambient Canvas & WebGL**: Preserved interactive 2D canvas mouse-proximity dot dilation (`BackgroundGrid.tsx`) and subtle ambient pastel GPU aura (`HeroShader.tsx`).
 
-**⌨️ COMMAND PALETTE (CMD+K)**  
-Keyboard-first navigation designed for builders who hate hunting through menus.
-
-**⚡ MOTION WITHOUT JANK**  
-Animations stay smooth—`requestAnimationFrame`-driven where needed, minimal reflows.
-
-**🎨 NEO-BRUTALIST SYSTEM**  
-Hard borders, offset shadows, high-contrast colors, and type that doesn't whisper.
-
-**📱 RESPONSIVE + ACCESSIBLE**  
-Mobile-ready layout with touch-friendly UI and ARIA labels where they matter.
+### 4. Production SEO & Discoverability
+- **Search Engine Optimization**: Full `<title>`, description, keywords, and OpenGraph/Twitter Cards with absolute asset URLs.
+- **Structured Data**: schema.org JSON-LD `Person` markup.
+- **Google Search Console**: Verified domain ownership via `<meta name="google-site-verification">`, plus auto-generated `robots.txt` and `sitemap.xml`.
 
 ---
 
 <br>
 
-## `03` ARCHITECTURE
+## `03` FLAGSHIP SYSTEMS
 
-```
-                           ┌─────────────────────┐
-                           │     VISITOR UI      │
-                           └──────────┬──────────┘
-                                      │
-                    (1) userMessage + portfolio context
-                                      │
-                                      ▼
-            ┌─────────────────────────────────────────────────────┐
-            │  POST /api/gemini                                   │
-            │  https://gemini-backend-portfolio.vercel.app        │
-            │  body: { userMessage, context }                     │
-            └──────────────────────────┬──────────────────────────┘
-                                       │
-                    (2) Proxy calls Gemini (server-side creds)
-                                       │
-                                       ▼
-                           ┌─────────────────────┐
-                           │  { text, sources? } │
-                           └─────────────────────┘
-```
-
-<br>
-
-| FRONTEND | BACKEND PROXY |
-|:---------|:--------------|
-| Calls proxy from `services/geminiService.ts` | Owns secrets & handles rate limiting |
-| Sends `userMessage` (visitor input) | Returns `text` (final answer) |
-| Sends `context` (portfolio + tone) | Returns `sources?` (optional citations) |
-
-<br>
-
-**WHY A PROXY?**
-
-| | |
-|:--|:--|
-| **🔒 SECURITY** | API keys stay server-side—never shipped to the client. |
-| **🎛️ CONTROL** | Rate limiting + a consistent request/response shape. |
-| **🔄 UPGRADES** | Swap Gemini versions without rewriting the frontend. |
-| **🆕 FRESHNESS** | When asked about "latest work," the assistant checks my GitHub activity. |
+| PROJECT | ROLE / DOMAIN | ARCHITECTURE HIGHLIGHTS | PRIMARY METRIC |
+|:--------|:--------------|:------------------------|:---------------|
+| **[Phonos.ai](https://phonosai.vercel.app/)** | AI/ML & Recommender | 2-stage DLRM combining 5D specification embeddings, YouTube aspect sentiment gating, and calibrated XGBoost ranking. | 100% Constraint Validity |
+| **[MetaGen](https://metagen-one.vercel.app)** | GenAI / LLM Systems | 4 custom fine-tuned Q4_K_M GGUF models on Groq LPUs with ~800 tokens/sec streaming and 5-tier failover cascade down to local llama.cpp. | ~800 tokens/sec Streaming |
+| **[Loopa](https://loopa1.netlify.app/)** | Full-Stack & Systems | Dual-client (Kotlin Jetpack Compose Android + Vanilla JS PWA) with Supabase Realtime, Offline-First Last-Write-Wins (LWW) sync, and Gemini 2.5 semantic search. | 100% Offline Availability |
 
 ---
 
@@ -138,73 +104,57 @@ Mobile-ready layout with touch-friendly UI and ARIA labels where they matter.
 
 ## `04` TECH STACK
 
-| CATEGORY | DETAILS |
-|:---------|:--------|
-| **Framework** | React 18 + Vite |
-| **Language** | TypeScript (strict mode) |
-| **Styling** | Tailwind CSS (custom theme) |
-| **Motion** | Framer Motion + CSS keyframes |
-| **Icons** | Lucide React |
-
-<p align="left">
-  <img alt="React" src="https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=050505" />
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
-  <img alt="Tailwind" src="https://img.shields.io/badge/Tailwind-38BDF8?style=for-the-badge&logo=tailwindcss&logoColor=white" />
-  <img alt="Framer Motion" src="https://img.shields.io/badge/Framer_Motion-FF4154?style=for-the-badge&logo=framer&logoColor=white" />
-</p>
+| CATEGORY | TECHNOLOGIES |
+|:---------|:-------------|
+| **Frontend Core** | React 18, TypeScript, Vite 7 |
+| **Styling & Theme** | Tailwind CSS (Custom Neo-Brutalist Palette & Tactile Shadows) |
+| **Animation & Canvas** | Framer Motion, HTML5 Canvas 2D, WebGL Shaders |
+| **Icons & UI** | Lucide React |
+| **Deployment & Hosting** | Vercel (Production Edge) |
 
 ---
 
 <br>
 
-## `05` RUN IT LOCALLY
+## `05` RUN LOCALLY
 
-**Prerequisites:** Node.js v18+ and npm.
+**Prerequisites:** Node.js 18+ and npm.
 
 ```bash
-git clone https://github.com/Dragonballsuper-1995/my-portfolio.git
-cd my-portfolio
+# Clone the repository
+git clone https://github.com/Dragonballsuper-1995/sujal_chhajed_portfolio.git
+
+# Navigate into the project directory
+cd sujal_chhajed_portfolio
+
+# Install dependencies
 npm install
+
+# Start development server
 npm run dev
 ```
 
 ```
 ┌──────────────────────────────────────────┐
-│  🚀  OPEN: http://localhost:5173         │
+│  🚀  LOCAL SERVER: http://localhost:5173  │
 └──────────────────────────────────────────┘
 ```
 
-<br>
-
 | SCRIPT | DESCRIPTION |
 |:-------|:------------|
-| `npm run dev` | Start dev server |
-| `npm run build` | Type-check + production build |
-| `npm run preview` | Preview built app |
+| `npm run dev` | Starts Vite development server with Hot Module Replacement |
+| `npm run build` | Runs TypeScript type checking (`tsc`) and generates optimized production bundle in `dist/` |
+| `npm run preview` | Previews the production build locally |
 
 ---
 
 <br>
 
-## `06` LESSONS LEARNED
-
-> **HARD TRUTHS FROM THE TRENCHES**
-
-- **Prompt Engineering** — Personality constraints matter as much as factual context.  
-- **Design Systems** — Neo-Brutalism needs rules (borders, shadows, contrast), or it becomes chaos.  
-- **Performance** — Animation must earn its cost; prefer lightweight primitives and avoid re-render storms.  
-- **Security** — Keep secrets server-side; the client stays clean.
-
----
-
-<br>
-
-## `07` CONTACT
+## `06` CONTACT & CONNECT
 
 <p align="center">
   <a href="mailto:sujalchhajed925@gmail.com">
-    <img alt="Email" src="https://img.shields.io/badge/EMAIL-sujalchhajed925@gmail.com-FFDE59?style=for-the-badge" />
+    <img alt="Email" src="https://img.shields.io/badge/EMAIL-sujalchhajed925@gmail.com-FFDE59?style=for-the-badge&logo=gmail&logoColor=black" />
   </a>
 </p>
 
@@ -213,13 +163,13 @@ npm run dev
   &nbsp;
   <a href="https://www.linkedin.com/in/sujalchhajed925/"><img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" /></a>
   &nbsp;
-  <a href="https://www.instagram.com/sujalchhajed925/"><img alt="Instagram" src="https://img.shields.io/badge/Instagram-FF66C4?style=for-the-badge&logo=instagram&logoColor=white" /></a>
+  <a href="https://x.com/sujal_chhajed"><img alt="X (Twitter)" src="https://img.shields.io/badge/X-050505?style=for-the-badge&logo=x&logoColor=white" /></a>
   &nbsp;
-  <a href="https://x.com/sujal_chhajed"><img alt="X" src="https://img.shields.io/badge/X-050505?style=for-the-badge&logo=x&logoColor=white" /></a>
+  <a href="https://sujal-chhajed.vercel.app/"><img alt="Portfolio" src="https://img.shields.io/badge/Portfolio-7ED957?style=for-the-badge&logoColor=black" /></a>
 </p>
 
 ---
 
 <p align="center">
-  <b>BUILT WITH 💻, ☕, AND FERRARI HOPE.</b>
+  <b>CRAFTED WITH PRECISION, HARD BORDERS, AND RELENTLESS ENGINEERING.</b>
 </p>

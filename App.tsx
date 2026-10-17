@@ -13,7 +13,6 @@ import ResumeModal from './components/ResumeModal';
 import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid from './components/BackgroundGrid';
-import HeroShader from './components/HeroShader';
 import DevToolsGreeting from './components/DevToolsGreeting';
 
 // Lazy loaded components (not needed for initial visual render)
@@ -171,9 +170,6 @@ const AppContent: React.FC = () => {
       <main className="min-h-svh flex flex-col font-sans bg-transparent text-ink relative animate-[fadeIn_0.5s_cubic-bezier(0.16,1,0.3,1)]">
         {/* DevTools Console Greeting (invisible, fires once on mount) */}
         <DevToolsGreeting />
-
-        {/* Global Ambient Pastel WebGL Shader */}
-        <HeroShader />
 
         {/* Persistent Canvas Interactive Dot Grid */}
         <BackgroundGrid />

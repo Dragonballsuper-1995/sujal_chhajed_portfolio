@@ -31,8 +31,8 @@ function fireDevToolsGreeting(): void {
 
   // 4. Info lines (green badge with black text + theme-adaptive value text via color: inherit)
   const lines = [
-    ['Stack', 'React 18 + TypeScript + Vite + Tailwind + GSAP + Framer Motion'],
-    ['AI', 'Gemini 2.0 Flash · RAG pipeline · Gemini Embeddings'],
+    ['Stack', 'React 18 + TypeScript + Vite + Tailwind + Framer Motion'],
+    ['Specialty', 'Fine-Tuned LLMs · Real-Time Inference · Resilient Full-Stack'],
     ['GitHub', 'https://github.com/Dragonballsuper-1995'],
     ['Email', 'sujalchhajed925@gmail.com'],
     ['LinkedIn', 'https://linkedin.com/in/sujalchhajed925'],
@@ -40,7 +40,7 @@ function fireDevToolsGreeting(): void {
 
   lines.forEach(([key, val]) => {
     console.log(
-      `%c ${key.padEnd(8)} %c ${val}`,
+      `%c ${key.padEnd(10)} %c ${val}`,
       'background: #7ED957; color: #000000; font-weight: 800; font-family: monospace; padding: 1px 6px; font-size: 11px; border: 1px solid #000;',
       'font-family: monospace; font-size: 11px; font-weight: 500; color: inherit;'
     );
@@ -48,7 +48,7 @@ function fireDevToolsGreeting(): void {
 
   // 5. Footer nudge
   console.log(
-    '%c  Hiring? Press Ctrl+K to open the terminal or hit the Recruiter Mode toggle ↗  ',
+    '%c  Hiring? Check out the interactive console commands below or hit Resume ↗  ',
     'background: #5CE1E6; color: #000000; font-size: 11px; font-weight: 700; font-family: monospace; padding: 3px 16px; margin-top: 4px; border: 1px solid #000;'
   );
 

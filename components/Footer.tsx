@@ -3,11 +3,12 @@ import { ExternalLink, Github, Linkedin, Instagram } from 'lucide-react';
 import { XIcon } from './XIcon';
 import { NavSection } from '../types';
 import { PERSONAL_INFO, SOCIALS } from '../constants';
-import AsciiSectionDivider from './AsciiSectionDivider';
+import AsciiSectionDivider, { ChipStyleVariant } from './AsciiSectionDivider';
 
 interface FooterProps {
   scrollToSection: (id: NavSection) => void;
   openResumeModal?: () => void;
+  chipStyle?: ChipStyleVariant;
 }
 
 const getSocialIcon = (platform: string) => {
@@ -42,10 +43,10 @@ const getSocialColorClass = (platform: string) => {
   }
 };
 
-const Footer: React.FC<FooterProps> = ({ scrollToSection, openResumeModal }) => {
+const Footer: React.FC<FooterProps> = ({ scrollToSection, openResumeModal, chipStyle }) => {
   return (
     <>
-      <AsciiSectionDivider sectionNumber="05" sectionTitle="SYSTEM_TERMINAL" />
+      <AsciiSectionDivider chipStyle={chipStyle} sectionNumber="05" sectionTitle="SYSTEM_TERMINAL" />
       <footer className="bg-[#0A0A10] text-white relative overflow-hidden select-none">
       {/* ── Main Footer Architecture (Decluttered & Compact) ─────────── */}
       <div className="max-w-6xl mx-auto px-5 md:px-8 pt-10 sm:pt-12 pb-4 sm:pb-6 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-8 relative z-10">

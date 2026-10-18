@@ -4,13 +4,19 @@ import ProjectCard, { isProjectMatchingRole } from './ProjectCard';
 import { FEATURED_PROJECTS, ARCHIVE_PROJECTS } from '../constants';
 import { Sparkles, ArrowRight, Filter } from 'lucide-react';
 import { useRecruiter } from '../context/RecruiterContext';
-import AsciiSectionDivider from './AsciiSectionDivider';
+import AsciiSectionDivider, { ChipColorStyle, SeamActivation } from './AsciiSectionDivider';
 
 interface ProjectsSectionProps {
   onProjectClick: (project: Project) => void;
+  chipColorStyle?: ChipColorStyle;
+  seamActivation?: SeamActivation;
 }
 
-const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => {
+const ProjectsSection: React.FC<ProjectsSectionProps> = ({
+  onProjectClick,
+  chipColorStyle,
+  seamActivation,
+}) => {
   const { roleFilter, setRoleFilter } = useRecruiter();
 
   const allProjects = [...FEATURED_PROJECTS, ...ARCHIVE_PROJECTS];
@@ -26,7 +32,12 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onProjectClick }) => 
 
   return (
     <>
-      <AsciiSectionDivider sectionNumber="03" sectionTitle="PROJECTS" />
+      <AsciiSectionDivider
+        chipColorStyle={chipColorStyle}
+        seamActivation={seamActivation}
+        sectionNumber="03"
+        sectionTitle="PROJECTS"
+      />
       <section id={NavSection.PROJECTS} className="scroll-mt-20 py-20 md:py-28 bg-transparent relative z-10">
       <div className="max-w-6xl mx-auto px-5 md:px-8 relative z-10">
 

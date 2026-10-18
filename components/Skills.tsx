@@ -72,14 +72,24 @@ const SkillPill: React.FC<SkillPillProps> = ({ name, svgSlug, category }) => {
   );
 };
 
-import AsciiSectionDivider from './AsciiSectionDivider';
+import AsciiSectionDivider, { ChipColorStyle, SeamActivation } from './AsciiSectionDivider';
+
+interface SkillsProps {
+  chipColorStyle?: ChipColorStyle;
+  seamActivation?: SeamActivation;
+}
 
 const CATEGORY_KEYS: SkillCategory[] = ['ml-genai', 'fullstack', 'data-eng', 'mlops'];
 
-const Skills: React.FC = () => {
+const Skills: React.FC<SkillsProps> = ({ chipColorStyle, seamActivation }) => {
   return (
     <>
-      <AsciiSectionDivider sectionNumber="02" sectionTitle="SKILLS" />
+      <AsciiSectionDivider
+        chipColorStyle={chipColorStyle}
+        seamActivation={seamActivation}
+        sectionNumber="02"
+        sectionTitle="SKILLS"
+      />
       <section id={NavSection.SKILLS} className="scroll-mt-24 sm:scroll-mt-28 py-16 md:py-24 bg-transparent">
       <div className="max-w-6xl mx-auto px-5 md:px-8">
 

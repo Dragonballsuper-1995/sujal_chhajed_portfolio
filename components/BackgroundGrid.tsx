@@ -58,6 +58,29 @@ const MATRIX_BRAND_COLORS = [
   '255, 145, 77',  // Neo-Orange #FF914D
 ];
 
+    interface ActiveRippleWave {
+      x: number;
+      y: number;
+      startTime: number;
+      maxRadius: number;
+      duration: number;
+    }
+    const activeWaves: ActiveRippleWave[] = [];
+
+    const handleMatrixRipple = (e: Event) => {
+      const ce = e as CustomEvent<{ x: number; y: number }>;
+      if (!ce.detail) return;
+      activeWaves.push({
+        x: ce.detail.x,
+        y: ce.detail.y,
+        startTime: performance.now(),
+        maxRadius: Math.max(width, height) * 0.95,
+        duration: 900,
+      });
+      requestDraw();
+    };
+    window.addEventListener('canvas-matrix-ripple', handleMatrixRipple);
+
     // ──────────────────────────────────────────────────────────────────────────
     // FINALIZED AIRY ASCII MATRIX RENDERER (WITH FADED WEBSITE BRAND COLORS)
     // ──────────────────────────────────────────────────────────────────────────
@@ -104,6 +127,34 @@ const MATRIX_BRAND_COLORS = [
             }
           }
 
+          // Wave shockwave illumination check (triggered by mouse clicks)
+          let waveIntensity = 0;
+          if (activeWaves.length > 0) {
+            for (let i = 0; i < activeWaves.length; i++) {
+              const wave = activeWaves[i];
+              const elapsed = now - wave.startTime;
+              const progress = elapsed / wave.duration;
+              const currentRadius = progress * wave.maxRadius;
+              const distToCenter = Math.sqrt((x - wave.x) ** 2 + (y - wave.y) ** 2);
+              const distFromRing = Math.abs(distToCenter - currentRadius);
+              const ringThickness = 75;
+              if (distFromRing < ringThickness) {
+                const ringProximity = 1 - distFromRing / ringThickness;
+                const waveFade = Math.max(0, 1 - progress);
+                waveIntensity = Math.max(waveIntensity, ringProximity * waveFade);
+              }
+            }
+          }
+
+          if (waveIntensity > 0.05) {
+            const alpha = Math.min(0.85, baseAlpha + waveIntensity * 0.7);
+            const dynamicIndex = Math.floor(baseIndex + (now * 0.008) + (c * 3) + (r * 7)) % glyphCount;
+            const activeGlyph = MATRIX_GLYPHS[dynamicIndex];
+            ctx.fillStyle = `rgba(${brandRgb}, ${alpha})`;
+            ctx.fillText(activeGlyph, x, y);
+            continue;
+          }
+
           // Ambient state: very light, faded pastel shade of the brand color
           ctx.fillStyle = `rgba(${brandRgb}, ${baseAlpha})`;
           ctx.fillText(MATRIX_GLYPHS[baseIndex], x, y);
@@ -123,6 +174,19 @@ const MATRIX_BRAND_COLORS = [
       const rows = Math.floor(height / space);
 
       drawAsciiMatrix(isDark, cols, rows, offsetX, offsetY, space);
+
+      // Clean up expired ripple waves
+      const now = performance.now();
+      for (let i = activeWaves.length - 1; i >= 0; i--) {
+        if (now - activeWaves[i].startTime > activeWaves[i].duration) {
+          activeWaves.splice(i, 1);
+        }
+      }
+
+      // If active waves are still propagating, keep drawing the next frame!
+      if (activeWaves.length > 0) {
+        requestDraw();
+      }
     };
 
     const requestDraw = () => {
@@ -201,6 +265,7 @@ const MATRIX_BRAND_COLORS = [
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('canvas-matrix-ripple', handleMatrixRipple);
       if (handleMouseMove) window.removeEventListener('mousemove', handleMouseMove);
       if (handleMouseLeave) document.removeEventListener('mouseleave', handleMouseLeave);
       if (handleMouseEnter) document.removeEventListener('mouseenter', handleMouseEnter);

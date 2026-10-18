@@ -14,6 +14,9 @@ import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid from './components/BackgroundGrid';
 import DevToolsGreeting from './components/DevToolsGreeting';
+import ClickRipple, { RippleTriggerMode, RippleVisualStyle } from './components/ClickRipple';
+import { ChipColorStyle, SeamActivation } from './components/AsciiSectionDivider';
+import RippleAndChipTesterDock from './components/RippleAndChipTesterDock';
 // Lazy loaded components (not needed for initial visual render)
 const ContactForm = lazy(() => import('./components/ContactForm'));
 const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
@@ -72,6 +75,65 @@ const AppContent: React.FC = () => {
   // Custom hook for scroll spy
   const activeSection = useScrollSpy();
   const [toast, setToast] = useState({ message: '', visible: false, type: 'success' as 'success' | 'error' });
+
+  // ── Click Ripple & Centered Chip FX Tester States (with LocalStorage persistence) ──
+  const [rippleTrigger, setRippleTrigger] = useState<RippleTriggerMode>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('portfolio_ripple_trigger');
+      if (saved === 'global' || saved === 'dead-space' || saved === 'off') return saved as RippleTriggerMode;
+    }
+    return 'global';
+  });
+
+  const [rippleVisual, setRippleVisual] = useState<RippleVisualStyle>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('portfolio_ripple_visual');
+      if (saved === 'neo-rings' || saved === 'ascii-shockwave' || saved === 'matrix-wave' || saved === 'minimal-glow') {
+        return saved as RippleVisualStyle;
+      }
+    }
+    return 'neo-rings';
+  });
+
+  const [chipColorStyle, setChipColorStyle] = useState<ChipColorStyle>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('portfolio_chip_color_style');
+      if (saved === 'standard' || saved === 'hover-multicolor' || saved === 'vertical-blocks') {
+        return saved as ChipColorStyle;
+      }
+    }
+    return 'standard';
+  });
+
+  const [seamActivation, setSeamActivation] = useState<SeamActivation>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('portfolio_seam_activation');
+      if (saved === 'off' || saved === 'on-hover' || saved === 'on-click' || saved === 'both') {
+        return saved as SeamActivation;
+      }
+    }
+    return 'both';
+  });
+
+  const handleRippleTriggerChange = useCallback((mode: RippleTriggerMode) => {
+    setRippleTrigger(mode);
+    if (typeof window !== 'undefined') localStorage.setItem('portfolio_ripple_trigger', mode);
+  }, []);
+
+  const handleRippleVisualChange = useCallback((style: RippleVisualStyle) => {
+    setRippleVisual(style);
+    if (typeof window !== 'undefined') localStorage.setItem('portfolio_ripple_visual', style);
+  }, []);
+
+  const handleChipColorStyleChange = useCallback((style: ChipColorStyle) => {
+    setChipColorStyle(style);
+    if (typeof window !== 'undefined') localStorage.setItem('portfolio_chip_color_style', style);
+  }, []);
+
+  const handleSeamActivationChange = useCallback((act: SeamActivation) => {
+    setSeamActivation(act);
+    if (typeof window !== 'undefined') localStorage.setItem('portfolio_seam_activation', act);
+  }, []);
 
   const scrollToSection = useCallback((id: NavSection, updateHistory = true) => {
     const element = document.getElementById(id);
@@ -165,6 +227,9 @@ const AppContent: React.FC = () => {
       {/* Desktop Custom Crosshair & Ring Follower Cursor */}
       <CustomCursor />
 
+      {/* Mouse Click Ripple Shockwave Effect */}
+      <ClickRipple triggerMode={rippleTrigger} visualStyle={rippleVisual} />
+
       {/* Main content with smooth entrance animation */}
       <main className="min-h-svh flex flex-col font-sans bg-transparent text-ink relative animate-[fadeIn_0.5s_cubic-bezier(0.16,1,0.3,1)]">
         {/* DevTools Console Greeting (invisible, fires once on mount) */}
@@ -184,14 +249,25 @@ const AppContent: React.FC = () => {
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
-        <Skills />
-        <ProjectsSection onProjectClick={handleProjectClick} />
+        <Skills
+          chipColorStyle={chipColorStyle}
+          seamActivation={seamActivation}
+        />
+        <ProjectsSection
+          chipColorStyle={chipColorStyle}
+          seamActivation={seamActivation}
+          onProjectClick={handleProjectClick}
+        />
 
         <ContactSection
+          chipColorStyle={chipColorStyle}
+          seamActivation={seamActivation}
           copyToClipboard={copyToClipboard}
         />
 
         <Footer
+          chipColorStyle={chipColorStyle}
+          seamActivation={seamActivation}
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
@@ -231,6 +307,18 @@ const AppContent: React.FC = () => {
             )}
           </SheetContent>
         </Sheet>
+
+        {/* Interactive Floating FX Tester Dock (Click Ripple & Chip FX) */}
+        <RippleAndChipTesterDock
+          rippleTrigger={rippleTrigger}
+          onChangeRippleTrigger={handleRippleTriggerChange}
+          rippleVisual={rippleVisual}
+          onChangeRippleVisual={handleRippleVisualChange}
+          chipColorStyle={chipColorStyle}
+          onChangeChipColorStyle={handleChipColorStyleChange}
+          seamActivation={seamActivation}
+          onChangeSeamActivation={handleSeamActivationChange}
+        />
 
         <ScrollToTopButton />
 

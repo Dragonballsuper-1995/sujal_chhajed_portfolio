@@ -242,3 +242,89 @@ html.dark .bg-grid-pattern {
     min-height: auto !important;
   }
 }
+
+/* ==========================================================================
+   Click Ripple Animations
+   ========================================================================== */
+@keyframes neoRingOuter {
+  0% {
+    width: 0px;
+    height: 0px;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  60% {
+    opacity: 0.85;
+  }
+  100% {
+    width: 130px;
+    height: 130px;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes neoRingInner {
+  0% {
+    width: 0px;
+    height: 0px;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.2);
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    width: 85px;
+    height: 85px;
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@keyframes asciiParticle {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.6) rotate(0deg);
+  }
+  70% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--target-x), var(--target-y)) scale(1.15) rotate(45deg);
+  }
+}
+
+@keyframes minimalGlow {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 0;
+  }
+}
+
+.animate-neo-ring-outer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  animation: neoRingOuter 0.6s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+}
+
+.animate-neo-ring-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  animation: neoRingInner 0.45s cubic-bezier(0.15, 0.85, 0.35, 1) forwards;
+}
+
+.animate-ascii-particle {
+  animation: asciiParticle 0.65s cubic-bezier(0.12, 0.8, 0.32, 1) forwards;
+}
+
+.animate-minimal-glow {
+  animation: minimalGlow 0.45s ease-out forwards;
+}

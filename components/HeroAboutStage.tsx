@@ -176,9 +176,6 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
                   <Terminal size={13} />
                   <span>Background &amp; Philosophy</span>
                 </div>
-                <div className="inline-flex items-center font-mono text-xs font-bold text-black/70 px-2.5 py-1 bg-white border-2 border-black shadow-neo-sm">
-                  <span>┌── [ 01_ABOUT.sys ] ──┐</span>
-                </div>
               </div>
               <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink uppercase tracking-tight leading-none">
                 About Me
@@ -456,9 +453,6 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm">
                 <Terminal size={13} />
                 <span>Background &amp; Philosophy</span>
-              </div>
-              <div className="inline-flex items-center font-mono text-xs font-bold text-black/70 px-2 py-0.5 bg-white border-2 border-black shadow-neo-sm">
-                <span>┌── [ 01_ABOUT.sys ] ──┐</span>
               </div>
             </div>
             <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink uppercase tracking-tight leading-none">

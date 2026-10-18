@@ -94,9 +94,6 @@ const Skills: React.FC<SkillsProps> = ({ dividerMode = 'solid' }) => {
               <Layers size={13} />
               <span>Technical Arsenal</span>
             </div>
-            <div className="inline-flex items-center font-mono text-xs font-bold text-black/70 px-2.5 py-1 bg-white border-2 border-black shadow-neo-sm">
-              <span>┌── [ 02_SKILLS.sys ] ──┐</span>
-            </div>
           </div>
           <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink leading-none uppercase tracking-tight">
             Skills &amp; Frameworks

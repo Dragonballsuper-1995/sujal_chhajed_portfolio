@@ -87,9 +87,6 @@ const ContactSection: React.FC<ContactSectionProps> = ({ copyToClipboard, divide
                 <span className="w-2 h-2 rounded-full bg-black animate-ping" />
                 <span>Available For High-Impact Roles</span>
               </div>
-              <div className="inline-flex items-center font-mono text-xs font-bold text-black/70 px-2.5 py-1 bg-white border-2 border-black shadow-neo-sm">
-                <span>┌── [ 04_CONTACT.sys ] ──┐</span>
-              </div>
             </div>
 
             {/* Headline */}

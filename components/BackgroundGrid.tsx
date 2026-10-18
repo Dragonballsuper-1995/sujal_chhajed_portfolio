@@ -49,13 +49,21 @@ export const BackgroundGrid: React.FC<BackgroundGridProps> = ({ className = '' }
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
 
+const MATRIX_BRAND_COLORS = [
+  '255, 222, 89',  // Neo-Yellow #FFDE59
+  '255, 102, 196', // Neo-Pink #FF66C4
+  '126, 217, 87',  // Neo-Green #7ED957
+  '92, 225, 230',  // Neo-Cyan #5CE1E6
+  '140, 82, 255',  // Neo-Purple #8C52FF
+  '255, 145, 77',  // Neo-Orange #FF914D
+];
+
     // ──────────────────────────────────────────────────────────────────────────
-    // FINALIZED AIRY ASCII MATRIX RENDERER
+    // FINALIZED AIRY ASCII MATRIX RENDERER (WITH FADED WEBSITE BRAND COLORS)
     // ──────────────────────────────────────────────────────────────────────────
     const drawAsciiMatrix = (isDark: boolean, cols: number, rows: number, offsetX: number, offsetY: number, space: number) => {
-      const baseAlpha = isDark ? 0.07 : 0.08;
-      const baseColor = isDark ? `rgba(255, 255, 255, ${baseAlpha})` : `rgba(5, 5, 5, ${baseAlpha})`;
-      const hoverRgb = isDark ? '255, 222, 89' : '0, 0, 0';
+      // Faded website colors with very light shade & opacity (subtle, airy)
+      const baseAlpha = isDark ? 0.08 : 0.09;
       const hoverRadius = 160;
 
       ctx.font = '11px "Space Mono", monospace';
@@ -63,6 +71,7 @@ export const BackgroundGrid: React.FC<BackgroundGridProps> = ({ className = '' }
       ctx.textBaseline = 'middle';
 
       const glyphCount = MATRIX_GLYPHS.length;
+      const colorCount = MATRIX_BRAND_COLORS.length;
       const now = performance.now();
 
       for (let r = 0; r <= rows; r++) {
@@ -76,22 +85,27 @@ export const BackgroundGrid: React.FC<BackgroundGridProps> = ({ className = '' }
           const absDx = Math.abs(dx);
 
           const baseIndex = (c * 13 + r * 29) % glyphCount;
+          // Deterministic mapping to faded brand colors across the grid:
+          const colorIndex = (c * 7 + r * 11) % colorCount;
+          const brandRgb = MATRIX_BRAND_COLORS[colorIndex];
 
           if (isMouseInWindow && absDx < hoverRadius && absDy < hoverRadius) {
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < hoverRadius) {
               const intensity = 1 - dist / hoverRadius;
-              const alpha = baseAlpha + intensity * 0.38;
+              const alpha = baseAlpha + intensity * 0.45;
               const dynamicIndex = Math.floor(baseIndex + (now * 0.005) + (c * 3) + (r * 7)) % glyphCount;
               const activeGlyph = MATRIX_GLYPHS[dynamicIndex];
 
-              ctx.fillStyle = `rgba(${hoverRgb}, ${alpha})`;
+              // Cursor proximity: symbol illuminates in its vibrant brand color!
+              ctx.fillStyle = `rgba(${brandRgb}, ${alpha})`;
               ctx.fillText(activeGlyph, x, y);
               continue;
             }
           }
 
-          ctx.fillStyle = baseColor;
+          // Ambient state: very light, faded pastel shade of the brand color
+          ctx.fillStyle = `rgba(${brandRgb}, ${baseAlpha})`;
           ctx.fillText(MATRIX_GLYPHS[baseIndex], x, y);
         }
       }

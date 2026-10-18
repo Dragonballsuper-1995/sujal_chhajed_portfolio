@@ -29,7 +29,7 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
 
         {/* Centered Embedded Neo-Brutalist ASCII Plate (Image 3 Style) */}
         <div className="absolute px-3 sm:px-4 py-1 sm:py-1.5 bg-white text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] z-10 select-none flex items-center justify-center">
-          <span>┌── [ {sectionNumber}_{sectionTitle}.sys ] ──┐</span>
+          <span>|── [ {sectionNumber}_{sectionTitle}.sys ] ──|</span>
         </div>
       </div>
     );
@@ -143,10 +143,10 @@ const InteractiveSeam: React.FC<InteractiveSeamProps> = ({
           ctx.fillText(char, x, height / 2);
         } else {
           // Ambient circuit pattern
-          const isTagPos = c >= 3 && c <= 17;
+          const isTagPos = c >= 3 && c <= 19;
           if (isTagPos && c === 3 && !withChip) {
             ctx.fillStyle = 'rgba(126, 217, 87, 0.85)'; // Neo-Green brand accent
-            ctx.fillText(`[ 0x${sectionNumber} // ${sectionTitle} ]`, x + 42, height / 2);
+            ctx.fillText(`|── [ 0x${sectionNumber} // ${sectionTitle} ] ──|`, x + 50, height / 2);
           } else if (!isTagPos || withChip) {
             const sym = (c % 4 === 0) ? '┼' : '─';
             ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
@@ -215,7 +215,7 @@ const InteractiveSeam: React.FC<InteractiveSeamProps> = ({
       {/* Centered Chip with larger width & height overlapping the seam (Image 3 style) */}
       {withChip && (
         <div className="absolute px-3 sm:px-4 py-1 sm:py-1.5 bg-white text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] z-10 select-none flex items-center justify-center">
-          <span>┌── [ {sectionNumber}_{sectionTitle}.sys ] ──┐</span>
+          <span>|── [ {sectionNumber}_{sectionTitle}.sys ] ──|</span>
         </div>
       )}
     </div>

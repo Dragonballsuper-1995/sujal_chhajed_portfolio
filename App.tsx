@@ -14,9 +14,6 @@ import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid from './components/BackgroundGrid';
 import DevToolsGreeting from './components/DevToolsGreeting';
-import AsciiTesterDock from './components/AsciiTesterDock';
-import { SectionDividerVariant } from './components/AsciiSectionDivider';
-
 // Lazy loaded components (not needed for initial visual render)
 const ContactForm = lazy(() => import('./components/ContactForm'));
 const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
@@ -76,23 +73,6 @@ const AppContent: React.FC = () => {
   const activeSection = useScrollSpy();
   const [toast, setToast] = useState({ message: '', visible: false, type: 'success' as 'success' | 'error' });
 
-  // Section Divider Style State (with LocalStorage persistence)
-  const [dividerMode, setDividerMode] = useState<SectionDividerVariant>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('portfolio_divider_mode');
-      if (saved === 'solid' || saved === 'hybrid' || saved === 'interactive' || saved === 'hybrid-interactive') {
-        return saved as SectionDividerVariant;
-      }
-    }
-    return 'hybrid-interactive';
-  });
-
-  const handleDividerChange = useCallback((mode: SectionDividerVariant) => {
-    setDividerMode(mode);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('portfolio_divider_mode', mode);
-    }
-  }, []);
 
   const scrollToSection = useCallback((id: NavSection, updateHistory = true) => {
     const element = document.getElementById(id);
@@ -205,16 +185,14 @@ const AppContent: React.FC = () => {
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
-        <Skills dividerMode={dividerMode} />
-        <ProjectsSection dividerMode={dividerMode} onProjectClick={handleProjectClick} />
+        <Skills />
+        <ProjectsSection onProjectClick={handleProjectClick} />
 
         <ContactSection
-          dividerMode={dividerMode}
           copyToClipboard={copyToClipboard}
         />
 
         <Footer
-          dividerMode={dividerMode}
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
@@ -254,12 +232,6 @@ const AppContent: React.FC = () => {
             )}
           </SheetContent>
         </Sheet>
-
-        {/* Interactive Floating ASCII Tester Dock */}
-        <AsciiTesterDock
-          dividerMode={dividerMode}
-          onChangeDividerMode={handleDividerChange}
-        />
 
         <ScrollToTopButton />
 

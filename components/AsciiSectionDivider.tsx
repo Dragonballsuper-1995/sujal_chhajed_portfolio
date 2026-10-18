@@ -1,62 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 
-export type SectionDividerVariant = 'solid' | 'hybrid' | 'interactive' | 'hybrid-interactive';
-
 interface AsciiSectionDividerProps {
-  variant?: SectionDividerVariant;
   sectionNumber?: string;
   sectionTitle?: string;
   className?: string;
 }
-
-export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
-  variant = 'solid',
-  sectionNumber = '01',
-  sectionTitle = 'SECTION',
-  className = '',
-}) => {
-  // ── VARIANT: Solid Black 4px Neo-Brutalist Line ────────────────────────────
-  if (variant === 'solid') {
-    return <div className={`w-full h-1 bg-black ${className}`} aria-hidden="true" />;
-  }
-
-  // ── VARIANT: Hybrid Solid Line with Centered System Chip ───────────────────
-  if (variant === 'hybrid') {
-    return (
-      <div className={`w-full relative flex items-center justify-center py-3 ${className}`} aria-hidden="true">
-        {/* Heavy 4px black line backbone */}
-        <div className="w-full h-1 bg-black" />
-
-        {/* Centered Embedded Neo-Brutalist ASCII Plate (Image 3 Style) */}
-        <div className="absolute px-3 sm:px-4 py-1 sm:py-1.5 bg-white text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] z-10 select-none flex items-center justify-center">
-          <span>|── [ {sectionNumber}_{sectionTitle}.sys ] ──|</span>
-        </div>
-      </div>
-    );
-  }
-
-  // ── VARIANT: Hybrid + Interactive (Interactive Seam + Centered System Chip) ─
-  if (variant === 'hybrid-interactive') {
-    return (
-      <InteractiveSeam
-        sectionNumber={sectionNumber}
-        sectionTitle={sectionTitle}
-        className={className}
-        withChip={true}
-      />
-    );
-  }
-
-  // ── VARIANT: Dynamic Interactive Canvas ASCII Seam ────────────────────────
-  return (
-    <InteractiveSeam
-      sectionNumber={sectionNumber}
-      sectionTitle={sectionTitle}
-      className={className}
-      withChip={false}
-    />
-  );
-};
 
 // ── Website Brand Colors Palette ─────────────────────────────────────────────
 const BRAND_COLORS = [
@@ -70,18 +18,17 @@ const BRAND_COLORS = [
 
 const INTERACTIVE_CHARS = ['┼', '═', '─', '░', '▒', '▓', 'λ', '0', '1', '§', 'θ', 'σ', '#', '+', '★', '▲'];
 
-interface InteractiveSeamProps {
-  sectionNumber: string;
-  sectionTitle: string;
-  className?: string;
-  withChip?: boolean;
-}
-
-const InteractiveSeam: React.FC<InteractiveSeamProps> = ({
-  sectionNumber,
-  sectionTitle,
+/**
+ * AsciiSectionDivider (Finalized: Hybrid + Interactive)
+ *
+ * Combines an edge-to-edge 16px interactive ASCII canvas seam that scrambles across all
+ * website brand colors on cursor proximity, with a prominent centered Neo-Brutalist system
+ * chip plate (|── [ 0X_SECTION.sys ] ──|) that stands proud above and below the seam.
+ */
+export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
+  sectionNumber = '01',
+  sectionTitle = 'SECTION',
   className = '',
-  withChip = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -142,16 +89,10 @@ const InteractiveSeam: React.FC<InteractiveSeamProps> = ({
           ctx.fillStyle = BRAND_COLORS[colorIdx];
           ctx.fillText(char, x, height / 2);
         } else {
-          // Ambient circuit pattern
-          const isTagPos = c >= 3 && c <= 19;
-          if (isTagPos && c === 3 && !withChip) {
-            ctx.fillStyle = 'rgba(126, 217, 87, 0.85)'; // Neo-Green brand accent
-            ctx.fillText(`|── [ 0x${sectionNumber} // ${sectionTitle} ] ──|`, x + 50, height / 2);
-          } else if (!isTagPos || withChip) {
-            const sym = (c % 4 === 0) ? '┼' : '─';
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
-            ctx.fillText(sym, x, height / 2);
-          }
+          // Ambient circuit pattern behind the chip
+          const sym = (c % 4 === 0) ? '┼' : '─';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+          ctx.fillText(sym, x, height / 2);
         }
       }
 
@@ -199,12 +140,12 @@ const InteractiveSeam: React.FC<InteractiveSeamProps> = ({
       }
       if (rafId) cancelAnimationFrame(rafId);
     };
-  }, [sectionNumber, sectionTitle, withChip]);
+  }, []);
 
   return (
     <div
       ref={containerRef}
-      className={`w-full relative flex items-center justify-center cursor-crosshair ${withChip ? 'py-3' : ''} ${className}`}
+      className={`w-full relative flex items-center justify-center cursor-crosshair py-3 ${className}`}
       aria-hidden="true"
     >
       {/* 16px slim interactive seam line */}
@@ -212,12 +153,10 @@ const InteractiveSeam: React.FC<InteractiveSeamProps> = ({
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>
 
-      {/* Centered Chip with larger width & height overlapping the seam (Image 3 style) */}
-      {withChip && (
-        <div className="absolute px-3 sm:px-4 py-1 sm:py-1.5 bg-white text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] z-10 select-none flex items-center justify-center">
-          <span>|── [ {sectionNumber}_{sectionTitle}.sys ] ──|</span>
-        </div>
-      )}
+      {/* Centered Chip with larger width & height overlapping the seam (|── [ ... ] ──| style) */}
+      <div className="absolute px-3 sm:px-4 py-1 sm:py-1.5 bg-white text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] z-10 select-none flex items-center justify-center">
+        <span>|── [ {sectionNumber}_{sectionTitle}.sys ] ──|</span>
+      </div>
     </div>
   );
 };

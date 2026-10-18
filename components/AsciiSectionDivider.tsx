@@ -23,16 +23,13 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
   // ── VARIANT: Hybrid Solid Line with Centered System Chip ───────────────────
   if (variant === 'hybrid') {
     return (
-      <div className={`w-full relative flex items-center justify-center my-0 ${className}`} aria-hidden="true">
+      <div className={`w-full relative flex items-center justify-center py-3 ${className}`} aria-hidden="true">
         {/* Heavy 4px black line backbone */}
         <div className="w-full h-1 bg-black" />
 
-        {/* Centered Embedded Neo-Brutalist ASCII Plate */}
-        <div className="absolute px-3 py-0.5 bg-white text-black border-2 border-black font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-neo-sm z-10 select-none">
-          <span className="w-2 h-2 rounded-full bg-neo-green animate-pulse" />
-          <span className="px-1.5 py-0.2 bg-black text-neo-yellow font-bold text-[10px]">[ 0{sectionNumber} ]</span>
-          <span className="font-extrabold">{sectionTitle}</span>
-          <span className="text-gray-500 text-[10px] hidden sm:inline">:: SYS.OK</span>
+        {/* Centered Embedded Neo-Brutalist ASCII Plate (Image 3 Style) */}
+        <div className="absolute px-3 sm:px-4 py-1 sm:py-1.5 bg-white text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] z-10 select-none flex items-center justify-center">
+          <span>┌── [ {sectionNumber}_{sectionTitle}.sys ] ──┐</span>
         </div>
       </div>
     );
@@ -98,11 +95,11 @@ const InteractiveSeam: React.FC<InteractiveSeamProps> = ({
     if (!ctx) return;
 
     let rafId: number | null = null;
-    const seamHeight = 16; // Decreased slim height for crisp neo-brutalist divider
+    const seamHeight = 16; // 16px slim seam line
 
     const resize = () => {
-      if (containerRef.current && canvas) {
-        const rect = containerRef.current.getBoundingClientRect();
+      if (canvas) {
+        const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width;
         canvas.height = seamHeight;
       }
@@ -207,18 +204,18 @@ const InteractiveSeam: React.FC<InteractiveSeamProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`w-full h-4 bg-[#08080C] border-y border-black overflow-hidden relative flex items-center justify-center cursor-crosshair ${className}`}
+      className={`w-full relative flex items-center justify-center cursor-crosshair ${withChip ? 'py-3' : ''} ${className}`}
       aria-hidden="true"
     >
-      <canvas ref={canvasRef} className="w-full h-full block" />
+      {/* 16px slim interactive seam line */}
+      <div className="w-full h-4 bg-[#08080C] border-y border-black overflow-hidden relative">
+        <canvas ref={canvasRef} className="w-full h-full block" />
+      </div>
 
-      {/* Embedded Centered Chip for Hybrid + Interactive mode */}
+      {/* Centered Chip with larger width & height overlapping the seam (Image 3 style) */}
       {withChip && (
-        <div className="absolute px-2.5 py-0.5 bg-white text-black border-2 border-black font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 shadow-neo-sm z-10 select-none pointer-events-none transition-all">
-          <span className="w-1.5 h-1.5 rounded-full bg-neo-green animate-pulse" />
-          <span className="px-1 py-0.1 bg-black text-neo-yellow font-bold text-[9px]">[ 0{sectionNumber} ]</span>
-          <span className="font-extrabold">{sectionTitle}</span>
-          <span className="text-gray-500 text-[9px] hidden sm:inline">:: INTERACTIVE</span>
+        <div className="absolute px-3 sm:px-4 py-1 sm:py-1.5 bg-white text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] z-10 select-none flex items-center justify-center">
+          <span>┌── [ {sectionNumber}_{sectionTitle}.sys ] ──┐</span>
         </div>
       )}
     </div>

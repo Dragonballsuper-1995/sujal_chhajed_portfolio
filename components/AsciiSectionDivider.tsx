@@ -1,12 +1,9 @@
 import React, { useRef, useEffect } from 'react';
 
-export type ChipStyleVariant = 'cyber-module' | 'flanked-bridge' | 'punchy-sticker' | 'minimal-cutout';
-
 interface AsciiSectionDividerProps {
   sectionNumber?: string;
   sectionTitle?: string;
   className?: string;
-  chipStyle?: ChipStyleVariant;
 }
 
 // ── Website Brand Colors Palette ─────────────────────────────────────────────
@@ -22,20 +19,16 @@ const BRAND_COLORS = [
 const INTERACTIVE_CHARS = ['┼', '═', '─', '░', '▒', '▓', 'λ', '0', '1', '§', 'θ', 'σ', '#', '+', '★', '▲'];
 
 /**
- * AsciiSectionDivider (Hybrid + Interactive with Redesigned Centered Chip)
+ * AsciiSectionDivider (Finalized: Hybrid + Interactive with Punchy Sticker Plate)
  *
- * Renders an interactive 16px ASCII canvas seam in all website brand colors with 4
- * distinctive selectable chip designs:
- * 1. Cyber Module: Dark neo-brutalist hardware plate with pulsing LED and yellow sector badge.
- * 2. Flanked Bridge: Mechanical hardware bridge that physically terminates the left and right seams.
- * 3. Punchy Sticker: Bold two-tone Cyber Yellow & Black split badge with deep drop shadow.
- * 4. Minimal Cutout: Airy, refined monospace system coordinate cutout.
+ * Combines an edge-to-edge 16px interactive ASCII canvas seam that scrambles across all
+ * website brand colors on cursor proximity, with a prominent centered two-tone
+ * Neo-Brutalist sticker chip (#0X | SECTION.SYS) that stands proud above and below the seam.
  */
 export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
   sectionNumber = '01',
   sectionTitle = 'SECTION',
   className = '',
-  chipStyle = 'cyber-module',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -160,63 +153,16 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>
 
-      {/* ── DESIGN OPTION 1: Cyber-Industrial Hardware Module ─────────────── */}
-      {chipStyle === 'cyber-module' && (
-        <div className="absolute px-3 sm:px-4 py-1.5 bg-[#0A0A10] text-white border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#FFE600] z-10 flex items-center gap-2.5 transition-transform hover:-translate-y-0.5">
-          <span className="w-2 h-2 rounded-full bg-neo-green animate-pulse" />
-          <span className="px-1.5 py-0.5 bg-neo-yellow text-black font-black text-[10px] rounded-[1px] shadow-sm">
-            SEC.{sectionNumber}
-          </span>
-          <span className="text-white font-extrabold tracking-wider">{sectionTitle}.sys</span>
-          <span className="text-gray-400 text-[10px] hidden sm:inline">:: [OK]</span>
+      {/* Finalized Centered Two-Tone Punchy Neo-Brutalist Sticker Plate */}
+      <div className="absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-transform hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000000]">
+        <div className="bg-black text-neo-yellow px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black">
+          #{sectionNumber}
         </div>
-      )}
-
-      {/* ── DESIGN OPTION 2: Flanked Physical Bridge ───────────────────────── */}
-      {chipStyle === 'flanked-bridge' && (
-        <div className="absolute z-10 flex items-center">
-          {/* Left Mechanical Connector Tab */}
-          <div className="px-1.5 py-1 bg-black text-neo-yellow font-mono text-xs font-black border-y-2 border-l-2 border-black">
-            ├─
-          </div>
-          {/* Central Plate */}
-          <div className="px-3 sm:px-4 py-1.5 bg-white text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-[3px_3px_0px_0px_#000000] flex items-center gap-2">
-            <span className="px-1.5 py-0.5 bg-black text-white font-bold text-[10px]">
-              0{sectionNumber}
-            </span>
-            <span className="font-extrabold">{sectionTitle}</span>
-            <span className="text-gray-500 text-[10px] hidden sm:inline">:: LINK.OK</span>
-          </div>
-          {/* Right Mechanical Connector Tab */}
-          <div className="px-1.5 py-1 bg-black text-neo-yellow font-mono text-xs font-black border-y-2 border-r-2 border-black">
-            ─┤
-          </div>
+        <div className="bg-neo-yellow text-black px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2">
+          <span>{sectionTitle}</span>
+          <span className="text-black/60 text-[9px]">.SYS</span>
         </div>
-      )}
-
-      {/* ── DESIGN OPTION 3: Punchy Neo-Brutalist Plate (Two-Tone Split) ──── */}
-      {chipStyle === 'punchy-sticker' && (
-        <div className="absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-transform hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000000]">
-          <div className="bg-black text-neo-yellow px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black">
-            #{sectionNumber}
-          </div>
-          <div className="bg-neo-yellow text-black px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2">
-            <span>{sectionTitle}</span>
-            <span className="text-black/60 text-[9px]">.SYS</span>
-          </div>
-        </div>
-      )}
-
-      {/* ── DESIGN OPTION 4: Minimal Monospace Seam Cutout ─────────────────── */}
-      {chipStyle === 'minimal-cutout' && (
-        <div className="absolute z-10 px-3.5 py-1 bg-[#FAF8F5] text-black border-2 border-black font-mono text-xs font-black uppercase tracking-widest shadow-[2px_2px_0px_0px_#000000] flex items-center gap-1.5 transition-transform hover:-translate-y-0.5">
-          <span className="text-neo-pink font-bold">/</span>
-          <span className="text-black font-extrabold">{sectionNumber}</span>
-          <span className="text-gray-400 font-normal">//</span>
-          <span className="text-black font-bold">{sectionTitle}</span>
-          <span className="text-neo-green font-bold text-[10px]">_RUN</span>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

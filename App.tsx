@@ -14,8 +14,6 @@ import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid from './components/BackgroundGrid';
 import DevToolsGreeting from './components/DevToolsGreeting';
-import ChipTesterDock from './components/ChipTesterDock';
-import { ChipStyleVariant } from './components/AsciiSectionDivider';
 // Lazy loaded components (not needed for initial visual render)
 const ContactForm = lazy(() => import('./components/ContactForm'));
 const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
@@ -74,25 +72,6 @@ const AppContent: React.FC = () => {
   // Custom hook for scroll spy
   const activeSection = useScrollSpy();
   const [toast, setToast] = useState({ message: '', visible: false, type: 'success' as 'success' | 'error' });
-
-  // Centered Chip Redesign Tester State (with LocalStorage persistence)
-  const [chipStyle, setChipStyle] = useState<ChipStyleVariant>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('portfolio_chip_style');
-      if (saved === 'cyber-module' || saved === 'flanked-bridge' || saved === 'punchy-sticker' || saved === 'minimal-cutout') {
-        return saved as ChipStyleVariant;
-      }
-    }
-    return 'cyber-module';
-  });
-
-  const handleChipStyleChange = useCallback((style: ChipStyleVariant) => {
-    setChipStyle(style);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('portfolio_chip_style', style);
-    }
-  }, []);
-
 
   const scrollToSection = useCallback((id: NavSection, updateHistory = true) => {
     const element = document.getElementById(id);
@@ -205,16 +184,14 @@ const AppContent: React.FC = () => {
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
-        <Skills chipStyle={chipStyle} />
-        <ProjectsSection chipStyle={chipStyle} onProjectClick={handleProjectClick} />
+        <Skills />
+        <ProjectsSection onProjectClick={handleProjectClick} />
 
         <ContactSection
-          chipStyle={chipStyle}
           copyToClipboard={copyToClipboard}
         />
 
         <Footer
-          chipStyle={chipStyle}
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
@@ -254,12 +231,6 @@ const AppContent: React.FC = () => {
             )}
           </SheetContent>
         </Sheet>
-
-        {/* Interactive Floating Centered Chip Redesign Tester Dock */}
-        <ChipTesterDock
-          chipStyle={chipStyle}
-          onChangeChipStyle={handleChipStyleChange}
-        />
 
         <ScrollToTopButton />
 

@@ -72,18 +72,14 @@ const SkillPill: React.FC<SkillPillProps> = ({ name, svgSlug, category }) => {
   );
 };
 
-import AsciiSectionDivider, { ChipStyleVariant } from './AsciiSectionDivider';
-
-interface SkillsProps {
-  chipStyle?: ChipStyleVariant;
-}
+import AsciiSectionDivider from './AsciiSectionDivider';
 
 const CATEGORY_KEYS: SkillCategory[] = ['ml-genai', 'fullstack', 'data-eng', 'mlops'];
 
-const Skills: React.FC<SkillsProps> = ({ chipStyle }) => {
+const Skills: React.FC = () => {
   return (
     <>
-      <AsciiSectionDivider chipStyle={chipStyle} sectionNumber="02" sectionTitle="SKILLS" />
+      <AsciiSectionDivider sectionNumber="02" sectionTitle="SKILLS" />
       <section id={NavSection.SKILLS} className="scroll-mt-24 sm:scroll-mt-28 py-16 md:py-24 bg-transparent">
       <div className="max-w-6xl mx-auto px-5 md:px-8">
 

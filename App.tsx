@@ -12,7 +12,7 @@ import Footer from './components/Footer';
 import ResumeModal from './components/ResumeModal';
 import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
-import BackgroundGrid, { BackgroundMode } from './components/BackgroundGrid';
+import BackgroundGrid from './components/BackgroundGrid';
 import BackgroundSwitcher from './components/BackgroundSwitcher';
 import { PhotoMode } from './components/AsciiPhoto';
 import DevToolsGreeting from './components/DevToolsGreeting';
@@ -72,29 +72,11 @@ const AppContent: React.FC = () => {
   // Sheet state for Project Case Study
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  // Background Grid Mode ('dots' | 'crosshair' | 'ascii')
-  const [bgMode, setBgMode] = useState<BackgroundMode>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('portfolio_bg_mode');
-      if (saved === 'dots' || saved === 'crosshair' || saved === 'ascii' || saved === 'ascii-matrix') {
-        return saved;
-      }
-    }
-    return 'dots';
-  });
-
-  const handleBgModeChange = useCallback((mode: BackgroundMode) => {
-    setBgMode(mode);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('portfolio_bg_mode', mode);
-    }
-  }, []);
-
-  // Profile Photo Mode ('morph' | 'flip' | 'scanline' | 'standard')
+  // Profile Photo Mode ('morph' | 'morph-flip' | 'flip' | 'standard')
   const [photoMode, setPhotoMode] = useState<PhotoMode>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('portfolio_photo_mode');
-      if (saved === 'morph' || saved === 'flip' || saved === 'scanline' || saved === 'standard') {
+      if (saved === 'morph' || saved === 'morph-flip' || saved === 'flip' || saved === 'standard') {
         return saved as PhotoMode;
       }
     }
@@ -209,8 +191,8 @@ const AppContent: React.FC = () => {
         {/* DevTools Console Greeting (invisible, fires once on mount) */}
         <DevToolsGreeting />
 
-        {/* Persistent Canvas Interactive Multi-Mode Grid */}
-        <BackgroundGrid mode={bgMode} />
+        {/* Persistent Canvas Interactive ASCII Matrix */}
+        <BackgroundGrid />
 
         <Header
           activeSection={activeSection}
@@ -271,10 +253,8 @@ const AppContent: React.FC = () => {
           </SheetContent>
         </Sheet>
 
-        {/* Floating Neo-Brutalist Background & Photo FX Mode Switcher */}
+        {/* Floating Neo-Brutalist Photo FX Tester */}
         <BackgroundSwitcher
-          mode={bgMode}
-          onChangeMode={handleBgModeChange}
           photoMode={photoMode}
           onChangePhotoMode={handlePhotoModeChange}
         />

@@ -107,8 +107,8 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
               <h1 className="font-sans text-7xl xl:text-8xl text-ink leading-[0.90] tracking-tight uppercase select-none font-black">
                 Sujal Chhajed
               </h1>
-              <p className="font-sans text-3xl xl:text-4xl text-ink font-black uppercase mt-1 leading-tight">
-                <AsciiGlitchText text="Building AI That " />
+              <p className="font-sans text-3xl xl:text-4xl text-ink font-black uppercase mt-1 leading-tight flex flex-wrap items-baseline gap-x-3.5">
+                <AsciiGlitchText text="Building AI That" />
                 <span className="text-neo-pink underline decoration-4 underline-offset-8 decoration-black inline-block transform hover:-rotate-2 transition-transform">
                   <AsciiGlitchText text="Ships." />
                 </span>
@@ -377,8 +377,8 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
             <h1 className="font-sans text-4xl sm:text-6xl text-ink leading-[0.90] tracking-tight uppercase select-none font-black">
               Sujal Chhajed
             </h1>
-            <p className="font-sans text-xl sm:text-2xl text-ink font-black uppercase mt-1.5 leading-tight">
-              <AsciiGlitchText text="Building AI That " />
+            <p className="font-sans text-xl sm:text-2xl text-ink font-black uppercase mt-1.5 leading-tight flex flex-wrap items-baseline gap-x-2.5">
+              <AsciiGlitchText text="Building AI That" />
               <span className="text-neo-pink underline decoration-4 underline-offset-8 decoration-black inline-block">
                 <AsciiGlitchText text="Ships." />
               </span>

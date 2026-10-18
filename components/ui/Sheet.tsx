@@ -153,9 +153,9 @@ export const SheetContent: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[2000] flex justify-end" role="dialog" aria-modal="true">
-      {/* Backdrop */}
+      {/* Backdrop — Clean neo-brutalist solid tint (zero GPU blur overhead) */}
       <div 
-        className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-500 ${animate ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-black/65 transition-opacity duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`}
         onClick={() => context.setOpen(false)}
         aria-hidden="true"
       />
@@ -166,7 +166,8 @@ export const SheetContent: React.FC<{
         className={`
           relative z-[2001] bg-white dark:bg-neo-dark-surface 
           border-black dark:border-neo-dark-border shadow-neo-xl 
-          transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
+          transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]
+          will-change-transform
           ${sideClasses[side]} 
           ${getTransformClass()}
           w-full max-w-lg md:max-w-2xl lg:max-w-3xl

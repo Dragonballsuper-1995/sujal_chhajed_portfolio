@@ -141,6 +141,10 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
   const rafIdRef = useRef<number | null>(null);
   const renderLoopRef = useRef<(() => void) | null>(null);
 
+  // Dynamic grid dimensions & sampled pixel cache
+  const gridRef = useRef<{ cols: number; rows: number }>({ cols: 48, rows: 54 });
+  const sampledDataRef = useRef<Uint8ClampedArray | null>(null);
+
   // Pre-load and cache the image
   useEffect(() => {
     const img = new Image();
@@ -161,37 +165,33 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
 
-    const sampleWidth = 48;
-    const sampleHeight = 60;
     const offCanvas = document.createElement('canvas');
-    offCanvas.width = sampleWidth;
-    offCanvas.height = sampleHeight;
     const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
     if (!offCtx) return;
 
-    // Synchronize physical canvas pixel size with container
-    const updateCanvasSize = () => {
-      if (containerRef.current && canvas) {
-        const rect = containerRef.current.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          canvas.width = rect.width;
-          canvas.height = rect.height;
-        }
-      }
-    };
-
-    updateCanvasSize();
-    window.addEventListener('resize', updateCanvasSize);
-
-    // Compute exact object-cover object-top source rectangle
-    const updateSampling = () => {
-      if (!imgElementRef.current || !containerRef.current) return;
+    // Synchronize physical canvas pixel size with container and resample
+    const syncDimensionsAndSample = () => {
+      if (!containerRef.current || !canvas || !imgElementRef.current) return;
       const img = imgElementRef.current;
-      const imgW = img.naturalWidth || 1841;
-      const imgH = img.naturalHeight || 3273;
+      const imgW = img.naturalWidth || 2543;
+      const imgH = img.naturalHeight || 3435;
 
-      const containerW = canvas.width || 340;
-      const containerH = canvas.height || 425;
+      // Read untransformed layout dimensions (clientWidth/clientHeight unaffected by CSS 3D scale/rotation)
+      const containerW = containerRef.current.clientWidth || 332;
+      const containerH = containerRef.current.clientHeight || 371;
+
+      // Synchronize canvas internal pixel buffer with CSS layout dimensions (1:1 pixel mapping)
+      if (canvas.width !== containerW || canvas.height !== containerH) {
+        canvas.width = containerW;
+        canvas.height = containerH;
+      }
+
+      // Compute dynamic grid: fixed 48 columns, dynamic rows matching container aspect ratio
+      const sampleCols = 48;
+      const sampleRows = Math.max(10, Math.round(sampleCols * (containerH / containerW)));
+      gridRef.current = { cols: sampleCols, rows: sampleRows };
+
+      // Compute exact object-cover object-top source rectangle
       const targetAspect = containerW / containerH;
       const imgAspect = imgW / imgH;
 
@@ -201,41 +201,54 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
       let sHeight = imgH;
 
       if (imgAspect > targetAspect) {
+        // Image is wider than container: crop sides, anchor top
         sWidth = imgH * targetAspect;
         sx = (imgW - sWidth) / 2;
         sy = 0;
       } else {
+        // Image is taller than container: crop bottom, anchor top
         sHeight = imgW / targetAspect;
         sx = 0;
         sy = 0;
       }
 
-      offCtx.clearRect(0, 0, sampleWidth, sampleHeight);
-      offCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sampleWidth, sampleHeight);
-    };
+      offCanvas.width = sampleCols;
+      offCanvas.height = sampleRows;
+      offCtx.clearRect(0, 0, sampleCols, sampleRows);
+      offCtx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, sampleCols, sampleRows);
 
-    updateSampling();
+      try {
+        const imgData = offCtx.getImageData(0, 0, sampleCols, sampleRows);
+        sampledDataRef.current = imgData.data;
+      } catch {
+        sampledDataRef.current = null;
+      }
+
+      if (isHeroFace) {
+        renderStaticFlipFace();
+      }
+    };
 
     // ── Static Render for Hero Front Face (Morph + Flip Architecture) ──
     const renderStaticFlipFace = () => {
       const { width, height } = canvas;
       if (width === 0 || height === 0) return;
+      const pixels = sampledDataRef.current;
+      if (!pixels) return;
 
-      const imgData = offCtx.getImageData(0, 0, sampleWidth, sampleHeight);
-      const pixels = imgData.data;
-
+      const { cols: sampleCols, rows: sampleRows } = gridRef.current;
       ctx.fillStyle = '#080808';
       ctx.fillRect(0, 0, width, height);
 
-      const cellW = width / sampleWidth;
-      const cellH = height / sampleHeight;
+      const cellW = width / sampleCols;
+      const cellH = height / sampleRows;
       ctx.font = `bold ${Math.floor(cellH * 1.05)}px "Space Mono", monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      for (let y = 0; y < sampleHeight; y++) {
-        for (let x = 0; x < sampleWidth; x++) {
-          const idx = (y * sampleWidth + x) * 4;
+      for (let y = 0; y < sampleRows; y++) {
+        for (let x = 0; x < sampleCols; x++) {
+          const idx = (y * sampleCols + x) * 4;
           const r = pixels[idx];
           const g = pixels[idx + 1];
           const b = pixels[idx + 2];
@@ -261,7 +274,6 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
       if (width === 0 || height === 0) return;
 
       const target = isHoveredRef.current ? 1.0 : 0.0;
-      // Smooth responsive ease-in, gentle seamless ease-out
       const speed = isHoveredRef.current ? 0.075 : 0.055;
 
       if (Math.abs(transitionProgressRef.current - target) > 0.005) {
@@ -280,14 +292,15 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
         return;
       }
 
-      const imgData = offCtx.getImageData(0, 0, sampleWidth, sampleHeight);
-      const pixels = imgData.data;
+      const pixels = sampledDataRef.current;
+      if (!pixels) return;
 
+      const { cols: sampleCols, rows: sampleRows } = gridRef.current;
       ctx.clearRect(0, 0, width, height);
 
-      const cellW = width / sampleWidth;
-      const cellH = height / sampleHeight;
-      const aspect = sampleWidth / sampleHeight; // ~0.8
+      const cellW = width / sampleCols;
+      const cellH = height / sampleRows;
+      const aspect = width / height;
 
       ctx.font = `bold ${Math.floor(cellH * 1.05)}px "Space Mono", monospace`;
       ctx.textAlign = 'center';
@@ -302,7 +315,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
       blobs[0].curX += (mousePosRef.current.x - blobs[0].curX) * 0.10;
       blobs[0].curY += (mousePosRef.current.y - blobs[0].curY) * 0.10;
 
-      // Autonomous organic wandering for blobs 1-4 (matching reference screenshots)
+      // Autonomous organic wandering for blobs 1-4
       for (let k = 1; k < blobs.length; k++) {
         const b = blobs[k];
         b.curX = b.baseX + 0.13 * Math.sin(t * b.speedX + b.phaseX);
@@ -312,12 +325,12 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
       const threshold = 0.60;
       const edgeFeather = 0.16;
 
-      // Evaluate each cell in the 48x60 grid
-      for (let y = 0; y < sampleHeight; y++) {
-        const v = (y + 0.5) / sampleHeight;
+      // Evaluate each cell in the dynamic grid
+      for (let y = 0; y < sampleRows; y++) {
+        const v = (y + 0.5) / sampleRows;
 
-        for (let x = 0; x < sampleWidth; x++) {
-          const u = (x + 0.5) / sampleWidth;
+        for (let x = 0; x < sampleCols; x++) {
+          const u = (x + 0.5) / sampleCols;
 
           // Compute Gaussian metaball potential across all organic blobs
           let potential = 0;
@@ -350,13 +363,13 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
 
             const isFrontier = totalVal < threshold + 0.12 && progress < 0.98;
 
-            const idx = (y * sampleWidth + x) * 4;
+            const idx = (y * sampleCols + x) * 4;
             const r = pixels[idx];
             const g = pixels[idx + 1];
             const b = pixels[idx + 2];
             const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
 
-            // Luminance boost curve: gentle gamma 0.80 lifts shadows/midtones, 1.28 factor brings out brightness
+            // Luminance boost curve
             const normBright = brightness / 255;
             const boosted = Math.min(1, Math.pow(normBright, 0.80) * 1.28);
             const luma = boosted * 255;
@@ -375,7 +388,6 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
               ctx.fillText(char, x * cellW + cellW / 2, y * cellH + cellH / 2);
             }
           }
-          // Outside blob: transparent, underlying photograph shows through!
         }
       }
 
@@ -388,6 +400,18 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
     };
 
     renderLoopRef.current = renderBlobAscii;
+
+    // Observe container layout size changes with ResizeObserver for exact 1:1 pixel alignment
+    syncDimensionsAndSample();
+
+    const resizeObserver = new ResizeObserver(() => {
+      syncDimensionsAndSample();
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    window.addEventListener('resize', syncDimensionsAndSample);
 
     // Initialization
     if (isHeroFace) {
@@ -408,7 +432,8 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
     }
 
     return () => {
-      window.removeEventListener('resize', updateCanvasSize);
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', syncDimensionsAndSample);
       renderLoopRef.current = null;
       if (rafIdRef.current) {
         cancelAnimationFrame(rafIdRef.current);

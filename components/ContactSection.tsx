@@ -3,19 +3,17 @@ import { Copy, Check, Send, Linkedin, Github, Instagram, Sparkles } from 'lucide
 import { XIcon } from './XIcon';
 import { NavSection } from '../types';
 import { PERSONAL_INFO } from '../constants';
-import AsciiSectionDivider, { ChipColorStyle } from './AsciiSectionDivider';
+import AsciiSectionDivider from './AsciiSectionDivider';
 
 interface ContactSectionProps {
   setIsContactOpen?: (isOpen: boolean) => void;
   copyToClipboard: (text: string, type: string) => void;
-  chipColorStyle?: ChipColorStyle;
 }
 
 const FORMSPREE_URL = 'https://formspree.io/f/xqagjnpj';
 
 const ContactSection: React.FC<ContactSectionProps> = ({
   copyToClipboard,
-  chipColorStyle,
 }) => {
   const [copied, setCopied] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -67,9 +65,9 @@ const ContactSection: React.FC<ContactSectionProps> = ({
   return (
     <>
       <AsciiSectionDivider
-        chipColorStyle={chipColorStyle}
         sectionNumber="04"
         sectionTitle="CONTACT"
+        targetSectionId="contact"
       />
       <section
         id={NavSection.CONTACT}

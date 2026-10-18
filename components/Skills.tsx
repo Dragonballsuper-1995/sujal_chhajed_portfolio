@@ -72,19 +72,15 @@ const SkillPill: React.FC<SkillPillProps> = ({ name, svgSlug, category }) => {
   );
 };
 
-import AsciiSectionDivider, { ChipColorStyle } from './AsciiSectionDivider';
-
-interface SkillsProps {
-  chipColorStyle?: ChipColorStyle;
-}
+import AsciiSectionDivider from './AsciiSectionDivider';
 
 const CATEGORY_KEYS: SkillCategory[] = ['ml-genai', 'fullstack', 'data-eng', 'mlops'];
 
-const Skills: React.FC<SkillsProps> = ({ chipColorStyle }) => {
+const Skills: React.FC = () => {
   return (
     <>
       <AsciiSectionDivider
-        chipColorStyle={chipColorStyle}
+        targetSectionId="skills"
         sectionNumber="02"
         sectionTitle="SKILLS"
       />

@@ -15,8 +15,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sh
 import BackgroundGrid from './components/BackgroundGrid';
 import DevToolsGreeting from './components/DevToolsGreeting';
 import ClickRipple from './components/ClickRipple';
-import { ChipColorStyle } from './components/AsciiSectionDivider';
-import ChipColourTesterDock from './components/ChipColourTesterDock';
 // Lazy loaded components (not needed for initial visual render)
 const ContactForm = lazy(() => import('./components/ContactForm'));
 const ProjectCaseStudy = lazy(() => import('./components/ProjectCaseStudy'));
@@ -75,27 +73,6 @@ const AppContent: React.FC = () => {
   // Custom hook for scroll spy
   const activeSection = useScrollSpy();
   const [toast, setToast] = useState({ message: '', visible: false, type: 'success' as 'success' | 'error' });
-
-  // ── Redesigned Centered Chip Colour Style Tester (with LocalStorage persistence) ──
-  const [chipColorStyle, setChipColorStyle] = useState<ChipColorStyle>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('portfolio_chip_color_style');
-      if (
-        saved === 'calibration-strip' ||
-        saved === 'chromatic-prism' ||
-        saved === 'cyber-industrial' ||
-        saved === 'punchy-sticker-pure'
-      ) {
-        return saved as ChipColorStyle;
-      }
-    }
-    return 'calibration-strip';
-  });
-
-  const handleChipColorStyleChange = useCallback((style: ChipColorStyle) => {
-    setChipColorStyle(style);
-    if (typeof window !== 'undefined') localStorage.setItem('portfolio_chip_color_style', style);
-  }, []);
 
   const scrollToSection = useCallback((id: NavSection, updateHistory = true) => {
     const element = document.getElementById(id);
@@ -211,19 +188,16 @@ const AppContent: React.FC = () => {
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
-        <Skills chipColorStyle={chipColorStyle} />
+        <Skills />
         <ProjectsSection
-          chipColorStyle={chipColorStyle}
           onProjectClick={handleProjectClick}
         />
 
         <ContactSection
-          chipColorStyle={chipColorStyle}
           copyToClipboard={copyToClipboard}
         />
 
         <Footer
-          chipColorStyle={chipColorStyle}
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
@@ -263,12 +237,6 @@ const AppContent: React.FC = () => {
             )}
           </SheetContent>
         </Sheet>
-
-        {/* Interactive Floating Chip Colour Style Tester Dock */}
-        <ChipColourTesterDock
-          chipColorStyle={chipColorStyle}
-          onChangeChipColorStyle={handleChipColorStyleChange}
-        />
 
         <ScrollToTopButton />
 

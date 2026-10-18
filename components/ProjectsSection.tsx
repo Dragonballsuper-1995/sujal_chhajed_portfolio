@@ -4,16 +4,14 @@ import ProjectCard, { isProjectMatchingRole } from './ProjectCard';
 import { FEATURED_PROJECTS, ARCHIVE_PROJECTS } from '../constants';
 import { Sparkles, ArrowRight, Filter } from 'lucide-react';
 import { useRecruiter } from '../context/RecruiterContext';
-import AsciiSectionDivider, { ChipColorStyle } from './AsciiSectionDivider';
+import AsciiSectionDivider from './AsciiSectionDivider';
 
 interface ProjectsSectionProps {
   onProjectClick: (project: Project) => void;
-  chipColorStyle?: ChipColorStyle;
 }
 
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   onProjectClick,
-  chipColorStyle,
 }) => {
   const { roleFilter, setRoleFilter } = useRecruiter();
 
@@ -31,7 +29,7 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   return (
     <>
       <AsciiSectionDivider
-        chipColorStyle={chipColorStyle}
+        targetSectionId="projects"
         sectionNumber="03"
         sectionTitle="PROJECTS"
       />

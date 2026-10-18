@@ -165,6 +165,29 @@ const Footer: React.FC<FooterProps> = ({ scrollToSection, openResumeModal }) => 
         </span>
       </div>
 
+      {/* ── ASCII Terminal System Signature ── */}
+      <div className="max-w-6xl mx-auto px-5 md:px-8 pb-6 relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-t border-white/10 pt-6">
+        <div className="font-mono text-xs text-gray-400 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-neo-green animate-pulse" />
+            <span className="font-bold text-white uppercase tracking-wider">KERNEL RUNTIME :: VERIFIED BUILD</span>
+          </div>
+          <p className="text-[11px] text-gray-500">
+            PyTorch 2.5 • Hugging Face • TypeScript • Tailwind • Framer Motion
+          </p>
+        </div>
+
+        {/* ASCII Signature Art Plate */}
+        <div className="bg-black/80 border border-white/20 p-2.5 rounded shadow-neo-sm font-mono text-[9px] sm:text-[10px] text-neo-yellow/90 overflow-x-auto select-none">
+          <pre className="leading-tight">
+{`┌──────────────────────────────────────────────┐
+│  SUJAL.SYS :: 2026 PRODUCTION RUNTIME        │
+│  [■] DETERMINISTIC AI  [■] ZERO DRIFT SYNC   │
+└──────────────────────────────────────────────┘`}
+          </pre>
+        </div>
+      </div>
+
       {/* ── Bottom Copyright Strip ───────────────────────────────────────── */}
       <div className="border-t border-white/10 bg-[#0A0A10] py-5 relative z-10">
         <div className="max-w-6xl mx-auto px-5 md:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-xs text-gray-500">

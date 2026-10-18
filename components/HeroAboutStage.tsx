@@ -3,10 +3,13 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowDown, FileText, Sparkles, Terminal, ArrowUpRight } from 'lucide-react';
 import { NavSection } from '../types';
 import { PERSONAL_INFO } from '../constants';
+import AsciiPhoto, { PhotoMode } from './AsciiPhoto';
+import AsciiGlitchText from './AsciiGlitchText';
 
 interface HeroAboutStageProps {
   scrollToSection: (id: NavSection) => void;
   openResumeModal?: () => void;
+  photoMode?: PhotoMode;
 }
 
 /**
@@ -25,7 +28,11 @@ interface HeroAboutStageProps {
  *     7. Interactive 3D mouse tilt activates on hover once settled.
  * - On mobile (< 1024px), a responsive natural-flow layout is used to prevent viewport clipping.
  */
-const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openResumeModal }) => {
+const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
+  scrollToSection,
+  openResumeModal,
+  photoMode = 'morph',
+}) => {
   const desktopTrackRef = useRef<HTMLDivElement>(null);
   // ── Desktop Scroll Animations ──────────────────────────────────────────
   const { scrollYProgress } = useScroll({
@@ -101,9 +108,9 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
                 Sujal Chhajed
               </h1>
               <p className="font-sans text-3xl xl:text-4xl text-ink font-black uppercase mt-1 leading-tight">
-                Building AI That{' '}
+                <AsciiGlitchText text="Building AI That " />
                 <span className="text-neo-pink underline decoration-4 underline-offset-8 decoration-black inline-block transform hover:-rotate-2 transition-transform">
-                  Ships.
+                  <AsciiGlitchText text="Ships." />
                 </span>
               </p>
             </div>
@@ -164,14 +171,19 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
               style={{ opacity: aboutHeaderOpacity, y: aboutHeaderY, pointerEvents: aboutPointerEvents }}
               className="mb-8"
             >
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow border-2 border-black font-mono text-xs font-bold uppercase tracking-wider mb-2.5 shadow-neo-sm">
-                <Terminal size={13} />
-                <span>Background &amp; Philosophy</span>
+              <div className="flex flex-wrap items-center gap-2 mb-3">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm">
+                  <Terminal size={13} />
+                  <span>Background &amp; Philosophy</span>
+                </div>
+                <div className="inline-flex items-center font-mono text-xs font-bold text-black/70 px-2.5 py-1 bg-white border-2 border-black shadow-neo-sm">
+                  <span>┌── [ 01_ABOUT.sys ] ──┐</span>
+                </div>
               </div>
-              <h2 className="font-sans text-5xl xl:text-6xl font-black text-ink uppercase tracking-tight leading-none">
+              <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink uppercase tracking-tight leading-none">
                 About Me
               </h2>
-              <p className="font-mono text-sm text-gray-700 max-w-2xl mt-2 leading-relaxed">
+              <p className="font-mono text-sm sm:text-base text-gray-700 max-w-2xl mt-3 leading-relaxed">
                 Architecting deterministic, production-hardened machine learning systems and
                 high-throughput web applications.
               </p>
@@ -229,13 +241,16 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
                   >
                     {/* Photo */}
                     <div className="relative flex-1 overflow-hidden bg-black">
-                      <img
-                        src="/profile-pic-4.webp"
-                        alt="Sujal Sanjay Chhajed"
-                        className="w-full h-full object-cover object-top filter grayscale contrast-115"
+                      <AsciiPhoto
+                        src={PERSONAL_INFO.profilePic}
+                        alt={PERSONAL_INFO.profilePicAlt}
+                        mode={photoMode}
+                        isHeroFace={true}
+                        grayscaleHero={true}
+                        className="w-full h-full"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70 pointer-events-none" />
-                      <div className="absolute top-3 right-3 px-2 py-0.5 bg-neo-yellow text-black border border-black font-mono text-[10px] font-bold uppercase shadow-sm">
+                      <div className="absolute top-3 right-3 px-2 py-0.5 bg-neo-yellow text-black border border-black font-mono text-[10px] font-bold uppercase shadow-sm z-20">
                         AI/ML
                       </div>
                     </div>
@@ -259,13 +274,16 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
                   >
                     {/* Photo */}
                     <div className="relative flex-1 overflow-hidden bg-black">
-                      <img
-                        src="/profile-pic-4.webp"
-                        alt="Sujal Sanjay Chhajed"
-                        className="w-full h-full object-cover object-top filter-none contrast-105"
+                      <AsciiPhoto
+                        src={PERSONAL_INFO.profilePic}
+                        alt={PERSONAL_INFO.profilePicAlt}
+                        mode={photoMode}
+                        isHeroFace={false}
+                        grayscaleHero={false}
+                        className="w-full h-full"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-50 pointer-events-none" />
-                      <div className="absolute top-3 right-3 px-2 py-0.5 bg-neo-green text-black border border-black font-mono text-[10px] font-bold uppercase shadow-sm">
+                      <div className="absolute top-3 right-3 px-2 py-0.5 bg-neo-green text-black border border-black font-mono text-[10px] font-bold uppercase shadow-sm z-20">
                         AI/ML
                       </div>
                     </div>
@@ -360,9 +378,9 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
               Sujal Chhajed
             </h1>
             <p className="font-sans text-xl sm:text-2xl text-ink font-black uppercase mt-1.5 leading-tight">
-              Building AI That{' '}
+              <AsciiGlitchText text="Building AI That " />
               <span className="text-neo-pink underline decoration-4 underline-offset-8 decoration-black inline-block">
-                Ships.
+                <AsciiGlitchText text="Ships." />
               </span>
             </p>
           </div>
@@ -410,13 +428,16 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
               data-boundary="true"
             >
               <div className="relative aspect-[4/5] overflow-hidden bg-black">
-                <img
-                  src="/profile-pic-4.webp"
-                  alt="Sujal Sanjay Chhajed"
-                  className="w-full h-full object-cover object-top filter grayscale contrast-115"
+                <AsciiPhoto
+                  src={PERSONAL_INFO.profilePic}
+                  alt={PERSONAL_INFO.profilePicAlt}
+                  mode={photoMode}
+                  isHeroFace={false}
+                  grayscaleHero={false}
+                  className="w-full h-full"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-70 pointer-events-none" />
-                <div className="absolute top-3 right-3 px-2 py-0.5 bg-neo-yellow text-black border border-black font-mono text-[10px] font-bold uppercase shadow-sm">
+                <div className="absolute top-3 right-3 px-2 py-0.5 bg-neo-yellow text-black border border-black font-mono text-[10px] font-bold uppercase shadow-sm z-20">
                   AI/ML
                 </div>
               </div>
@@ -431,14 +452,19 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
         {/* Mobile About */}
         <section className="py-16 px-5 max-w-xl mx-auto space-y-8">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow border-2 border-black font-mono text-xs font-bold uppercase tracking-wider mb-3 shadow-neo-sm">
-              <Terminal size={13} />
-              <span>Background &amp; Philosophy</span>
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm">
+                <Terminal size={13} />
+                <span>Background &amp; Philosophy</span>
+              </div>
+              <div className="inline-flex items-center font-mono text-xs font-bold text-black/70 px-2 py-0.5 bg-white border-2 border-black shadow-neo-sm">
+                <span>┌── [ 01_ABOUT.sys ] ──┐</span>
+              </div>
             </div>
-            <h2 className="font-sans text-4xl sm:text-5xl font-black text-ink uppercase tracking-tight leading-none">
+            <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink uppercase tracking-tight leading-none">
               About Me
             </h2>
-            <p className="font-mono text-xs sm:text-sm text-gray-700 max-w-2xl mt-2 leading-relaxed">
+            <p className="font-mono text-sm sm:text-base text-gray-700 max-w-2xl mt-3 leading-relaxed">
               Architecting deterministic, production-hardened machine learning systems and
               high-throughput web applications.
             </p>

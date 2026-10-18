@@ -77,10 +77,15 @@ const ContactSection: React.FC<ContactSectionProps> = ({ copyToClipboard }) => {
 
           {/* ── Left Column: Contact Identity & Direct Channels ────────────── */}
           <div className="lg:col-span-6 space-y-8">
-            {/* Status Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-neo-green text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm">
-              <span className="w-2 h-2 rounded-full bg-black animate-ping" />
-              <span>Available For High-Impact Roles</span>
+            {/* Status Badge & ASCII Banner */}
+            <div className="flex flex-wrap items-center gap-2 mb-3">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-neo-green text-black border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm">
+                <span className="w-2 h-2 rounded-full bg-black animate-ping" />
+                <span>Available For High-Impact Roles</span>
+              </div>
+              <div className="inline-flex items-center font-mono text-xs font-bold text-black/70 px-2.5 py-1 bg-white border-2 border-black shadow-neo-sm">
+                <span>┌── [ 04_CONTACT.sys ] ──┐</span>
+              </div>
             </div>
 
             {/* Headline */}
@@ -91,7 +96,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ copyToClipboard }) => {
                   Touch.
                 </span>
               </h2>
-              <p className="font-mono text-sm sm:text-base text-gray-700 max-w-md leading-relaxed">
+              <p className="font-mono text-sm sm:text-base text-gray-700 max-w-2xl mt-3 leading-relaxed">
                 Have an AI/ML system to design, a production pipeline to optimize, or an engineering role to discuss? Reach out directly.
               </p>
             </div>

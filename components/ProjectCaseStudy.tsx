@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ExternalLink, Github, Zap, BookOpen, Bug } from 'lucide-react';
+import { ExternalLink, Github, Zap, BookOpen, Bug, Terminal } from 'lucide-react';
 import { Project } from '../types';
 
 // Per-project "bugs / hard debugging moments" — engineering authenticity section
@@ -46,11 +46,104 @@ const BUG_STORIES: Record<number, { title: string; story: string; lesson: string
   },
 };
 
+const ASCII_ARCHITECTURES: Record<number, string> = {
+  1: `
+┌────────────────────────┐         ┌────────────────────────────────┐
+│   User Query & Scope   │ ──────> │  Two-Stage Retrieval Pipeline  │
+└────────────────────────┘         └───────────────┬────────────────┘
+                                                   │
+                   ┌───────────────────────────────┴───────────────────────────────┐
+                   ▼                                                               ▼
+     ┌────────────────────────────┐                                  ┌────────────────────────────┐
+     │  Stage 1: XGBoost Ranker   │                                  │  Stage 2: SVD Matrix Fac   │
+     │  8 Feature Latency Budget  │                                  │  64d Spec Embeddings       │
+     └─────────────┬──────────────┘                                  └─────────────┬──────────────┘
+                   │                                                               │
+                   └───────────────────────────────┬───────────────────────────────┘
+                                                   ▼
+                                    ┌──────────────────────────────┐
+                                    │ Hard Constraint Enforcement  │
+                                    │ (Zero-Hallucination Filter)  │
+                                    └──────────────┬───────────────┘
+                                                   ▼
+                                    ┌──────────────────────────────┐
+                                    │ Ranked Recommendations (10)  │
+                                    │ < 45ms P95 Inference Latency │
+                                    └──────────────────────────────┘`,
+  2: `
+┌────────────────────────┐         ┌────────────────────────────────┐
+│ Natural Language Input │ ──────> │   Vercel Edge Streaming SSR    │
+└────────────────────────┘         └───────────────┬────────────────┘
+                                                   │
+                   ┌───────────────────────────────┴───────────────────────────────┐
+                   ▼                                                               ▼
+     ┌────────────────────────────┐                                  ┌────────────────────────────┐
+     │  Gemini 2.0 Flash Engine   │                                  │  Local Phi-4 (GGUF 4-bit)  │
+     │  Dynamic Code Generation   │                                  │  Offline Fallback Engine   │
+     └─────────────┬──────────────┘                                  └─────────────┬──────────────┘
+                   │                                                               │
+                   └───────────────────────────────┬───────────────────────────────┘
+                                                   ▼
+                                    ┌──────────────────────────────┐
+                                    │ AST Parser & Safety Sandbox  │
+                                    │ (Sanitizer + TypeScript CK)  │
+                                    └──────────────┬───────────────┘
+                                                   ▼
+                                    ┌──────────────────────────────┐
+                                    │ Multi-File Project Scaffold  │
+                                    │ Live In-Browser Hot Preview  │
+                                    └──────────────────────────────┘`,
+  3: `
+┌────────────────────────┐         ┌────────────────────────────────┐
+│ Client Interaction/Log │ ──────> │  IndexedDB Local Storage (PWA) │
+└────────────────────────┘         └───────────────┬────────────────┘
+                                                   │
+                   ┌───────────────────────────────┴───────────────────────────────┐
+                   ▼ (Offline Cache)                                               ▼ (Online Sync)
+     ┌────────────────────────────┐                                  ┌────────────────────────────┐
+     │ Optimistic Local UI State  │                                  │ WebSocket Sync Channel     │
+     │ Zero Latency Perception    │                                  │ Real-Time Node Ingestion   │
+     └─────────────┬──────────────┘                                  └─────────────┬──────────────┘
+                   │                                                               │
+                   └───────────────────────────────┬───────────────────────────────┘
+                                                   ▼
+                                    ┌──────────────────────────────┐
+                                    │ LWW Conflict Resolution CRDT │
+                                    │ Vector Clocks + Server TS    │
+                                    └──────────────┬───────────────┘
+                                                   ▼
+                                    ┌──────────────────────────────┐
+                                    │ PostgreSQL Durable Journal   │
+                                    │ End-to-End Cross Device Sync │
+                                    └──────────────────────────────┘`,
+};
+
+const getAsciiArchitecture = (p: Project): string => {
+  if (ASCII_ARCHITECTURES[p.id]) return ASCII_ARCHITECTURES[p.id].trim();
+  const tagList = p.tags.slice(0, 3).join(' • ');
+  return `
+┌────────────────────────────────────────────────────────┐
+│  INPUT SOURCE :: Client Ingestion & Stream Trigger     │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│  CORE SYSTEM :: ${p.title.padEnd(38, ' ')}│
+│  Stack: ${tagList.padEnd(46, ' ')}│
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│  OUTPUT RUNTIME :: Verified Production Artifact        │
+│  Target Metric: Verified Inference Pipeline            │
+└────────────────────────────────────────────────────────┘`.trim();
+};
+
 interface ProjectCaseStudyProps {
   project: Project;
 }
 
-type ViewMode = 'tldr' | 'deepdive';
+type ViewMode = 'tldr' | 'deepdive' | 'ascii';
 
 const ProjectCaseStudy: React.FC<ProjectCaseStudyProps> = ({ project }) => {
   const [mode, setMode] = useState<ViewMode>('tldr');
@@ -89,11 +182,11 @@ const ProjectCaseStudy: React.FC<ProjectCaseStudyProps> = ({ project }) => {
         </div>
       </div>
 
-      {/* TL;DR / Deep-Dive toggle */}
-      <div className="flex-shrink-0 flex border-b-2 border-black">
+      {/* TL;DR / Deep-Dive / ASCII toggle */}
+      <div className="flex-shrink-0 flex border-b-2 border-black overflow-x-auto">
         <button
           onClick={() => setMode('tldr')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono text-xs font-black uppercase tracking-widest transition-colors border-r-2 border-black
+          className={`flex-1 min-w-[100px] flex items-center justify-center gap-1.5 py-3 px-2 font-mono text-xs font-black uppercase tracking-wider transition-colors border-r-2 border-black
             ${mode === 'tldr' ? 'bg-neo-yellow text-black' : 'bg-white hover:bg-neo-yellow/20 text-muted'}`}
         >
           <Zap size={13} />
@@ -101,11 +194,19 @@ const ProjectCaseStudy: React.FC<ProjectCaseStudyProps> = ({ project }) => {
         </button>
         <button
           onClick={() => setMode('deepdive')}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 font-mono text-xs font-black uppercase tracking-widest transition-colors
+          className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-3 px-2 font-mono text-xs font-black uppercase tracking-wider transition-colors border-r-2 border-black
             ${mode === 'deepdive' ? 'bg-neo-yellow text-black' : 'bg-white hover:bg-neo-yellow/20 text-muted'}`}
         >
           <BookOpen size={13} />
-          Engineering Deep-Dive
+          Deep-Dive
+        </button>
+        <button
+          onClick={() => setMode('ascii')}
+          className={`flex-1 min-w-[140px] flex items-center justify-center gap-1.5 py-3 px-2 font-mono text-xs font-black uppercase tracking-wider transition-colors
+            ${mode === 'ascii' ? 'bg-neo-yellow text-black' : 'bg-white hover:bg-neo-yellow/20 text-muted'}`}
+        >
+          <Terminal size={13} />
+          ASCII Pipeline
         </button>
       </div>
 
@@ -272,6 +373,66 @@ const ProjectCaseStudy: React.FC<ProjectCaseStudyProps> = ({ project }) => {
               </div>
             </div>
           )}
+
+          {/* Links */}
+          <div className="flex flex-wrap gap-2.5 pt-4 border-t-2 border-black/15">
+            {project.link && (
+              <a href={project.link} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-4 py-2.5 bg-black text-white border-2 border-black shadow-neo-sm hover:bg-neo-yellow hover:text-black transition-all">
+                <span>Live Demo</span><ExternalLink size={13} />
+              </a>
+            )}
+            {project.github && (
+              <a href={project.github} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-4 py-2.5 bg-white text-black border-2 border-black shadow-neo-sm hover:bg-gray-100 transition-all">
+                <Github size={13} /><span>GitHub Repository</span>
+              </a>
+            )}
+            {project.huggingFace && (
+              <a href={project.huggingFace} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-mono text-xs sm:text-sm font-bold px-4 py-2.5 bg-white text-black border-2 border-black shadow-neo-sm hover:bg-neo-blue hover:text-black transition-all">
+                <span>Hugging Face Space ↗</span>
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── ASCII PIPELINE MODE ────────────────────────────────────────── */}
+      {mode === 'ascii' && (
+        <div className="flex-1 px-5 sm:px-8 py-6 space-y-5">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-green border-2 border-black font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm">
+              <Terminal size={12} />
+              <span>// SYSTEM ARCHITECTURE DATAFLOW</span>
+            </div>
+            <span className="font-mono text-xs text-gray-500 uppercase tracking-widest">
+              ASCII Spec 2.0
+            </span>
+          </div>
+
+          <div className="bg-[#050508] border-4 border-black p-4 sm:p-6 shadow-neo overflow-x-auto text-[#00FF7F] font-mono">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-4 text-xs text-white">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-neo-green animate-pulse" />
+                <span className="font-bold uppercase tracking-wider">{project.title} :: PIPELINE TOPOLOGY</span>
+              </div>
+              <span className="text-[10px] text-gray-400 uppercase tracking-widest font-mono">DETERMINISTIC INFERENCE</span>
+            </div>
+            <pre className="text-[11px] sm:text-xs leading-snug whitespace-pre select-all text-[#00FF7F]">
+              {getAsciiArchitecture(project)}
+            </pre>
+          </div>
+
+          {/* Architecture Insights Card */}
+          <div className="p-4 bg-white border-2 border-black shadow-neo-sm space-y-2">
+            <p className="font-mono text-xs font-black uppercase tracking-widest text-black">
+              // Dataflow Invariants &amp; Execution Guarantees
+            </p>
+            <p className="font-mono text-xs sm:text-sm text-gray-800 leading-relaxed">
+              Every stage in this pipeline is bound to deterministic execution budgets. No unbounded LLM generation or unhandled promises are permitted in the critical latency path.
+            </p>
+          </div>
 
           {/* Links */}
           <div className="flex flex-wrap gap-2.5 pt-4 border-t-2 border-black/15">

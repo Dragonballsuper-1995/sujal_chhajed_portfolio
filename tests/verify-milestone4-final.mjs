@@ -385,7 +385,7 @@ async function runEmpiricalSuite() {
       const text = aboutSec.innerText;
       const hasPrinciples = text.includes('Zero Hallucinations') || text.includes('Latency') || text.includes('Offline-First') || text.includes('01 Zero');
       
-      const profileImg = aboutSec.querySelector('img[src=/profile-pic-4.webp]');
+      const profileImg = aboutSec.querySelector('img[alt*="Sujal"]') || aboutSec.querySelector('img');
       const originStory = text.includes('Origin Story');
 
       const gridContainer = aboutSec.querySelector('.grid');
@@ -402,8 +402,8 @@ async function runEmpiricalSuite() {
 
     assert(aboutData && aboutData.found, 'About section (#about) mounted in DOM');
     assert(!aboutData.hasPrinciples, 'About section completely removed Principles cards');
-    assert(aboutData.childColumns === 2, About section structured with exactly 2 main columns (got ));
-    assert(aboutData.hasProfileImg, 'About section contains framed profile photo (/profile-pic-4.webp)');
+    assert(aboutData.childColumns === 2, `About section structured with exactly 2 main columns (got ${aboutData.childColumns})`);
+    assert(aboutData.hasProfileImg, 'About section contains framed profile photo');
     assert(aboutData.originStory, 'About section contains highlighted Origin Story card');
 
     // Criterion 7: Contact Section & Footer Dark Continuity

@@ -14,6 +14,7 @@ import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid, { BackgroundMode } from './components/BackgroundGrid';
 import BackgroundSwitcher from './components/BackgroundSwitcher';
+import { PhotoMode } from './components/AsciiPhoto';
 import DevToolsGreeting from './components/DevToolsGreeting';
 
 // Lazy loaded components (not needed for initial visual render)
@@ -86,6 +87,24 @@ const AppContent: React.FC = () => {
     setBgMode(mode);
     if (typeof window !== 'undefined') {
       localStorage.setItem('portfolio_bg_mode', mode);
+    }
+  }, []);
+
+  // Profile Photo Mode ('morph' | 'flip' | 'scanline' | 'standard')
+  const [photoMode, setPhotoMode] = useState<PhotoMode>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('portfolio_photo_mode');
+      if (saved === 'morph' || saved === 'flip' || saved === 'scanline' || saved === 'standard') {
+        return saved as PhotoMode;
+      }
+    }
+    return 'morph';
+  });
+
+  const handlePhotoModeChange = useCallback((mode: PhotoMode) => {
+    setPhotoMode(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('portfolio_photo_mode', mode);
     }
   }, []);
 
@@ -202,6 +221,7 @@ const AppContent: React.FC = () => {
         <HeroAboutStage
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
+          photoMode={photoMode}
         />
         <Skills />
         <ProjectsSection onProjectClick={handleProjectClick} />
@@ -251,8 +271,13 @@ const AppContent: React.FC = () => {
           </SheetContent>
         </Sheet>
 
-        {/* Floating Neo-Brutalist Background Mode Switcher */}
-        <BackgroundSwitcher mode={bgMode} onChangeMode={handleBgModeChange} />
+        {/* Floating Neo-Brutalist Background & Photo FX Mode Switcher */}
+        <BackgroundSwitcher
+          mode={bgMode}
+          onChangeMode={handleBgModeChange}
+          photoMode={photoMode}
+          onChangePhotoMode={handlePhotoModeChange}
+        />
 
         <ScrollToTopButton />
 

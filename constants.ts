@@ -14,6 +14,8 @@ export const PERSONAL_INFO = {
   linkedin: "https://www.linkedin.com/in/sujalchhajed925/",
   portfolio: "https://sujal-chhajed.vercel.app/",
   alternatePortfolio: "https://sujal-sanjay-chhajed.vercel.app/",
+  profilePic: "/profile-pic.webp",
+  profilePicAlt: "Sujal Sanjay Chhajed — AI/ML Engineer & Full-Stack Developer",
 };
 
 // -----------------------------------------------------------------------------
@@ -115,7 +117,7 @@ export const PROJECTS: Project[] = [
     tagline: "Fine-Tuned GGUF YouTube Metadata Studio",
     description: "Full-stack AI studio transforming video scripts into high-CTR titles and tags using 4 custom fine-tuned open-source LLMs with ~800 t/s streaming and 5-tier cloud failover.",
     tags: ["Next.js", "FastAPI", "llama.cpp"],
-    link: "https://metagen-one.vercel.app",
+    link: "https://metagen-cxd.pages.dev/",
     github: "https://github.com/Dragonballsuper-1995/MetaGen",
     huggingFace: "https://huggingface.co/spaces/SujalChhajed925/MetaGen",
     category: "AI/ML",

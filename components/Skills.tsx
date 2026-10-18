@@ -81,13 +81,19 @@ const Skills: React.FC = () => {
 
         {/* Section Header */}
         <div className="mb-10 sm:mb-12 relative z-10">
-          <div className="inline-block px-2.5 py-0.5 bg-black text-neo-yellow font-mono text-xs font-bold uppercase tracking-widest mb-2 shadow-neo-sm border-2 border-black">
-            Technical Arsenal
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-neo-yellow font-mono text-xs font-bold uppercase tracking-wider shadow-neo-sm border-2 border-black">
+              <Layers size={13} />
+              <span>Technical Arsenal</span>
+            </div>
+            <div className="inline-flex items-center font-mono text-xs font-bold text-black/70 px-2.5 py-1 bg-white border-2 border-black shadow-neo-sm">
+              <span>┌── [ 02_SKILLS.sys ] ──┐</span>
+            </div>
           </div>
-          <h2 className="font-sans text-3xl sm:text-4xl md:text-5xl font-black text-ink leading-none uppercase tracking-tight">
+          <h2 className="font-sans text-4xl sm:text-5xl md:text-6xl font-black text-ink leading-none uppercase tracking-tight">
             Skills &amp; Frameworks
           </h2>
-          <p className="font-mono text-xs sm:text-sm text-gray-700 max-w-2xl mt-2 leading-relaxed">
+          <p className="font-mono text-sm sm:text-base text-gray-700 max-w-2xl mt-3 leading-relaxed">
             Verified production toolchain across machine learning, generative AI, full-stack architecture, data engineering, and MLOps.
           </p>
         </div>

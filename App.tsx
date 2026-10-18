@@ -76,7 +76,7 @@ const AppContent: React.FC = () => {
   const [photoMode, setPhotoMode] = useState<PhotoMode>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('portfolio_photo_mode');
-      if (saved === 'morph' || saved === 'morph-flip' || saved === 'flip' || saved === 'standard') {
+      if (saved === 'morph' || saved === 'morph-reveal' || saved === 'morph-flip' || saved === 'flip' || saved === 'standard') {
         return saved as PhotoMode;
       }
     }

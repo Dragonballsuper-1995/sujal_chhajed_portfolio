@@ -8,7 +8,8 @@ interface BackgroundSwitcherProps {
 }
 
 const PHOTO_MODES: { id: PhotoMode; label: string }[] = [
-  { id: 'morph', label: 'Morph' },
+  { id: 'morph', label: 'Morph (Blobs)' },
+  { id: 'morph-reveal', label: 'Morph (Reveal)' },
   { id: 'morph-flip', label: 'Morph + Flip' },
   { id: 'flip', label: 'Flip' },
   { id: 'standard', label: 'Original' },
@@ -26,11 +27,11 @@ export const BackgroundSwitcher: React.FC<BackgroundSwitcherProps> = ({
       const sujal = (window as any).sujal || {};
 
       sujal.setPhoto = (newMode: PhotoMode) => {
-        if (['morph', 'morph-flip', 'flip', 'standard'].includes(newMode)) {
+        if (['morph', 'morph-reveal', 'morph-flip', 'flip', 'standard'].includes(newMode)) {
           onChangePhotoMode(newMode);
           return `✓ Photo mode switched to "${newMode}"`;
         }
-        return `Unknown mode. Use: 'morph' | 'morph-flip' | 'flip' | 'standard'`;
+        return `Unknown mode. Use: 'morph' | 'morph-reveal' | 'morph-flip' | 'flip' | 'standard'`;
       };
 
       (window as any).sujal = sujal;

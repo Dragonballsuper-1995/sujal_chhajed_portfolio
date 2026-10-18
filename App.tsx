@@ -15,7 +15,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sh
 import BackgroundGrid from './components/BackgroundGrid';
 import DevToolsGreeting from './components/DevToolsGreeting';
 import AsciiTesterDock from './components/AsciiTesterDock';
-import { PhotoColorMode } from './components/AsciiPhoto';
 import { SectionDividerVariant } from './components/AsciiSectionDivider';
 
 // Lazy loaded components (not needed for initial visual render)
@@ -77,29 +76,16 @@ const AppContent: React.FC = () => {
   const activeSection = useScrollSpy();
   const [toast, setToast] = useState({ message: '', visible: false, type: 'success' as 'success' | 'error' });
 
-  // ASCII Color Mode & Section Divider Style States (with LocalStorage persistence)
-  const [photoColorMode, setPhotoColorMode] = useState<PhotoColorMode>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('portfolio_photo_color_mode');
-      if (saved) return saved as PhotoColorMode;
-    }
-    return 'classic';
-  });
-
+  // Section Divider Style State (with LocalStorage persistence)
   const [dividerMode, setDividerMode] = useState<SectionDividerVariant>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('portfolio_divider_mode');
-      if (saved) return saved as SectionDividerVariant;
+      if (saved === 'solid' || saved === 'hybrid' || saved === 'interactive' || saved === 'hybrid-interactive') {
+        return saved as SectionDividerVariant;
+      }
     }
-    return 'solid';
+    return 'hybrid-interactive';
   });
-
-  const handlePhotoColorChange = useCallback((mode: PhotoColorMode) => {
-    setPhotoColorMode(mode);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('portfolio_photo_color_mode', mode);
-    }
-  }, []);
 
   const handleDividerChange = useCallback((mode: SectionDividerVariant) => {
     setDividerMode(mode);
@@ -215,7 +201,7 @@ const AppContent: React.FC = () => {
         />
 
         <HeroAboutStage
-          photoColorMode={photoColorMode}
+          photoColorMode="photo-rgb"
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
@@ -271,8 +257,6 @@ const AppContent: React.FC = () => {
 
         {/* Interactive Floating ASCII Tester Dock */}
         <AsciiTesterDock
-          photoColorMode={photoColorMode}
-          onChangePhotoColorMode={handlePhotoColorChange}
           dividerMode={dividerMode}
           onChangeDividerMode={handleDividerChange}
         />

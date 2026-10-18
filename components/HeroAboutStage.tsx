@@ -31,7 +31,7 @@ interface HeroAboutStageProps {
 const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
   scrollToSection,
   openResumeModal,
-  photoColorMode = 'classic',
+  photoColorMode = 'photo-rgb',
 }) => {
   const desktopTrackRef = useRef<HTMLDivElement>(null);
   // ── Desktop Scroll Animations ──────────────────────────────────────────

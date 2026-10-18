@@ -52,6 +52,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const isHoveredRef = useRef(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const imgElementRef = useRef<HTMLImageElement | null>(null);
 
@@ -64,6 +65,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
   // Blob transition progress: 0.0 (fully photo) -> 1.0 (fully active blobs)
   const transitionProgressRef = useRef(0.0);
   const rafIdRef = useRef<number | null>(null);
+  const renderLoopRef = useRef<(() => void) | null>(null);
 
   // Pre-load and cache the image
   useEffect(() => {
@@ -164,11 +166,15 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
           const g = pixels[idx + 1];
           const b = pixels[idx + 2];
           const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-          const charIdx = Math.floor((brightness / 255) * (ASCII_RAMP.length - 1));
+
+          const normBright = brightness / 255;
+          const boosted = Math.min(1, Math.pow(normBright, 0.80) * 1.28);
+          const luma = boosted * 255;
+          const charIdx = Math.min(ASCII_RAMP.length - 1, Math.floor(boosted * ASCII_RAMP.length));
           const char = ASCII_RAMP[charIdx];
 
-          if (brightness > 22) {
-            ctx.fillStyle = `rgba(240, 240, 240, ${Math.min(1, (brightness / 255) * 1.25)})`;
+          if (luma > 14) {
+            ctx.fillStyle = `rgba(240, 240, 240, ${Math.min(1, boosted * 1.35)})`;
             ctx.fillText(char, x * cellW + cellW / 2, y * cellH + cellH / 2);
           }
         }
@@ -180,10 +186,11 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
       const { width, height } = canvas;
       if (width === 0 || height === 0) return;
 
-      const target = isHovered ? 1.0 : 0.0;
-      const speed = isHovered ? 0.08 : 0.12;
+      const target = isHoveredRef.current ? 1.0 : 0.0;
+      // Smooth responsive ease-in, gentle seamless ease-out
+      const speed = isHoveredRef.current ? 0.075 : 0.055;
 
-      if (Math.abs(transitionProgressRef.current - target) > 0.01) {
+      if (Math.abs(transitionProgressRef.current - target) > 0.005) {
         transitionProgressRef.current += (target - transitionProgressRef.current) * speed;
       } else {
         transitionProgressRef.current = target;
@@ -191,8 +198,8 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
 
       const progress = transitionProgressRef.current;
 
-      // When unhovered and fully at 0, clear canvas and terminate animation frame!
-      if (!isHovered && progress <= 0.01) {
+      // When unhovered and fully at 0, clear canvas and cleanly terminate animation loop!
+      if (!isHoveredRef.current && progress <= 0.008) {
         ctx.clearRect(0, 0, width, height);
         transitionProgressRef.current = 0.0;
         rafIdRef.current = null;
@@ -230,7 +237,8 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
 
       // Base radius calculation depending on mode
       const isRevealMode = mode === 'morph-reveal';
-      const threshold = isRevealMode ? 0.55 : 0.62;
+      const threshold = isRevealMode ? 0.54 : 0.60;
+      const edgeFeather = 0.16;
 
       // Evaluate each cell in the 48x60 grid
       for (let y = 0; y < sampleHeight; y++) {
@@ -249,8 +257,8 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
 
             // In reveal mode, radius expands until full card is covered; in wandering blobs mode, maintains organic sizes
             const effRadius = isRevealMode
-              ? b.radius * (0.2 + 2.0 * progress)
-              : b.radius * progress * (1.0 + 0.15 * Math.sin(t * 1.5 + k));
+              ? b.radius * (0.15 + 1.85 * progress)
+              : b.radius * progress * (1.0 + 0.14 * Math.sin(t * 1.5 + k));
 
             if (effRadius > 0.01) {
               potential += b.weight * Math.exp(-distSq / (2 * effRadius * effRadius));
@@ -261,12 +269,17 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
           const noise = 0.06 * Math.sin(x * 0.65 + t * 2.5) * Math.cos(y * 0.65 + t * 2.5);
           const totalVal = potential + noise;
 
-          if (totalVal >= threshold) {
-            // Inside the organic ASCII blob: blot out underlying photo with dark background
-            ctx.fillStyle = '#060606';
+          // Seamless edge feathering alpha
+          const rawAlpha = (totalVal - threshold) / edgeFeather;
+          const smoothAlpha = Math.max(0, Math.min(1, rawAlpha));
+          const cellAlpha = smoothAlpha * progress;
+
+          if (cellAlpha > 0.02) {
+            // Smooth dark backing to avoid harsh square block cutoffs
+            ctx.fillStyle = `rgba(6, 6, 6, ${Math.min(0.95, cellAlpha * 1.1)})`;
             ctx.fillRect(x * cellW, y * cellH, cellW + 0.5, cellH + 0.5);
 
-            const isFrontier = totalVal < threshold + 0.14 && progress < 0.98;
+            const isFrontier = totalVal < threshold + 0.12 && progress < 0.98;
 
             const idx = (y * sampleWidth + x) * 4;
             const r = pixels[idx];
@@ -274,35 +287,42 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
             const b = pixels[idx + 2];
             const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
 
+            // Luminance boost curve: gentle gamma 0.80 lifts shadows/midtones, 1.28 factor brings out brightness
+            const normBright = brightness / 255;
+            const boosted = Math.min(1, Math.pow(normBright, 0.80) * 1.28);
+            const luma = boosted * 255;
+
             if (isFrontier) {
-              // Active organic frontier: neon green cyber characters
+              // Active organic frontier: luminous matrix green cyber tokens
               const symIdx = (x * 7 + y * 13 + Math.floor(now * 0.05)) % GLITCH_SYMBOLS.length;
-              ctx.fillStyle = '#00FF7F';
+              ctx.fillStyle = `rgba(0, 255, 127, ${Math.min(1, cellAlpha * 1.25)})`;
               ctx.fillText(GLITCH_SYMBOLS[symIdx], x * cellW + cellW / 2, y * cellH + cellH / 2);
-            } else if (brightness > 18) {
-              // Deep inside blob: recognizable portrait ASCII with phosphor amber/green
-              const charIdx = Math.floor((brightness / 255) * (ASCII_RAMP.length - 1));
+            } else if (luma > 14) {
+              // Core of blob: recognizable portrait ASCII with boosted phosphor amber/green
+              const charIdx = Math.min(ASCII_RAMP.length - 1, Math.floor(boosted * ASCII_RAMP.length));
               const char = ASCII_RAMP[charIdx];
 
-              const green = Math.min(255, Math.floor(brightness * 1.15));
-              const red = Math.floor(brightness * 0.92);
-              const blue = Math.floor(brightness * 0.35);
-              ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+              const green = Math.min(255, Math.floor(luma * 1.22 + 18));
+              const red = Math.min(255, Math.floor(luma * 0.96 + 10));
+              const blue = Math.min(255, Math.floor(luma * 0.42 + 5));
+              ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${Math.min(1, cellAlpha * 1.2)})`;
 
               ctx.fillText(char, x * cellW + cellW / 2, y * cellH + cellH / 2);
             }
           }
-          // If totalVal < threshold, cell is transparent (underlying photograph shows through!)
+          // Outside blob: transparent, underlying photograph shows through!
         }
       }
 
       // Continue animation frame while transitioning or actively hovered
-      if (isHovered || transitionProgressRef.current > 0.01) {
+      if (isHoveredRef.current || transitionProgressRef.current > 0.008) {
         rafIdRef.current = requestAnimationFrame(renderBlobAscii);
       } else {
         rafIdRef.current = null;
       }
     };
+
+    renderLoopRef.current = renderBlobAscii;
 
     // Mode-specific initialization
     if (mode === 'flip' && isHeroFace) {
@@ -310,7 +330,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
     } else if (mode === 'morph-flip' && isHeroFace) {
       renderStaticFlipFace();
     } else if (mode === 'morph' || mode === 'morph-reveal' || mode === 'morph-flip') {
-      if (isHovered) {
+      if (isHoveredRef.current) {
         if (!rafIdRef.current) {
           rafIdRef.current = requestAnimationFrame(renderBlobAscii);
         }
@@ -328,28 +348,41 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
 
     return () => {
       window.removeEventListener('resize', updateCanvasSize);
+      renderLoopRef.current = null;
       if (rafIdRef.current) {
         cancelAnimationFrame(rafIdRef.current);
         rafIdRef.current = null;
       }
     };
-  }, [imageLoaded, mode, isHovered, isHeroFace]);
+  }, [imageLoaded, mode, isHeroFace]);
 
   // Determine if base photo element should be hidden
   const isStaticAsciiFace = (mode === 'flip' || mode === 'morph-flip') && isHeroFace;
 
   const handleMouseEnter = () => {
+    isHoveredRef.current = true;
+    setIsHovered(true);
+
     // Add slight random phase variation to autonomous blobs on each hover entrance
     const blobs = blobsRef.current;
     for (let k = 1; k < blobs.length; k++) {
       blobs[k].phaseX = Math.random() * Math.PI * 2;
       blobs[k].phaseY = Math.random() * Math.PI * 2;
     }
-    setIsHovered(true);
+
+    // Trigger rAF loop immediately on mouse entrance
+    if (!rafIdRef.current && renderLoopRef.current && (mode === 'morph' || mode === 'morph-reveal' || mode === 'morph-flip') && !isStaticAsciiFace) {
+      rafIdRef.current = requestAnimationFrame(renderLoopRef.current);
+    }
   };
 
   const handleMouseLeave = () => {
+    isHoveredRef.current = false;
     setIsHovered(false);
+    // Smooth unhover: Ensure loop is running to smoothly ease progress to 0 and halt gracefully!
+    if (!rafIdRef.current && renderLoopRef.current && transitionProgressRef.current > 0.008) {
+      rafIdRef.current = requestAnimationFrame(renderLoopRef.current);
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {

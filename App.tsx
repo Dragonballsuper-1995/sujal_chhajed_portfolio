@@ -81,15 +81,15 @@ const AppContent: React.FC = () => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('portfolio_chip_color_style');
       if (
-        saved === 'bauhaus-blocks' ||
-        saved === 'prism-cassette' ||
-        saved === 'cyber-pcb' ||
-        saved === 'duotone-strobe'
+        saved === 'calibration-strip' ||
+        saved === 'chromatic-prism' ||
+        saved === 'cyber-industrial' ||
+        saved === 'punchy-sticker-pure'
       ) {
         return saved as ChipColorStyle;
       }
     }
-    return 'bauhaus-blocks';
+    return 'calibration-strip';
   });
 
   const handleChipColorStyleChange = useCallback((style: ChipColorStyle) => {

@@ -1,6 +1,10 @@
 import React, { useRef, useEffect } from 'react';
 
-export type ChipColorStyle = 'bauhaus-blocks' | 'prism-cassette' | 'cyber-pcb' | 'duotone-strobe';
+export type ChipColorStyle =
+  | 'calibration-strip'
+  | 'chromatic-prism'
+  | 'cyber-industrial'
+  | 'punchy-sticker-pure';
 
 interface AsciiSectionDividerProps {
   sectionNumber?: string;
@@ -27,13 +31,18 @@ const INTERACTIVE_CHARS = ['┼', '═', '─', '░', '▒', '▓', 'λ', '0', 
  * Edge-to-edge 16px interactive ASCII canvas seam that scrambles in brand colors on cursor proximity,
  * with synchronized outward wave on chip click (matching the background matrix wave speed)
  * and adjacent seam scramble on chip hover.
- * Features 4 completely redesigned, bold Neo-Brutalist chip color styles.
+ *
+ * Centered Chip Designs:
+ * 1. Calibration Strip: High-contrast Punchy Sticker with a dedicated 6-color vertical test-pattern strip.
+ * 2. Chromatic Prism: Classic punchy sticker at rest; on hover explodes into a 3-layer chromatic spectrum shadow & top rail.
+ * 3. Cyber Industrial: High-tech hardware telemetry module with cyan sector, ivory title plate, and yellow status tag.
+ * 4. Original Punchy Sticker: The iconic, high-contrast Cyber Yellow & Black baseline.
  */
 export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
   sectionNumber = '01',
   sectionTitle = 'SECTION',
   className = '',
-  chipColorStyle = 'bauhaus-blocks',
+  chipColorStyle = 'calibration-strip',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -88,7 +97,6 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
       const centerX = width / 2;
 
       // Match speed exactly with BackgroundGrid matrix wave:
-      // In BackgroundGrid: maxRadius = Math.max(width, height) * 0.95 over 900ms
       const viewportH = window.innerHeight || 900;
       const matrixSpeed = (Math.max(width, viewportH) * 0.95) / 900; // px per ms
 
@@ -119,7 +127,7 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
 
         // 2. Chip hover proximity activation (seam close to chip scrambles)
         if (isChipHoverActive) {
-          const chipActivationRadius = 145; // Adjacent seam zone on both sides of chip
+          const chipActivationRadius = 150; // Adjacent seam zone on both sides of chip
           if (distFromCenter < chipActivationRadius) {
             const factor = 1 - distFromCenter / chipActivationRadius;
             if (factor > excitationFactor) {
@@ -239,109 +247,122 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>
 
-      {/* ── STYLE 1: Bauhaus Color-Blocks (Multi-Color Solid Patchwork) ── */}
-      {chipColorStyle === 'bauhaus-blocks' && (
+      {/* ── OPTION 1: Calibration Strip (Permanent Vertical Block Pattern) ── */}
+      {chipColorStyle === 'calibration-strip' && (
         <div
           onClick={handleChipClick}
           onMouseEnter={handleChipMouseEnter}
           onMouseLeave={handleChipMouseLeave}
-          className="absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000000] cursor-pointer"
+          className="absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000000] cursor-pointer"
         >
-          {/* Segment 1: Electric Pink Sector Badge */}
-          <div className="bg-neo-pink text-black px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black">
+          {/* Left Sector Badge: Jet Black with Cyber Yellow text */}
+          <div className="bg-black text-[#FFDE59] px-3 py-1.5 font-mono text-xs font-black flex items-center border-r-2 border-black">
             #{sectionNumber}
           </div>
-          {/* Segment 2: Cyber Yellow Title Body */}
-          <div className="bg-neo-yellow text-black px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center border-r-2 border-black">
-            {sectionTitle}
-          </div>
-          {/* Segment 3: Cyber Cyan System Tag */}
-          <div className="bg-neo-cyan text-black px-2 py-1 font-mono text-[10px] font-black tracking-widest flex items-center border-r-2 border-black">
-            .SYS
-          </div>
-          {/* Segment 4: Deep Purple Star Accent Cap */}
-          <div className="bg-neo-purple text-white px-2 py-1 font-mono text-xs font-black flex items-center justify-center">
-            ★
-          </div>
-        </div>
-      )}
 
-      {/* ── STYLE 2: Prism Header Cassette (Security Seal Bar) ─────────── */}
-      {chipColorStyle === 'prism-cassette' && (
-        <div
-          onClick={handleChipClick}
-          onMouseEnter={handleChipMouseEnter}
-          onMouseLeave={handleChipMouseLeave}
-          className="absolute z-10 flex flex-col border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#FF66C4] cursor-pointer bg-white"
-        >
-          {/* Top Multi-Color Spectrum Header Bar */}
-          <div className="grid grid-cols-5 h-1.5 w-full border-b border-black" aria-hidden="true">
-            <div className="bg-[#FFDE59]" /> {/* Yellow */}
-            <div className="bg-[#FF66C4]" /> {/* Pink */}
-            <div className="bg-[#7ED957]" /> {/* Green */}
-            <div className="bg-[#5CE1E6]" /> {/* Cyan */}
-            <div className="bg-[#FF914D]" /> {/* Orange */}
+          {/* Integrated 6-Color Vertical Calibration Strip (Permanent without hovering) */}
+          <div className="flex items-stretch border-r-2 border-black h-full" aria-hidden="true">
+            <div className="w-2.5 bg-[#FFDE59]" /> {/* Yellow */}
+            <div className="w-2.5 bg-[#FF66C4]" /> {/* Pink */}
+            <div className="w-2.5 bg-[#7ED957]" /> {/* Green */}
+            <div className="w-2.5 bg-[#5CE1E6]" /> {/* Cyan */}
+            <div className="w-2.5 bg-[#8C52FF]" /> {/* Purple */}
+            <div className="w-2.5 bg-[#FF914D]" /> {/* Orange */}
           </div>
-          {/* Main Cassette Body */}
-          <div className="flex items-stretch">
-            <div className="bg-black text-neo-yellow px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black">
-              #{sectionNumber}
-            </div>
-            <div className="bg-[#FAF8F5] text-black px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2">
-              <span>{sectionTitle}</span>
-              <span className="bg-[#8C52FF] text-white px-1.5 py-0.2 rounded-[1px] text-[9px] font-mono font-bold">
-                .SYS
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
 
-      {/* ── STYLE 3: Cyber PCB Chassis (Luminescent Dark Terminal) ────── */}
-      {chipColorStyle === 'cyber-pcb' && (
-        <div
-          onClick={handleChipClick}
-          onMouseEnter={handleChipMouseEnter}
-          onMouseLeave={handleChipMouseLeave}
-          className="absolute z-10 flex flex-col border-2 border-black shadow-[4px_4px_0px_0px_#5CE1E6] hover:shadow-[5px_5px_0px_0px_#FF66C4] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-[#0A0A12]"
-        >
-          <div className="flex items-stretch">
-            {/* Left Sector Badge with Live Emerald LED */}
-            <div className="bg-[#141422] text-neo-green px-2.5 py-1 font-mono text-xs font-black flex items-center gap-1.5 border-r-2 border-black">
-              <span className="w-1.5 h-1.5 rounded-full bg-neo-green animate-pulse" />
-              <span>#{sectionNumber}</span>
-            </div>
-            {/* Center Monospace Title in Luminescent Cyan */}
-            <div className="px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 text-neo-cyan">
-              <span>{sectionTitle}</span>
-              <span className="bg-[#FF914D] text-black px-1.5 py-0.2 text-[9px] font-mono font-black rounded-[1px]">
-                .SYS
-              </span>
-            </div>
-          </div>
-          {/* Grounding Electric Pink Accent Rail */}
-          <div className="h-1 w-full bg-neo-pink border-t border-black" aria-hidden="true" />
-        </div>
-      )}
-
-      {/* ── STYLE 4: Duotone Chromatic Strobe (Yellow & Cyan, Pink Hover) ─ */}
-      {chipColorStyle === 'duotone-strobe' && (
-        <div
-          onClick={handleChipClick}
-          onMouseEnter={handleChipMouseEnter}
-          onMouseLeave={handleChipMouseLeave}
-          className="group absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:shadow-[5px_5px_0px_0px_#FF66C4] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
-        >
-          {/* Left Sector Badge: Cyan normally -> Electric Pink on hover */}
-          <div className="bg-neo-cyan text-black group-hover:bg-neo-pink px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black transition-colors duration-200">
-            #{sectionNumber}
-          </div>
-          {/* Right Title Body: Yellow normally -> Toxic Green on hover */}
-          <div className="bg-neo-yellow text-black group-hover:bg-neo-green px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-colors duration-200">
+          {/* Right Title Body: Cyber Yellow with Bold Black text */}
+          <div className="bg-[#FFDE59] text-black px-4 py-1.5 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2.5">
             <span>{sectionTitle}</span>
-            <span className="bg-black text-white px-1.5 py-0.2 text-[9px] font-mono font-black border border-black group-hover:bg-white group-hover:text-black transition-colors">
+            <span className="px-1.5 py-0.5 bg-black text-white text-[9px] font-mono font-bold rounded-[2px]">
               .SYS
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── OPTION 2: Chromatic Prism (Multi-Color Spectrum on Hover) ──── */}
+      {chipColorStyle === 'chromatic-prism' && (
+        <div
+          onClick={handleChipClick}
+          onMouseEnter={handleChipMouseEnter}
+          onMouseLeave={handleChipMouseLeave}
+          className="group absolute z-10 flex flex-col border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:shadow-[3px_3px_0px_0px_#FF66C4,6px_6px_0px_0px_#5CE1E6,9px_9px_0px_0px_#000000] overflow-hidden transition-all duration-200 hover:-translate-y-1 cursor-pointer bg-[#FFDE59]"
+        >
+          {/* Top Multi-Color Prism Rail (Reveals full intensity on hover) */}
+          <div
+            className="h-1 w-full bg-gradient-to-r from-[#FFDE59] via-[#FF66C4] via-[#7ED957] via-[#5CE1E6] via-[#8C52FF] to-[#FF914D] border-b border-black/40"
+            aria-hidden="true"
+          />
+
+          <div className="flex items-stretch">
+            {/* Left Sector Badge: Jet Black with Cyber Yellow text */}
+            <div className="bg-black text-[#FFDE59] px-3 py-1.5 font-mono text-xs font-black flex items-center border-r-2 border-black">
+              #{sectionNumber}
+            </div>
+
+            {/* Right Title Body: Cyber Yellow with Bold Black typography */}
+            <div className="bg-[#FFDE59] text-black px-4 py-1.5 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2.5">
+              <span>{sectionTitle}</span>
+              <span className="px-1.5 py-0.5 bg-black text-white group-hover:bg-[#FF66C4] group-hover:text-black text-[9px] font-mono font-bold rounded-[2px] transition-colors duration-200">
+                .SYS
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── OPTION 3: Cyber Industrial Telemetry Module ────────────────── */}
+      {chipColorStyle === 'cyber-industrial' && (
+        <div
+          onClick={handleChipClick}
+          onMouseEnter={handleChipMouseEnter}
+          onMouseLeave={handleChipMouseLeave}
+          className="absolute z-10 flex flex-col border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:shadow-[6px_6px_0px_0px_#000000] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-white"
+        >
+          <div className="flex items-stretch">
+            {/* Left Sector Badge: Cyber Cyan with Black text */}
+            <div className="bg-[#5CE1E6] text-black px-3 py-1.5 font-mono text-xs font-black flex items-center border-r-2 border-black">
+              #{sectionNumber}
+            </div>
+
+            {/* Center Section Title: High-Contrast Ivory Plate */}
+            <div className="bg-[#FAF8F5] text-black px-4 py-1.5 font-mono text-xs font-black uppercase tracking-wider flex items-center border-r-2 border-black">
+              {sectionTitle}
+            </div>
+
+            {/* Right Telemetry Block: Cyber Yellow with Flashing Status LED */}
+            <div className="bg-[#FFDE59] text-black px-2.5 py-1.5 font-mono text-[10px] font-black tracking-wider flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#7ED957] animate-pulse border border-black/40" />
+              <span>SYS.OK</span>
+            </div>
+          </div>
+
+          {/* Bottom Continuous Color Grounding Strip */}
+          <div className="grid grid-cols-6 h-1 w-full border-t border-black" aria-hidden="true">
+            <div className="bg-[#FFDE59]" />
+            <div className="bg-[#FF66C4]" />
+            <div className="bg-[#7ED957]" />
+            <div className="bg-[#5CE1E6]" />
+            <div className="bg-[#8C52FF]" />
+            <div className="bg-[#FF914D]" />
+          </div>
+        </div>
+      )}
+
+      {/* ── OPTION 4: Original Punchy Sticker (Baseline) ───────────────── */}
+      {chipColorStyle === 'punchy-sticker-pure' && (
+        <div
+          onClick={handleChipClick}
+          onMouseEnter={handleChipMouseEnter}
+          onMouseLeave={handleChipMouseLeave}
+          className="absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[6px_6px_0px_0px_#000000] cursor-pointer"
+        >
+          <div className="bg-black text-[#FFDE59] px-3 py-1.5 font-mono text-xs font-black flex items-center border-r-2 border-black">
+            #{sectionNumber}
+          </div>
+          <div className="bg-[#FFDE59] text-black px-4 py-1.5 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2.5">
+            <span>{sectionTitle}</span>
+            <span className="text-black/60 text-[9px] font-mono">.SYS</span>
           </div>
         </div>
       )}

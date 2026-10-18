@@ -72,11 +72,19 @@ const SkillPill: React.FC<SkillPillProps> = ({ name, svgSlug, category }) => {
   );
 };
 
+import AsciiSectionDivider, { SectionDividerVariant } from './AsciiSectionDivider';
+
+interface SkillsProps {
+  dividerMode?: SectionDividerVariant;
+}
+
 const CATEGORY_KEYS: SkillCategory[] = ['ml-genai', 'fullstack', 'data-eng', 'mlops'];
 
-const Skills: React.FC = () => {
+const Skills: React.FC<SkillsProps> = ({ dividerMode = 'solid' }) => {
   return (
-    <section id={NavSection.SKILLS} className="scroll-mt-24 sm:scroll-mt-28 py-16 md:py-24 border-t-4 border-black bg-transparent">
+    <>
+      <AsciiSectionDivider variant={dividerMode} sectionNumber="02" sectionTitle="SKILLS" />
+      <section id={NavSection.SKILLS} className="scroll-mt-24 sm:scroll-mt-28 py-16 md:py-24 bg-transparent">
       <div className="max-w-6xl mx-auto px-5 md:px-8">
 
         {/* Section Header */}
@@ -158,7 +166,8 @@ const Skills: React.FC = () => {
 
       </div>
     </section>
-  );
+  </>
+);
 };
 
 export default React.memo(Skills);

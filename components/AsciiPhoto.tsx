@@ -1,10 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { PERSONAL_INFO } from '../constants';
 
+export type PhotoColorMode = 'classic' | 'chromatic' | 'photo-rgb' | 'multi-glitch';
+
 interface AsciiPhotoProps {
   src?: string;
   alt?: string;
   isHeroFace?: boolean;
+  colorMode?: PhotoColorMode;
   className?: string;
   grayscaleHero?: boolean;
 }
@@ -38,10 +41,86 @@ const createBlobSeeds = (): BlobNode[] => [
   { baseX: 0.46, baseY: 0.18, curX: 0.46, curY: 0.18, speedX: 0.90, speedY: 0.70, phaseX: 3.2, phaseY: 1.9, radius: 0.28, weight: 0.90 },
 ];
 
+/**
+ * Computes ASCII character color based on the selected PhotoColorMode
+ */
+const getAsciiCharColor = (
+  mode: PhotoColorMode,
+  r: number,
+  g: number,
+  b: number,
+  luma: number,
+  isFrontier: boolean,
+  x: number,
+  y: number,
+  now: number,
+  alpha = 1.0
+): string => {
+  if (isFrontier) {
+    if (mode === 'multi-glitch' || mode === 'chromatic') {
+      const palette = ['#00FF7F', '#FFE600', '#FF0055', '#00E5FF'];
+      const pIdx = (x * 3 + y * 7 + Math.floor(now * 0.04)) % palette.length;
+      return palette[pIdx];
+    }
+    return `rgba(0, 255, 127, ${Math.min(1, alpha * 1.25)})`;
+  }
+
+  // Inside the blob / portrait face:
+  if (mode === 'chromatic') {
+    // Chromatic Tier Mapping using website palette:
+    if (luma < 65) {
+      // Deep shadows / suit: Cyber Green with deep violet undertones
+      return luma < 38
+        ? `rgba(138, 43, 226, ${Math.min(1, alpha * 1.2)})` // Neo-Purple #8A2BE2
+        : `rgba(0, 255, 127, ${Math.min(1, alpha * 1.2)})`; // Neo-Green #00FF7F
+    } else if (luma < 150) {
+      // Midtones (face, smile): Warm Neo-Yellow & amber
+      const yellowGlow = Math.min(255, Math.floor(luma * 1.45 + 35));
+      return `rgba(255, ${yellowGlow}, 0, ${Math.min(1, alpha * 1.2)})`;
+    } else if (luma < 210) {
+      // Highlights (forehead, cheek): Neo-Cyan
+      const cyanGlow = Math.min(255, Math.floor(luma * 1.1 + 40));
+      return `rgba(0, ${cyanGlow}, 255, ${Math.min(1, alpha * 1.2)})`;
+    } else {
+      // Top highlights (collar, glint): Pure electric white
+      return `rgba(255, 255, 255, ${Math.min(1, alpha * 1.3)})`;
+    }
+  }
+
+  if (mode === 'photo-rgb') {
+    // True photo RGB with saturation & vibrancy boost:
+    const maxChannel = Math.max(r, g, b);
+    const minChannel = Math.min(r, g, b);
+    const delta = maxChannel - minChannel;
+    const satBoost = delta > 15 ? 1.45 : 1.15;
+    let nr = Math.min(255, Math.floor(r * satBoost * 1.25 + 10));
+    let ng = Math.min(255, Math.floor(g * satBoost * 1.20 + 12));
+    let nb = Math.min(255, Math.floor(b * satBoost * 1.15 + 5));
+
+    // Warm up skin tones into golden amber, cool tones into cyan:
+    if (nr > ng && nr > nb) {
+      nr = Math.min(255, nr + 25);
+      ng = Math.min(255, Math.floor(ng * 1.1));
+    } else if (nb > nr && nb > ng) {
+      ng = Math.min(255, ng + 20);
+      nb = Math.min(255, nb + 30);
+    }
+    return `rgba(${nr}, ${ng}, ${nb}, ${Math.min(1, alpha * 1.2)})`;
+  }
+
+  // Default 'classic' & 'multi-glitch' interior:
+  // Luminous cyberpunk amber-green phosphor
+  const green = Math.min(255, Math.floor(luma * 1.22 + 18));
+  const red = Math.min(255, Math.floor(luma * 0.96 + 10));
+  const blue = Math.min(255, Math.floor(luma * 0.42 + 5));
+  return `rgba(${red}, ${green}, ${blue}, ${Math.min(1, alpha * 1.2)})`;
+};
+
 export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
   src = PERSONAL_INFO.profilePic,
   alt = PERSONAL_INFO.profilePicAlt,
   isHeroFace = false,
+  colorMode = 'classic',
   className = '',
   grayscaleHero = false,
 }) => {
@@ -169,7 +248,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
           const char = ASCII_RAMP[charIdx];
 
           if (luma > 14) {
-            ctx.fillStyle = `rgba(240, 240, 240, ${Math.min(1, boosted * 1.35)})`;
+            ctx.fillStyle = getAsciiCharColor(colorMode, r, g, b, luma, false, x, y, 0, 1.0);
             ctx.fillText(char, x * cellW + cellW / 2, y * cellH + cellH / 2);
           }
         }
@@ -283,20 +362,16 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
             const luma = boosted * 255;
 
             if (isFrontier) {
-              // Active organic frontier: luminous matrix green cyber tokens
+              // Active organic frontier tokens
               const symIdx = (x * 7 + y * 13 + Math.floor(now * 0.05)) % GLITCH_SYMBOLS.length;
-              ctx.fillStyle = `rgba(0, 255, 127, ${Math.min(1, cellAlpha * 1.25)})`;
+              ctx.fillStyle = getAsciiCharColor(colorMode, r, g, b, luma, true, x, y, now, cellAlpha);
               ctx.fillText(GLITCH_SYMBOLS[symIdx], x * cellW + cellW / 2, y * cellH + cellH / 2);
             } else if (luma > 14) {
-              // Core of blob: recognizable portrait ASCII with boosted phosphor amber/green
+              // Core of blob: recognizable portrait ASCII with selected color mode
               const charIdx = Math.min(ASCII_RAMP.length - 1, Math.floor(boosted * ASCII_RAMP.length));
               const char = ASCII_RAMP[charIdx];
 
-              const green = Math.min(255, Math.floor(luma * 1.22 + 18));
-              const red = Math.min(255, Math.floor(luma * 0.96 + 10));
-              const blue = Math.min(255, Math.floor(luma * 0.42 + 5));
-              ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${Math.min(1, cellAlpha * 1.2)})`;
-
+              ctx.fillStyle = getAsciiCharColor(colorMode, r, g, b, luma, false, x, y, now, cellAlpha);
               ctx.fillText(char, x * cellW + cellW / 2, y * cellH + cellH / 2);
             }
           }
@@ -340,7 +415,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
         rafIdRef.current = null;
       }
     };
-  }, [imageLoaded, isHeroFace]);
+  }, [imageLoaded, isHeroFace, colorMode]);
 
   const handleMouseEnter = () => {
     isHoveredRef.current = true;

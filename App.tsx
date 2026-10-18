@@ -14,6 +14,9 @@ import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid from './components/BackgroundGrid';
 import DevToolsGreeting from './components/DevToolsGreeting';
+import AsciiTesterDock from './components/AsciiTesterDock';
+import { PhotoColorMode } from './components/AsciiPhoto';
+import { SectionDividerVariant } from './components/AsciiSectionDivider';
 
 // Lazy loaded components (not needed for initial visual render)
 const ContactForm = lazy(() => import('./components/ContactForm'));
@@ -73,6 +76,37 @@ const AppContent: React.FC = () => {
   // Custom hook for scroll spy
   const activeSection = useScrollSpy();
   const [toast, setToast] = useState({ message: '', visible: false, type: 'success' as 'success' | 'error' });
+
+  // ASCII Color Mode & Section Divider Style States (with LocalStorage persistence)
+  const [photoColorMode, setPhotoColorMode] = useState<PhotoColorMode>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('portfolio_photo_color_mode');
+      if (saved) return saved as PhotoColorMode;
+    }
+    return 'classic';
+  });
+
+  const [dividerMode, setDividerMode] = useState<SectionDividerVariant>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('portfolio_divider_mode');
+      if (saved) return saved as SectionDividerVariant;
+    }
+    return 'solid';
+  });
+
+  const handlePhotoColorChange = useCallback((mode: PhotoColorMode) => {
+    setPhotoColorMode(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('portfolio_photo_color_mode', mode);
+    }
+  }, []);
+
+  const handleDividerChange = useCallback((mode: SectionDividerVariant) => {
+    setDividerMode(mode);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('portfolio_divider_mode', mode);
+    }
+  }, []);
 
   const scrollToSection = useCallback((id: NavSection, updateHistory = true) => {
     const element = document.getElementById(id);
@@ -181,17 +215,20 @@ const AppContent: React.FC = () => {
         />
 
         <HeroAboutStage
+          photoColorMode={photoColorMode}
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
-        <Skills />
-        <ProjectsSection onProjectClick={handleProjectClick} />
+        <Skills dividerMode={dividerMode} />
+        <ProjectsSection dividerMode={dividerMode} onProjectClick={handleProjectClick} />
 
         <ContactSection
+          dividerMode={dividerMode}
           copyToClipboard={copyToClipboard}
         />
 
         <Footer
+          dividerMode={dividerMode}
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
         />
@@ -231,6 +268,14 @@ const AppContent: React.FC = () => {
             )}
           </SheetContent>
         </Sheet>
+
+        {/* Interactive Floating ASCII Tester Dock */}
+        <AsciiTesterDock
+          photoColorMode={photoColorMode}
+          onChangePhotoColorMode={handlePhotoColorChange}
+          dividerMode={dividerMode}
+          onChangeDividerMode={handleDividerChange}
+        />
 
         <ScrollToTopButton />
 

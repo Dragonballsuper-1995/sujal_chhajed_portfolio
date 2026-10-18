@@ -3,12 +3,13 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowDown, FileText, Sparkles, Terminal, ArrowUpRight } from 'lucide-react';
 import { NavSection } from '../types';
 import { PERSONAL_INFO } from '../constants';
-import AsciiPhoto from './AsciiPhoto';
+import AsciiPhoto, { PhotoColorMode } from './AsciiPhoto';
 import AsciiGlitchText from './AsciiGlitchText';
 
 interface HeroAboutStageProps {
   scrollToSection: (id: NavSection) => void;
   openResumeModal?: () => void;
+  photoColorMode?: PhotoColorMode;
 }
 
 /**
@@ -30,6 +31,7 @@ interface HeroAboutStageProps {
 const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
   scrollToSection,
   openResumeModal,
+  photoColorMode = 'classic',
 }) => {
   const desktopTrackRef = useRef<HTMLDivElement>(null);
   // ── Desktop Scroll Animations ──────────────────────────────────────────
@@ -243,6 +245,7 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
                         src={PERSONAL_INFO.profilePic}
                         alt={PERSONAL_INFO.profilePicAlt}
                         isHeroFace={true}
+                        colorMode={photoColorMode}
                         grayscaleHero={true}
                         className="w-full h-full"
                       />
@@ -275,6 +278,7 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
                         src={PERSONAL_INFO.profilePic}
                         alt={PERSONAL_INFO.profilePicAlt}
                         isHeroFace={false}
+                        colorMode={photoColorMode}
                         grayscaleHero={false}
                         className="w-full h-full"
                       />
@@ -428,6 +432,7 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
                   src={PERSONAL_INFO.profilePic}
                   alt={PERSONAL_INFO.profilePicAlt}
                   isHeroFace={false}
+                  colorMode={photoColorMode}
                   grayscaleHero={false}
                   className="w-full h-full"
                 />

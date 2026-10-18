@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export type BackgroundMode = 'dots' | 'crosshair' | 'ascii';
+export type BackgroundMode = 'dots' | 'crosshair' | 'ascii' | 'ascii-matrix';
 
 interface BackgroundGridProps {
   mode?: BackgroundMode;
@@ -263,12 +263,65 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ mode = 'dots' }) => {
       }
     };
 
+    // ──────────────────────────────────────────────────────────────────────────
+    // 4. DRAW MODE: ASCII MATRIX / TENSOR STREAM (Variation 2)
+    // ──────────────────────────────────────────────────────────────────────────
+    const MATRIX_GLYPHS = [
+      '0', '1', 'λ', '∂', '∑', '∇', '∫', '≈', 'W', 'b',
+      'x', 'σ', 'μ', '0x', 'FF', '7F', 'AI', '::', '->', 'θ'
+    ];
+
+    const drawAsciiMatrix = (isDark: boolean, cols: number, rows: number, offsetX: number, offsetY: number, space: number) => {
+      const baseAlpha = isDark ? 0.08 : 0.09;
+      const baseColor = isDark ? `rgba(255, 255, 255, ${baseAlpha})` : `rgba(5, 5, 5, ${baseAlpha})`;
+      const hoverRgb = isDark ? '255, 222, 89' : '0, 0, 0';
+      const hoverRadius = 150;
+
+      ctx.font = '11px "Space Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const glyphCount = MATRIX_GLYPHS.length;
+      const now = performance.now();
+
+      for (let r = 0; r <= rows; r++) {
+        const y = offsetY + r * space;
+        const dy = mouse.y - y;
+        const absDy = Math.abs(dy);
+
+        for (let c = 0; c <= cols; c++) {
+          const x = offsetX + c * space;
+          const dx = mouse.x - x;
+          const absDx = Math.abs(dx);
+
+          const baseIndex = (c * 13 + r * 29) % glyphCount;
+
+          if (isMouseInWindow && absDx < hoverRadius && absDy < hoverRadius) {
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < hoverRadius) {
+              const intensity = 1 - dist / hoverRadius;
+              const alpha = baseAlpha + intensity * 0.45;
+              const dynamicIndex = Math.floor(baseIndex + (now * 0.005) + (c * 3) + (r * 7)) % glyphCount;
+              const activeGlyph = MATRIX_GLYPHS[dynamicIndex];
+
+              ctx.fillStyle = `rgba(${hoverRgb}, ${alpha})`;
+              ctx.fillText(activeGlyph, x, y);
+              continue;
+            }
+          }
+
+          ctx.fillStyle = baseColor;
+          ctx.fillText(MATRIX_GLYPHS[baseIndex], x, y);
+        }
+      }
+    };
+
     const draw = () => {
       frameRequested = false;
       ctx.clearRect(0, 0, width, height);
 
       const isDark = document.documentElement.classList.contains('dark');
-      const space = mode === 'ascii' ? 44 : mode === 'crosshair' ? 40 : 36;
+      const space = mode === 'ascii' ? 44 : mode === 'ascii-matrix' ? 32 : mode === 'crosshair' ? 40 : 36;
       const offsetX = (width % space) / 2;
       const offsetY = (height % space) / 2;
       const cols = Math.floor(width / space);
@@ -278,6 +331,8 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = ({ mode = 'dots' }) => {
         drawCrosshairs(isDark, cols, rows, offsetX, offsetY, space);
       } else if (mode === 'ascii') {
         drawAscii(isDark, cols, rows, offsetX, offsetY, space);
+      } else if (mode === 'ascii-matrix') {
+        drawAsciiMatrix(isDark, cols, rows, offsetX, offsetY, space);
       } else {
         drawDots(isDark, cols, rows, offsetX, offsetY, space);
       }

@@ -182,28 +182,26 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
               {/* ── Left Column: Greeting & Identity ── */}
               <motion.div
                 style={{ x: aboutLeftX, opacity: aboutLeftOpacity, pointerEvents: aboutPointerEvents }}
-                className="col-span-4"
+                className="col-span-4 flex flex-col justify-between space-y-6"
               >
-                <div className="bg-white border-2 border-black shadow-neo p-5 xl:p-6 space-y-5 boundary-plate" data-boundary="true">
-                  <div>
-                    <h3 className="font-sans text-5xl xl:text-6xl font-black text-ink tracking-tight mb-3 uppercase">
-                      Hey!
-                    </h3>
-                    <p className="font-mono text-sm text-gray-800 leading-relaxed">
-                      I'm Sujal — an AI/ML Engineer and builder specialising in fine-tuned LLM
-                      architectures, real-time inference pipelines, and resilient full-stack systems.
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="font-sans text-5xl xl:text-6xl font-black text-ink tracking-tight mb-3 uppercase">
+                    Hey!
+                  </h3>
+                  <p className="font-mono text-sm text-gray-800 leading-relaxed">
+                    I'm Sujal — an AI/ML Engineer and builder specialising in fine-tuned LLM
+                    architectures, real-time inference pipelines, and resilient full-stack systems.
+                  </p>
+                </div>
 
-                  <div className="pt-4 border-t-2 border-black/15 font-mono text-xs text-gray-700 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-neo-green animate-pulse" />
-                      <span className="font-bold text-black uppercase tracking-wider">VIT Chennai &apos;26</span>
-                    </div>
-                    <p className="text-gray-500 font-medium">
-                      Undergraduate in Computer Science &amp; Engineering
-                    </p>
+                <div className="pt-4 border-t-2 border-black/15 font-mono text-xs text-gray-700 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-neo-green animate-pulse" />
+                    <span className="font-bold text-black uppercase tracking-wider">VIT Chennai &apos;26</span>
                   </div>
+                  <p className="text-gray-500 font-medium">
+                    Undergraduate in Computer Science &amp; Engineering
+                  </p>
                 </div>
               </motion.div>
 
@@ -286,7 +284,7 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
                 style={{ x: aboutRightX, opacity: aboutRightOpacity, pointerEvents: aboutPointerEvents }}
                 className="col-span-4 flex flex-col justify-between space-y-5"
               >
-                <div className="bg-white border-2 border-black shadow-neo p-5 xl:p-6 space-y-3 font-mono text-xs xl:text-sm leading-relaxed text-ink boundary-plate" data-boundary="true">
+                <div className="space-y-3 font-mono text-xs xl:text-sm leading-relaxed text-ink">
                   <p className="font-bold text-sm text-black leading-snug">
                     I care about verified inference latency, mathematical constraint satisfaction,
                     and writing clean, deterministic code that runs reliably in production
@@ -446,8 +444,8 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
             </p>
           </div>
 
-          <div className="bg-white border-2 border-black shadow-neo-sm p-4 sm:p-5 space-y-3 boundary-plate" data-boundary="true">
-            <h3 className="font-sans text-3xl sm:text-4xl font-black text-ink tracking-tight mb-2 uppercase">
+          <div>
+            <h3 className="font-sans text-3xl sm:text-4xl font-black text-ink tracking-tight mb-3 uppercase">
               Hey!
             </h3>
             <p className="font-mono text-xs sm:text-sm text-gray-800 leading-relaxed">
@@ -463,7 +461,7 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({ scrollToSection, openRe
             </div>
           </div>
 
-          <div className="bg-white border-2 border-black shadow-neo-sm p-4 sm:p-5 space-y-3 font-mono text-xs text-ink leading-relaxed boundary-plate" data-boundary="true">
+          <div className="space-y-3 font-mono text-xs text-ink leading-relaxed">
             <p className="font-bold text-sm text-black leading-snug">
               I care about verified inference latency, mathematical constraint satisfaction, and
               writing clean, deterministic code that runs reliably in production environments.

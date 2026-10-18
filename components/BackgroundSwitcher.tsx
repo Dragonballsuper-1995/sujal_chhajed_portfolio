@@ -10,7 +10,8 @@ interface BackgroundSwitcherProps {
 const MODES: { id: BackgroundMode; label: string }[] = [
   { id: 'dots', label: 'Dots' },
   { id: 'crosshair', label: 'Crosshairs' },
-  { id: 'ascii', label: 'ASCII' },
+  { id: 'ascii', label: 'ASCII v1' },
+  { id: 'ascii-matrix', label: 'ASCII Matrix' },
 ];
 
 const BackgroundSwitcher: React.FC<BackgroundSwitcherProps> = ({ mode, onChangeMode }) => {
@@ -21,11 +22,11 @@ const BackgroundSwitcher: React.FC<BackgroundSwitcherProps> = ({ mode, onChangeM
     if (typeof window !== 'undefined') {
       const sujal = (window as any).sujal || {};
       sujal.setBg = (newMode: BackgroundMode) => {
-        if (['dots', 'crosshair', 'ascii'].includes(newMode)) {
+        if (['dots', 'crosshair', 'ascii', 'ascii-matrix'].includes(newMode)) {
           onChangeMode(newMode);
           return `✓ Background switched to "${newMode}"`;
         }
-        return `Unknown mode. Use: 'dots' | 'crosshair' | 'ascii'`;
+        return `Unknown mode. Use: 'dots' | 'crosshair' | 'ascii' | 'ascii-matrix'`;
       };
       (window as any).sujal = sujal;
     }

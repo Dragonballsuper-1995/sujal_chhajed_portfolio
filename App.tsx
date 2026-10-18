@@ -75,7 +75,7 @@ const AppContent: React.FC = () => {
   const [bgMode, setBgMode] = useState<BackgroundMode>(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('portfolio_bg_mode');
-      if (saved === 'dots' || saved === 'crosshair' || saved === 'ascii') {
+      if (saved === 'dots' || saved === 'crosshair' || saved === 'ascii' || saved === 'ascii-matrix') {
         return saved;
       }
     }

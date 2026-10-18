@@ -1,12 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { PERSONAL_INFO } from '../constants';
 
-export type PhotoMode = 'morph' | 'morph-reveal' | 'morph-flip' | 'flip' | 'standard';
-
 interface AsciiPhotoProps {
   src?: string;
   alt?: string;
-  mode?: PhotoMode;
   isHeroFace?: boolean;
   className?: string;
   grayscaleHero?: boolean;
@@ -44,14 +41,12 @@ const createBlobSeeds = (): BlobNode[] => [
 export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
   src = PERSONAL_INFO.profilePic,
   alt = PERSONAL_INFO.profilePicAlt,
-  mode = 'morph',
   isHeroFace = false,
   className = '',
   grayscaleHero = false,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
   const isHoveredRef = useRef(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const imgElementRef = useRef<HTMLImageElement | null>(null);
@@ -142,7 +137,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
 
     updateSampling();
 
-    // ── Static Render for Pure FLIP mode on Hero Front Face ──
+    // ── Static Render for Hero Front Face (Morph + Flip Architecture) ──
     const renderStaticFlipFace = () => {
       const { width, height } = canvas;
       if (width === 0 || height === 0) return;
@@ -181,7 +176,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
       }
     };
 
-    // ── Interactive Organic ASCII Blob Simulation ──
+    // ── Interactive Organic ASCII Blob Simulation (About Back Face) ──
     const renderBlobAscii = () => {
       const { width, height } = canvas;
       if (width === 0 || height === 0) return;
@@ -235,9 +230,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
         b.curY = b.baseY + 0.11 * Math.cos(t * b.speedY + b.phaseY);
       }
 
-      // Base radius calculation depending on mode
-      const isRevealMode = mode === 'morph-reveal';
-      const threshold = isRevealMode ? 0.54 : 0.60;
+      const threshold = 0.60;
       const edgeFeather = 0.16;
 
       // Evaluate each cell in the 48x60 grid
@@ -255,10 +248,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
             const dy = (v - b.curY) / aspect;
             const distSq = dx * dx + dy * dy;
 
-            // In reveal mode, radius expands until full card is covered; in wandering blobs mode, maintains organic sizes
-            const effRadius = isRevealMode
-              ? b.radius * (0.15 + 1.85 * progress)
-              : b.radius * progress * (1.0 + 0.14 * Math.sin(t * 1.5 + k));
+            const effRadius = b.radius * progress * (1.0 + 0.14 * Math.sin(t * 1.5 + k));
 
             if (effRadius > 0.01) {
               potential += b.weight * Math.exp(-distSq / (2 * effRadius * effRadius));
@@ -324,12 +314,10 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
 
     renderLoopRef.current = renderBlobAscii;
 
-    // Mode-specific initialization
-    if (mode === 'flip' && isHeroFace) {
+    // Initialization
+    if (isHeroFace) {
       renderStaticFlipFace();
-    } else if (mode === 'morph-flip' && isHeroFace) {
-      renderStaticFlipFace();
-    } else if (mode === 'morph' || mode === 'morph-reveal' || mode === 'morph-flip') {
+    } else {
       if (isHoveredRef.current) {
         if (!rafIdRef.current) {
           rafIdRef.current = requestAnimationFrame(renderBlobAscii);
@@ -342,8 +330,6 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
           rafIdRef.current = null;
         }
       }
-    } else {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     return () => {
@@ -354,14 +340,10 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
         rafIdRef.current = null;
       }
     };
-  }, [imageLoaded, mode, isHeroFace]);
-
-  // Determine if base photo element should be hidden
-  const isStaticAsciiFace = (mode === 'flip' || mode === 'morph-flip') && isHeroFace;
+  }, [imageLoaded, isHeroFace]);
 
   const handleMouseEnter = () => {
     isHoveredRef.current = true;
-    setIsHovered(true);
 
     // Add slight random phase variation to autonomous blobs on each hover entrance
     const blobs = blobsRef.current;
@@ -371,14 +353,13 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
     }
 
     // Trigger rAF loop immediately on mouse entrance
-    if (!rafIdRef.current && renderLoopRef.current && (mode === 'morph' || mode === 'morph-reveal' || mode === 'morph-flip') && !isStaticAsciiFace) {
+    if (!rafIdRef.current && renderLoopRef.current && !isHeroFace) {
       rafIdRef.current = requestAnimationFrame(renderLoopRef.current);
     }
   };
 
   const handleMouseLeave = () => {
     isHoveredRef.current = false;
-    setIsHovered(false);
     // Smooth unhover: Ensure loop is running to smoothly ease progress to 0 and halt gracefully!
     if (!rafIdRef.current && renderLoopRef.current && transitionProgressRef.current > 0.008) {
       rafIdRef.current = requestAnimationFrame(renderLoopRef.current);
@@ -408,7 +389,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
         src={src}
         alt={alt}
         className={`w-full h-full object-cover object-top transition-none ${
-          isStaticAsciiFace
+          isHeroFace
             ? 'opacity-0 pointer-events-none'
             : grayscaleHero
             ? 'filter grayscale contrast-115'
@@ -420,23 +401,8 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
       <canvas
         ref={canvasRef}
         aria-hidden="true"
-        className={`absolute inset-0 w-full h-full pointer-events-none ${
-          mode === 'standard' ? 'opacity-0' : 'opacity-100'
-        }`}
+        className="absolute inset-0 w-full h-full pointer-events-none opacity-100"
       />
-
-      {/* ── Mode Indicator Pill ── */}
-      <div className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 bg-black/80 text-white border border-white/30 font-mono text-[9px] uppercase tracking-wider backdrop-blur-sm pointer-events-none">
-        {mode === 'morph'
-          ? (isHovered ? 'ASCII Blobs' : 'Photo (Hover: ASCII Blobs)')
-          : mode === 'morph-reveal'
-          ? (isHovered ? 'ASCII Reveal' : 'Photo (Hover: Blob Reveal)')
-          : mode === 'morph-flip'
-          ? (isHeroFace ? 'ASCII Front (Flip)' : (isHovered ? 'ASCII Blobs' : 'Photo (Hover: ASCII Blobs)'))
-          : mode === 'flip'
-          ? (isHeroFace ? 'ASCII Face' : 'Photo Face')
-          : 'Standard Photo'}
-      </div>
     </div>
   );
 };

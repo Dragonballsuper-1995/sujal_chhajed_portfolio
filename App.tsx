@@ -13,8 +13,6 @@ import ResumeModal from './components/ResumeModal';
 import CustomCursor from './components/CustomCursor';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from './components/ui/Sheet';
 import BackgroundGrid from './components/BackgroundGrid';
-import BackgroundSwitcher from './components/BackgroundSwitcher';
-import { PhotoMode } from './components/AsciiPhoto';
 import DevToolsGreeting from './components/DevToolsGreeting';
 
 // Lazy loaded components (not needed for initial visual render)
@@ -71,24 +69,6 @@ const AppContent: React.FC = () => {
 
   // Sheet state for Project Case Study
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-
-  // Profile Photo Mode ('morph' | 'morph-flip' | 'flip' | 'standard')
-  const [photoMode, setPhotoMode] = useState<PhotoMode>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('portfolio_photo_mode');
-      if (saved === 'morph' || saved === 'morph-reveal' || saved === 'morph-flip' || saved === 'flip' || saved === 'standard') {
-        return saved as PhotoMode;
-      }
-    }
-    return 'morph';
-  });
-
-  const handlePhotoModeChange = useCallback((mode: PhotoMode) => {
-    setPhotoMode(mode);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('portfolio_photo_mode', mode);
-    }
-  }, []);
 
   // Custom hook for scroll spy
   const activeSection = useScrollSpy();
@@ -203,7 +183,6 @@ const AppContent: React.FC = () => {
         <HeroAboutStage
           scrollToSection={scrollToSection}
           openResumeModal={() => setIsResumeOpen(true)}
-          photoMode={photoMode}
         />
         <Skills />
         <ProjectsSection onProjectClick={handleProjectClick} />
@@ -252,12 +231,6 @@ const AppContent: React.FC = () => {
             )}
           </SheetContent>
         </Sheet>
-
-        {/* Floating Neo-Brutalist Photo FX Tester */}
-        <BackgroundSwitcher
-          photoMode={photoMode}
-          onChangePhotoMode={handlePhotoModeChange}
-        />
 
         <ScrollToTopButton />
 

@@ -3,13 +3,12 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ArrowDown, FileText, Sparkles, Terminal, ArrowUpRight } from 'lucide-react';
 import { NavSection } from '../types';
 import { PERSONAL_INFO } from '../constants';
-import AsciiPhoto, { PhotoMode } from './AsciiPhoto';
+import AsciiPhoto from './AsciiPhoto';
 import AsciiGlitchText from './AsciiGlitchText';
 
 interface HeroAboutStageProps {
   scrollToSection: (id: NavSection) => void;
   openResumeModal?: () => void;
-  photoMode?: PhotoMode;
 }
 
 /**
@@ -31,7 +30,6 @@ interface HeroAboutStageProps {
 const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
   scrollToSection,
   openResumeModal,
-  photoMode = 'morph',
 }) => {
   const desktopTrackRef = useRef<HTMLDivElement>(null);
   // ── Desktop Scroll Animations ──────────────────────────────────────────
@@ -45,15 +43,15 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
   const heroY = useTransform(scrollYProgress, [0.0, 0.28], [0, -60]);
 
   // Profile Card: 3D Flip & Scale Morph (Hero -> About)
-  // Initially placed so ~15-20% peeks above the viewport bottom.
+  // Initially placed so ~35-40% (~140-160px) peeks above the viewport bottom.
   // On scroll, moves up smoothly to its centered place in the About section.
   const cardScale = useTransform(scrollYProgress, [0.08, 0.62], [0.70, 1.0]);
   const cardY = useTransform(scrollYProgress, (progress) => {
     const t = Math.min(1, Math.max(0, progress / 0.58));
     const factor = 1 - t;
     const vh = typeof window !== 'undefined' ? window.innerHeight : 900;
-    // Pushes card down so top ~15-20% (~50-60px) is visible at bottom of screen
-    const initialOffset = Math.max(340, vh * 0.5 + 5);
+    // Pushes card down so ~35-40% (~140-160px) is visible at bottom of screen in Hero
+    const initialOffset = Math.max(240, vh * 0.38);
     return factor * initialOffset;
   });
   const cardRotateY = useTransform(scrollYProgress, [0.08, 0.62], [0, 180]);
@@ -244,7 +242,6 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
                       <AsciiPhoto
                         src={PERSONAL_INFO.profilePic}
                         alt={PERSONAL_INFO.profilePicAlt}
-                        mode={photoMode}
                         isHeroFace={true}
                         grayscaleHero={true}
                         className="w-full h-full"
@@ -277,7 +274,6 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
                       <AsciiPhoto
                         src={PERSONAL_INFO.profilePic}
                         alt={PERSONAL_INFO.profilePicAlt}
-                        mode={photoMode}
                         isHeroFace={false}
                         grayscaleHero={false}
                         className="w-full h-full"
@@ -431,7 +427,6 @@ const HeroAboutStage: React.FC<HeroAboutStageProps> = ({
                 <AsciiPhoto
                   src={PERSONAL_INFO.profilePic}
                   alt={PERSONAL_INFO.profilePicAlt}
-                  mode={photoMode}
                   isHeroFace={false}
                   grayscaleHero={false}
                   className="w-full h-full"

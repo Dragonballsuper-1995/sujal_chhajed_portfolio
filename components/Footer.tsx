@@ -3,13 +3,12 @@ import { ExternalLink, Github, Linkedin, Instagram } from 'lucide-react';
 import { XIcon } from './XIcon';
 import { NavSection } from '../types';
 import { PERSONAL_INFO, SOCIALS } from '../constants';
-import AsciiSectionDivider, { ChipColorStyle, SeamActivation } from './AsciiSectionDivider';
+import AsciiSectionDivider, { ChipColorStyle } from './AsciiSectionDivider';
 
 interface FooterProps {
   scrollToSection: (id: NavSection) => void;
   openResumeModal?: () => void;
   chipColorStyle?: ChipColorStyle;
-  seamActivation?: SeamActivation;
 }
 
 const getSocialIcon = (platform: string) => {
@@ -48,13 +47,11 @@ const Footer: React.FC<FooterProps> = ({
   scrollToSection,
   openResumeModal,
   chipColorStyle,
-  seamActivation,
 }) => {
   return (
     <>
       <AsciiSectionDivider
         chipColorStyle={chipColorStyle}
-        seamActivation={seamActivation}
         sectionNumber="05"
         sectionTitle="SYSTEM_TERMINAL"
       />

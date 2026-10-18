@@ -4,18 +4,16 @@ import ProjectCard, { isProjectMatchingRole } from './ProjectCard';
 import { FEATURED_PROJECTS, ARCHIVE_PROJECTS } from '../constants';
 import { Sparkles, ArrowRight, Filter } from 'lucide-react';
 import { useRecruiter } from '../context/RecruiterContext';
-import AsciiSectionDivider, { ChipColorStyle, SeamActivation } from './AsciiSectionDivider';
+import AsciiSectionDivider, { ChipColorStyle } from './AsciiSectionDivider';
 
 interface ProjectsSectionProps {
   onProjectClick: (project: Project) => void;
   chipColorStyle?: ChipColorStyle;
-  seamActivation?: SeamActivation;
 }
 
 const ProjectsSection: React.FC<ProjectsSectionProps> = ({
   onProjectClick,
   chipColorStyle,
-  seamActivation,
 }) => {
   const { roleFilter, setRoleFilter } = useRecruiter();
 
@@ -34,7 +32,6 @@ const ProjectsSection: React.FC<ProjectsSectionProps> = ({
     <>
       <AsciiSectionDivider
         chipColorStyle={chipColorStyle}
-        seamActivation={seamActivation}
         sectionNumber="03"
         sectionTitle="PROJECTS"
       />

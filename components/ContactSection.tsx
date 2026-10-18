@@ -3,13 +3,12 @@ import { Copy, Check, Send, Linkedin, Github, Instagram, Sparkles } from 'lucide
 import { XIcon } from './XIcon';
 import { NavSection } from '../types';
 import { PERSONAL_INFO } from '../constants';
-import AsciiSectionDivider, { ChipColorStyle, SeamActivation } from './AsciiSectionDivider';
+import AsciiSectionDivider, { ChipColorStyle } from './AsciiSectionDivider';
 
 interface ContactSectionProps {
   setIsContactOpen?: (isOpen: boolean) => void;
   copyToClipboard: (text: string, type: string) => void;
   chipColorStyle?: ChipColorStyle;
-  seamActivation?: SeamActivation;
 }
 
 const FORMSPREE_URL = 'https://formspree.io/f/xqagjnpj';
@@ -17,7 +16,6 @@ const FORMSPREE_URL = 'https://formspree.io/f/xqagjnpj';
 const ContactSection: React.FC<ContactSectionProps> = ({
   copyToClipboard,
   chipColorStyle,
-  seamActivation,
 }) => {
   const [copied, setCopied] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', message: '' });
@@ -70,7 +68,6 @@ const ContactSection: React.FC<ContactSectionProps> = ({
     <>
       <AsciiSectionDivider
         chipColorStyle={chipColorStyle}
-        seamActivation={seamActivation}
         sectionNumber="04"
         sectionTitle="CONTACT"
       />

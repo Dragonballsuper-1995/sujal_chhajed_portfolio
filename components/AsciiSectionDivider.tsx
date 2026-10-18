@@ -1,14 +1,12 @@
 import React, { useRef, useEffect } from 'react';
 
-export type ChipColorStyle = 'standard' | 'hover-multicolor' | 'vertical-blocks';
-export type SeamActivation = 'off' | 'on-hover' | 'on-click' | 'both';
+export type ChipColorStyle = 'bauhaus-blocks' | 'prism-cassette' | 'cyber-pcb' | 'duotone-strobe';
 
 interface AsciiSectionDividerProps {
   sectionNumber?: string;
   sectionTitle?: string;
   className?: string;
   chipColorStyle?: ChipColorStyle;
-  seamActivation?: SeamActivation;
 }
 
 // ── Website Brand Colors Palette ─────────────────────────────────────────────
@@ -27,28 +25,26 @@ const INTERACTIVE_CHARS = ['┼', '═', '─', '░', '▒', '▓', 'λ', '0', 
  * AsciiSectionDivider
  *
  * Edge-to-edge 16px interactive ASCII canvas seam that scrambles in brand colors on cursor proximity,
- * combined with a centered Neo-Brutalist sticker chip with selectable website color styles and
- * seam activation triggers (on-hover adjacent scramble, on-click propagation wave).
+ * with synchronized outward wave on chip click (matching the background matrix wave speed)
+ * and adjacent seam scramble on chip hover.
+ * Features 4 completely redesigned, bold Neo-Brutalist chip color styles.
  */
 export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
   sectionNumber = '01',
   sectionTitle = 'SECTION',
   className = '',
-  chipColorStyle = 'standard',
-  seamActivation = 'off',
+  chipColorStyle = 'bauhaus-blocks',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mouseXRef = useRef<number>(-999);
   const isHoveredRef = useRef(false);
   const isChipHoveredRef = useRef(false);
-  const clickWaveRef = useRef<{ active: boolean; startTime: number; duration: number }>({
+  const clickWaveRef = useRef<{ active: boolean; startTime: number }>({
     active: false,
     startTime: 0,
-    duration: 750,
   });
 
-  // Reference to trigger canvas redraw externally
   const requestRenderRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -91,23 +87,26 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
       const interactionRadius = 75; // Focused scramble radius around cursor
       const centerX = width / 2;
 
-      // Seam activation states
-      const isChipHoverActive =
-        (seamActivation === 'on-hover' || seamActivation === 'both') && isChipHoveredRef.current;
-      const isClickWaveActive =
-        (seamActivation === 'on-click' || seamActivation === 'both') && clickWaveRef.current.active;
+      // Match speed exactly with BackgroundGrid matrix wave:
+      // In BackgroundGrid: maxRadius = Math.max(width, height) * 0.95 over 900ms
+      const viewportH = window.innerHeight || 900;
+      const matrixSpeed = (Math.max(width, viewportH) * 0.95) / 900; // px per ms
 
-      let waveProgress = 0;
       let waveRadius = 0;
+      let waveProgress = 0;
+      const isClickWaveActive = clickWaveRef.current.active;
+
       if (isClickWaveActive) {
         const elapsed = now - clickWaveRef.current.startTime;
-        if (elapsed >= clickWaveRef.current.duration) {
+        waveRadius = elapsed * matrixSpeed;
+        waveProgress = Math.min(1, waveRadius / (width / 2));
+
+        if (waveRadius > width / 2 + 80) {
           clickWaveRef.current.active = false;
-        } else {
-          waveProgress = elapsed / clickWaveRef.current.duration;
-          waveRadius = waveProgress * (width / 2);
         }
       }
+
+      const isChipHoverActive = isChipHoveredRef.current;
 
       for (let c = 0; c < cols; c++) {
         const x = c * cellW + cellW / 2;
@@ -118,9 +117,9 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
         let isExcited = isHoveredRef.current && distToMouse < interactionRadius;
         let excitationFactor = isExcited ? 1 - distToMouse / interactionRadius : 0;
 
-        // 2. Chip hover proximity activation (seam close to chip scrambles!)
+        // 2. Chip hover proximity activation (seam close to chip scrambles)
         if (isChipHoverActive) {
-          const chipActivationRadius = 140; // Adjacent seam zone on both sides of chip
+          const chipActivationRadius = 145; // Adjacent seam zone on both sides of chip
           if (distFromCenter < chipActivationRadius) {
             const factor = 1 - distFromCenter / chipActivationRadius;
             if (factor > excitationFactor) {
@@ -130,12 +129,12 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
           }
         }
 
-        // 3. Chip click outward wave propagation across seam
+        // 3. Chip click outward wave propagation (matched to matrix wave speed!)
         if (isClickWaveActive) {
           const distFromWaveFront = Math.abs(distFromCenter - waveRadius);
-          const waveBand = 60; // Width of propagating wave crest
+          const waveBand = 65; // Width of propagating wave crest
           if (distFromWaveFront < waveBand) {
-            const factor = (1 - distFromWaveFront / waveBand) * (1 - waveProgress * 0.4);
+            const factor = (1 - distFromWaveFront / waveBand) * (1 - waveProgress * 0.35);
             if (factor > excitationFactor) {
               isExcited = true;
               excitationFactor = factor;
@@ -144,7 +143,6 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
         }
 
         if (isExcited) {
-          // Cursor / Chip proximity: vibrant ASCII scramble cycling through ALL website brand colors!
           const charIdx = (c + Math.floor(now * 0.045)) % INTERACTIVE_CHARS.length;
           const char = INTERACTIVE_CHARS[charIdx];
 
@@ -173,7 +171,6 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
       }
     };
 
-    // Draw initial static state
     render();
 
     const handleMouseEnter = () => {
@@ -209,9 +206,9 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
       }
       if (rafId) cancelAnimationFrame(rafId);
     };
-  }, [seamActivation]);
+  }, []);
 
-  // Chip hover handlers
+  // Chip hover handlers (triggers adjacent seam activation)
   const handleChipMouseEnter = () => {
     isChipHoveredRef.current = true;
     if (requestRenderRef.current) requestRenderRef.current();
@@ -222,16 +219,13 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
     if (requestRenderRef.current) requestRenderRef.current();
   };
 
-  // Chip click handler for outward seam wave
+  // Chip click handler (triggers synchronized outward seam wave)
   const handleChipClick = () => {
-    if (seamActivation === 'on-click' || seamActivation === 'both') {
-      clickWaveRef.current = {
-        active: true,
-        startTime: performance.now(),
-        duration: 800,
-      };
-      if (requestRenderRef.current) requestRenderRef.current();
-    }
+    clickWaveRef.current = {
+      active: true,
+      startTime: performance.now(),
+    };
+    if (requestRenderRef.current) requestRenderRef.current();
   };
 
   return (
@@ -245,87 +239,109 @@ export const AsciiSectionDivider: React.FC<AsciiSectionDividerProps> = ({
         <canvas ref={canvasRef} className="w-full h-full block" />
       </div>
 
-      {/* ── CHIP COLOR STYLE 1: Standard Punchy Sticker ───────────────────── */}
-      {chipColorStyle === 'standard' && (
+      {/* ── STYLE 1: Bauhaus Color-Blocks (Multi-Color Solid Patchwork) ── */}
+      {chipColorStyle === 'bauhaus-blocks' && (
         <div
           onClick={handleChipClick}
           onMouseEnter={handleChipMouseEnter}
           onMouseLeave={handleChipMouseLeave}
-          className="absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-transform hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000000] cursor-pointer"
+          className="absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000000] cursor-pointer"
         >
-          <div className="bg-black text-neo-yellow px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black">
+          {/* Segment 1: Electric Pink Sector Badge */}
+          <div className="bg-neo-pink text-black px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black">
             #{sectionNumber}
           </div>
-          <div className="bg-neo-yellow text-black px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2">
-            <span>{sectionTitle}</span>
-            <span className="text-black/60 text-[9px]">.SYS</span>
+          {/* Segment 2: Cyber Yellow Title Body */}
+          <div className="bg-neo-yellow text-black px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center border-r-2 border-black">
+            {sectionTitle}
+          </div>
+          {/* Segment 3: Cyber Cyan System Tag */}
+          <div className="bg-neo-cyan text-black px-2 py-1 font-mono text-[10px] font-black tracking-widest flex items-center border-r-2 border-black">
+            .SYS
+          </div>
+          {/* Segment 4: Deep Purple Star Accent Cap */}
+          <div className="bg-neo-purple text-white px-2 py-1 font-mono text-xs font-black flex items-center justify-center">
+            ★
           </div>
         </div>
       )}
 
-      {/* ── CHIP COLOR STYLE 2: Hover Multi-Color Dynamic Badge ───────────── */}
-      {chipColorStyle === 'hover-multicolor' && (
+      {/* ── STYLE 2: Prism Header Cassette (Security Seal Bar) ─────────── */}
+      {chipColorStyle === 'prism-cassette' && (
         <div
           onClick={handleChipClick}
           onMouseEnter={handleChipMouseEnter}
           onMouseLeave={handleChipMouseLeave}
-          className="group absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:shadow-[5px_5px_0px_0px_#FF66C4] overflow-hidden transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+          className="absolute z-10 flex flex-col border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#FF66C4] cursor-pointer bg-white"
         >
-          {/* Left sector badge: changes to vibrant Neo-Pink on hover */}
-          <div className="bg-black text-neo-yellow group-hover:bg-[#FF66C4] group-hover:text-black px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black transition-colors duration-300">
-            #{sectionNumber}
+          {/* Top Multi-Color Spectrum Header Bar */}
+          <div className="grid grid-cols-5 h-1.5 w-full border-b border-black" aria-hidden="true">
+            <div className="bg-[#FFDE59]" /> {/* Yellow */}
+            <div className="bg-[#FF66C4]" /> {/* Pink */}
+            <div className="bg-[#7ED957]" /> {/* Green */}
+            <div className="bg-[#5CE1E6]" /> {/* Cyan */}
+            <div className="bg-[#FF914D]" /> {/* Orange */}
           </div>
-          {/* Right title plate: shifts into vibrant multi-color rainbow gradient on hover */}
-          <div className="bg-neo-yellow text-black group-hover:bg-gradient-to-r group-hover:from-[#FFDE59] group-hover:via-[#5CE1E6] group-hover:to-[#FF66C4] px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all duration-300">
-            {/* Multi-color vertical bars reveal on hover */}
-            <div className="hidden group-hover:flex items-center gap-0.5 mr-1" aria-hidden="true">
-              <span className="w-1 h-3 bg-[#7ED957]" />
-              <span className="w-1 h-3 bg-[#8C52FF]" />
-              <span className="w-1 h-3 bg-[#FF914D]" />
+          {/* Main Cassette Body */}
+          <div className="flex items-stretch">
+            <div className="bg-black text-neo-yellow px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black">
+              #{sectionNumber}
             </div>
-            <span>{sectionTitle}</span>
-            <span className="text-black/70 group-hover:text-black group-hover:bg-white/80 group-hover:px-1 text-[9px] font-mono transition-all">
-              .SYS
-            </span>
+            <div className="bg-[#FAF8F5] text-black px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2">
+              <span>{sectionTitle}</span>
+              <span className="bg-[#8C52FF] text-white px-1.5 py-0.2 rounded-[1px] text-[9px] font-mono font-bold">
+                .SYS
+              </span>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── CHIP COLOR STYLE 3: Vertical Block Pattern Palette ────────────── */}
-      {chipColorStyle === 'vertical-blocks' && (
+      {/* ── STYLE 3: Cyber PCB Chassis (Luminescent Dark Terminal) ────── */}
+      {chipColorStyle === 'cyber-pcb' && (
         <div
           onClick={handleChipClick}
           onMouseEnter={handleChipMouseEnter}
           onMouseLeave={handleChipMouseLeave}
-          className="absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] overflow-hidden transition-transform hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_#000000] cursor-pointer"
+          className="absolute z-10 flex flex-col border-2 border-black shadow-[4px_4px_0px_0px_#5CE1E6] hover:shadow-[5px_5px_0px_0px_#FF66C4] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-[#0A0A12]"
         >
-          {/* Left sector badge */}
-          <div className="bg-black text-neo-yellow px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black">
+          <div className="flex items-stretch">
+            {/* Left Sector Badge with Live Emerald LED */}
+            <div className="bg-[#141422] text-neo-green px-2.5 py-1 font-mono text-xs font-black flex items-center gap-1.5 border-r-2 border-black">
+              <span className="w-1.5 h-1.5 rounded-full bg-neo-green animate-pulse" />
+              <span>#{sectionNumber}</span>
+            </div>
+            {/* Center Monospace Title in Luminescent Cyan */}
+            <div className="px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 text-neo-cyan">
+              <span>{sectionTitle}</span>
+              <span className="bg-[#FF914D] text-black px-1.5 py-0.2 text-[9px] font-mono font-black rounded-[1px]">
+                .SYS
+              </span>
+            </div>
+          </div>
+          {/* Grounding Electric Pink Accent Rail */}
+          <div className="h-1 w-full bg-neo-pink border-t border-black" aria-hidden="true" />
+        </div>
+      )}
+
+      {/* ── STYLE 4: Duotone Chromatic Strobe (Yellow & Cyan, Pink Hover) ─ */}
+      {chipColorStyle === 'duotone-strobe' && (
+        <div
+          onClick={handleChipClick}
+          onMouseEnter={handleChipMouseEnter}
+          onMouseLeave={handleChipMouseLeave}
+          className="group absolute z-10 flex items-stretch border-2 border-black shadow-[4px_4px_0px_0px_#000000] hover:shadow-[5px_5px_0px_0px_#FF66C4] overflow-hidden transition-all duration-200 hover:-translate-y-0.5 cursor-pointer"
+        >
+          {/* Left Sector Badge: Cyan normally -> Electric Pink on hover */}
+          <div className="bg-neo-cyan text-black group-hover:bg-neo-pink px-2.5 py-1 font-mono text-xs font-black flex items-center border-r-2 border-black transition-colors duration-200">
             #{sectionNumber}
           </div>
-
-          {/* Vertical Palette Bar: 6 vertical block stripes of the website colors */}
-          <div className="flex items-stretch border-r-2 border-black" aria-hidden="true">
-            <div className="w-1.5 bg-[#FFDE59]" /> {/* Yellow */}
-            <div className="w-1.5 bg-[#FF66C4]" /> {/* Pink */}
-            <div className="w-1.5 bg-[#7ED957]" /> {/* Green */}
-            <div className="w-1.5 bg-[#5CE1E6]" /> {/* Cyan */}
-            <div className="w-1.5 bg-[#8C52FF]" /> {/* Purple */}
-            <div className="w-1.5 bg-[#FF914D]" /> {/* Orange */}
-          </div>
-
-          {/* Right title plate with high-contrast text and micro color indicator */}
-          <div className="bg-neo-yellow text-black px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2">
+          {/* Right Title Body: Yellow normally -> Toxic Green on hover */}
+          <div className="bg-neo-yellow text-black group-hover:bg-neo-green px-3.5 py-1 font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-colors duration-200">
             <span>{sectionTitle}</span>
-            <span className="px-1 py-0.5 bg-black text-white text-[9px] font-mono border-l-2 border-[#5CE1E6]">
+            <span className="bg-black text-white px-1.5 py-0.2 text-[9px] font-mono font-black border border-black group-hover:bg-white group-hover:text-black transition-colors">
               .SYS
             </span>
-          </div>
-
-          {/* Trailing vertical block end-cap */}
-          <div className="flex items-stretch border-l-2 border-black" aria-hidden="true">
-            <div className="w-1.5 bg-[#FF914D]" />
-            <div className="w-1.5 bg-[#5CE1E6]" />
           </div>
         </div>
       )}

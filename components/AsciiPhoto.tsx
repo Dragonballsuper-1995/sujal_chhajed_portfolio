@@ -13,7 +13,7 @@ interface AsciiPhotoProps {
 }
 
 const ASCII_RAMP = ' .:-=+*#%@';
-const GLITCH_SYMBOLS = ['0', '1', 'λ', '§', '%', '&', '?', '*', '#', '0x', 'FF', '7F', 'θ', '∑', '+'];
+const GLITCH_SYMBOLS = ['0', '1', 'λ', '§', '%', '*', '?', '#', 'θ', '+'];
 
 export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
   src = PERSONAL_INFO.profilePic,
@@ -29,9 +29,9 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   const imgElementRef = useRef<HTMLImageElement | null>(null);
 
-  // Transition state for funky real-time ASCII compilation (0.0 to 1.0)
-  const compileProgressRef = useRef(0);
-  const animFrameRef = useRef<number | null>(null);
+  // Raster sweep progress: 0.0 (fully photo) -> 1.0 (fully ASCII)
+  const rasterProgressRef = useRef(0.0);
+  const rafIdRef = useRef<number | null>(null);
 
   // Pre-load and cache the image
   useEffect(() => {
@@ -44,7 +44,7 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
     };
   }, [src]);
 
-  // Main canvas rasterization & compilation engine
+  // Main canvas rasterization engine
   useEffect(() => {
     if (!imageLoaded || !imgElementRef.current) return;
     const canvas = canvasRef.current;
@@ -61,22 +61,32 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
     const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
     if (!offCtx) return;
 
-    let localRafId: number;
+    // Synchronize physical canvas pixel size with container
+    const updateCanvasSize = () => {
+      if (containerRef.current && canvas) {
+        const rect = containerRef.current.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          canvas.width = rect.width;
+          canvas.height = rect.height;
+        }
+      }
+    };
 
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+
+    // Compute exact object-cover object-top source rectangle
     const updateSampling = () => {
       if (!imgElementRef.current || !containerRef.current) return;
       const img = imgElementRef.current;
       const imgW = img.naturalWidth || 1841;
       const imgH = img.naturalHeight || 3273;
 
-      const rect = containerRef.current.getBoundingClientRect();
-      const containerW = rect.width > 0 ? rect.width : 340;
-      const containerH = rect.height > 0 ? rect.height : 425;
+      const containerW = canvas.width || 340;
+      const containerH = canvas.height || 425;
       const targetAspect = containerW / containerH;
       const imgAspect = imgW / imgH;
 
-      // ── Precise object-cover object-top source cropping ──
-      // Matches the exact cropping of `className="object-cover object-top"`
       let sx = 0;
       let sy = 0;
       let sWidth = imgW;
@@ -100,209 +110,210 @@ export const AsciiPhoto: React.FC<AsciiPhotoProps> = ({
 
     updateSampling();
 
-    const render = () => {
-      if (!canvas || !imgElementRef.current) return;
+    // ── Static Render for Pure FLIP mode on Hero Front Face ──
+    const renderStaticFlipFace = () => {
       const { width, height } = canvas;
       if (width === 0 || height === 0) return;
 
       const imgData = offCtx.getImageData(0, 0, sampleWidth, sampleHeight);
       const pixels = imgData.data;
 
-      // Update funky compilation progress
-      const targetProgress = isHovered ? 1.0 : 0.0;
-      const stepSpeed = isHovered ? 0.075 : 0.12; // quick snappy assembly (~350ms)
-      if (Math.abs(compileProgressRef.current - targetProgress) > 0.01) {
-        compileProgressRef.current += (targetProgress - compileProgressRef.current) * stepSpeed;
-      } else {
-        compileProgressRef.current = targetProgress;
+      ctx.fillStyle = '#080808';
+      ctx.fillRect(0, 0, width, height);
+
+      const cellW = width / sampleWidth;
+      const cellH = height / sampleHeight;
+      ctx.font = `bold ${Math.floor(cellH * 1.05)}px "Space Mono", monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (let y = 0; y < sampleHeight; y++) {
+        for (let x = 0; x < sampleWidth; x++) {
+          const idx = (y * sampleWidth + x) * 4;
+          const r = pixels[idx];
+          const g = pixels[idx + 1];
+          const b = pixels[idx + 2];
+          const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+          const charIdx = Math.floor((brightness / 255) * (ASCII_RAMP.length - 1));
+          const char = ASCII_RAMP[charIdx];
+
+          if (brightness > 22) {
+            ctx.fillStyle = `rgba(240, 240, 240, ${Math.min(1, (brightness / 255) * 1.25)})`;
+            ctx.fillText(char, x * cellW + cellW / 2, y * cellH + cellH / 2);
+          }
+        }
       }
-      const progress = compileProgressRef.current;
+    };
+
+    // ── Interactive Rastering Loop (Runs ONLY during hover or transition) ──
+    const renderRasterSweep = () => {
+      const { width, height } = canvas;
+      if (width === 0 || height === 0) return;
+
+      const target = isHovered ? 1.0 : 0.0;
+      const speed = isHovered ? 0.065 : 0.09;
+
+      if (Math.abs(rasterProgressRef.current - target) > 0.01) {
+        rasterProgressRef.current += (target - rasterProgressRef.current) * speed;
+      } else {
+        rasterProgressRef.current = target;
+      }
+
+      const progress = rasterProgressRef.current;
+
+      // When unhovered and fully at 0, clear canvas and terminate animation frame!
+      if (!isHovered && progress <= 0.01) {
+        ctx.clearRect(0, 0, width, height);
+        rasterProgressRef.current = 0.0;
+        rafIdRef.current = null;
+        return;
+      }
+
+      const imgData = offCtx.getImageData(0, 0, sampleWidth, sampleHeight);
+      const pixels = imgData.data;
 
       ctx.clearRect(0, 0, width, height);
 
       const cellW = width / sampleWidth;
       const cellH = height / sampleHeight;
 
-      ctx.font = `bold ${Math.floor(cellH * 1.02)}px "Space Mono", monospace`;
+      ctx.font = `bold ${Math.floor(cellH * 1.05)}px "Space Mono", monospace`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
+      const rasterRow = Math.min(sampleHeight, Math.floor(progress * sampleHeight));
+      const rasterYPx = rasterRow * cellH;
+
+      // Black background plate covering rasterized rows
+      ctx.fillStyle = '#050505';
+      ctx.fillRect(0, 0, width, rasterYPx + cellH);
+
       const now = performance.now();
 
-      if (mode === 'morph' || mode === 'morph-flip') {
-        if (progress > 0.02) {
-          // Dark cyberpunk plate background
-          ctx.fillStyle = `rgba(5, 5, 5, ${Math.min(1, progress * 1.15)})`;
-          ctx.fillRect(0, 0, width, height);
+      // Draw compiled ASCII rows from 0 down to rasterRow
+      for (let y = 0; y <= rasterRow; y++) {
+        const isFrontier = y === rasterRow && progress < 0.98;
 
-          for (let y = 0; y < sampleHeight; y++) {
-            for (let x = 0; x < sampleWidth; x++) {
-              const idx = (y * sampleWidth + x) * 4;
-              const r = pixels[idx];
-              const g = pixels[idx + 1];
-              const b = pixels[idx + 2];
-              const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+        for (let x = 0; x < sampleWidth; x++) {
+          const idx = (y * sampleWidth + x) * 4;
+          const r = pixels[idx];
+          const g = pixels[idx + 1];
+          const b = pixels[idx + 2];
+          const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
 
-              if (brightness > 22) {
-                // Determine character
-                const charIdx = Math.floor((brightness / 255) * (ASCII_RAMP.length - 1));
-                const targetChar = ASCII_RAMP[charIdx];
-
-                // Funky real-time compilation: during transition, randomize symbols
-                let activeChar = targetChar;
-                let activeColor = '';
-
-                // Transition phase: random symbol scramble
-                const cellRandom = ((x * 17 + y * 31 + Math.floor(now * 0.02)) % 100) / 100;
-                if (progress < 0.85 && cellRandom > progress) {
-                  // Scramble stage: rapid flickering high-energy symbols
-                  const symbolIdx = (x * 7 + y * 13 + Math.floor(now * 0.01)) % GLITCH_SYMBOLS.length;
-                  activeChar = GLITCH_SYMBOLS[symbolIdx];
-                  // Energetic cyber cyan / yellow highlight during compilation
-                  activeColor = (x + y) % 2 === 0 ? 'rgba(255, 222, 89, 0.9)' : 'rgba(0, 255, 127, 0.9)';
-                } else {
-                  // Fully settled or settling: subtle ambient live fluctuation
-                  const isLivingGlyph = progress >= 0.98 && ((x * 3 + y * 7 + Math.floor(now * 0.003)) % 43 === 0);
-                  if (isLivingGlyph) {
-                    const symbolIdx = (x + y) % GLITCH_SYMBOLS.length;
-                    activeChar = GLITCH_SYMBOLS[symbolIdx];
-                    activeColor = 'rgba(255, 222, 89, 1)';
-                  } else {
-                    activeChar = targetChar;
-                    const green = Math.min(255, Math.floor(brightness * 1.15));
-                    activeColor = `rgb(${brightness}, ${green}, ${Math.floor(brightness * 0.35)})`;
-                  }
-                }
-
-                ctx.fillStyle = activeColor;
-                ctx.fillText(activeChar, x * cellW + cellW / 2, y * cellH + cellH / 2);
-              }
-            }
-          }
-        }
-      } else if (mode === 'flip' && isHeroFace) {
-        // Pure high-contrast ASCII terminal portrait for Hero front face
-        ctx.fillStyle = '#080808';
-        ctx.fillRect(0, 0, width, height);
-
-        for (let y = 0; y < sampleHeight; y++) {
-          for (let x = 0; x < sampleWidth; x++) {
-            const idx = (y * sampleWidth + x) * 4;
-            const r = pixels[idx];
-            const g = pixels[idx + 1];
-            const b = pixels[idx + 2];
-            const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+          if (brightness > 20) {
             const charIdx = Math.floor((brightness / 255) * (ASCII_RAMP.length - 1));
-            const char = ASCII_RAMP[charIdx];
+            let char = ASCII_RAMP[charIdx];
 
-            if (brightness > 25) {
-              ctx.fillStyle = `rgba(240, 240, 240, ${Math.min(1, (brightness / 255) * 1.3)})`;
-              ctx.fillText(char, x * cellW + cellW / 2, y * cellH + cellH / 2);
+            if (isFrontier) {
+              // Frontier scanning row: active high-energy cyber characters
+              const symIdx = (x + Math.floor(now * 0.04)) % GLITCH_SYMBOLS.length;
+              char = GLITCH_SYMBOLS[symIdx];
+              ctx.fillStyle = '#00FF7F';
+            } else {
+              // High-fidelity cyberpunk amber-green phosphor
+              const green = Math.min(255, Math.floor(brightness * 1.15));
+              const red = Math.floor(brightness * 0.92);
+              const blue = Math.floor(brightness * 0.35);
+              ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
             }
+
+            ctx.fillText(char, x * cellW + cellW / 2, y * cellH + cellH / 2);
           }
         }
       }
 
-      // Keep animation loop active while hovering or actively compiling
-      if (isHovered || compileProgressRef.current > 0.01) {
-        localRafId = requestAnimationFrame(render);
+      // Glowing raster sweep line across frontier
+      if (progress > 0.02 && progress < 0.98) {
+        ctx.strokeStyle = '#00FF7F';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, rasterYPx + cellH);
+        ctx.lineTo(width, rasterYPx + cellH);
+        ctx.stroke();
+      }
+
+      // Continue animation frame while transitioning or actively hovered
+      if (isHovered || rasterProgressRef.current > 0.01) {
+        rafIdRef.current = requestAnimationFrame(renderRasterSweep);
+      } else {
+        rafIdRef.current = null;
       }
     };
 
-    const updateCanvasSize = () => {
-      if (containerRef.current && canvas) {
-        const rect = containerRef.current.getBoundingClientRect();
-        if (rect.width > 0 && rect.height > 0) {
-          canvas.width = rect.width;
-          canvas.height = rect.height;
-          updateSampling();
-          render();
+    // Mode-specific initialization
+    if (mode === 'flip' && isHeroFace) {
+      renderStaticFlipFace();
+    } else if (mode === 'morph-flip' && isHeroFace) {
+      // In morph-flip on Hero front face: static ASCII portrait baseline
+      renderStaticFlipFace();
+    } else if (mode === 'morph' || mode === 'morph-flip') {
+      // In morph mode or morph-flip back face:
+      if (isHovered) {
+        if (!rafIdRef.current) {
+          rafIdRef.current = requestAnimationFrame(renderRasterSweep);
+        }
+      } else {
+        // Not hovered: clear canvas completely
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        rasterProgressRef.current = 0.0;
+        if (rafIdRef.current) {
+          cancelAnimationFrame(rafIdRef.current);
+          rafIdRef.current = null;
         }
       }
-    };
-
-    updateCanvasSize();
-    window.addEventListener('resize', updateCanvasSize);
-
-    // Initial render
-    render();
+    } else {
+      // Standard mode: clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
     return () => {
       window.removeEventListener('resize', updateCanvasSize);
-      if (localRafId) cancelAnimationFrame(localRafId);
-      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (rafIdRef.current) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
     };
   }, [imageLoaded, mode, isHovered, isHeroFace]);
 
-  const isAsciiOnlyFace = mode === 'flip' && isHeroFace;
+  // Determine if photo element should be hidden
+  const isStaticAsciiFace = (mode === 'flip' || mode === 'morph-flip') && isHeroFace;
 
   return (
     <div
       ref={containerRef}
       className={`relative w-full h-full overflow-hidden bg-black select-none ${className}`}
-      style={{
-        perspective: mode === 'morph-flip' ? '1200px' : undefined,
-      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* ── Inner 3D Container for Morph-Flip ── */}
-      <div
-        className="w-full h-full relative"
-        style={{
-          transformStyle: mode === 'morph-flip' ? 'preserve-3d' : undefined,
-          transition: mode === 'morph-flip' ? 'transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1)' : undefined,
-          transform: mode === 'morph-flip' && isHovered ? 'rotateY(180deg)' : 'rotateY(0deg)',
-        }}
-      >
-        {/* ── Front Face: Clean Photograph ── */}
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={{
-            backfaceVisibility: mode === 'morph-flip' ? 'hidden' : undefined,
-            WebkitBackfaceVisibility: mode === 'morph-flip' ? 'hidden' : undefined,
-          }}
-        >
-          <img
-            src={src}
-            alt={alt}
-            className={`w-full h-full object-cover object-top transition-opacity duration-200 ${
-              isAsciiOnlyFace
-                ? 'opacity-0 pointer-events-none'
-                : mode === 'morph' && isHovered
-                ? 'opacity-0'
-                : grayscaleHero
-                ? 'filter grayscale contrast-115'
-                : 'filter-none contrast-105'
-            }`}
-          />
-        </div>
+      {/* ── Base Photograph: 100% visible, sharp, pixel-aligned ── */}
+      <img
+        src={src}
+        alt={alt}
+        className={`w-full h-full object-cover object-top transition-none ${
+          isStaticAsciiFace
+            ? 'opacity-0 pointer-events-none'
+            : grayscaleHero
+            ? 'filter grayscale contrast-115'
+            : 'filter-none contrast-105'
+        }`}
+      />
 
-        {/* ── ASCII Canvas (Overlay for Morph, Back Face for Morph-Flip) ── */}
-        <div
-          className="absolute inset-0 w-full h-full"
-          style={{
-            transform: mode === 'morph-flip' ? 'rotateY(180deg)' : undefined,
-            backfaceVisibility: mode === 'morph-flip' ? 'hidden' : undefined,
-            WebkitBackfaceVisibility: mode === 'morph-flip' ? 'hidden' : undefined,
-          }}
-        >
-          <canvas
-            ref={canvasRef}
-            aria-hidden="true"
-            className={`absolute inset-0 w-full h-full pointer-events-none ${
-              mode === 'standard' ? 'opacity-0' : 'opacity-100'
-            }`}
-          />
-        </div>
-      </div>
+      {/* ── Interactive ASCII Canvas Overlay ── */}
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className={`absolute inset-0 w-full h-full pointer-events-none ${
+          mode === 'standard' ? 'opacity-0' : 'opacity-100'
+        }`}
+      />
 
       {/* ── Mode Indicator Pill ── */}
       <div className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 bg-black/80 text-white border border-white/30 font-mono text-[9px] uppercase tracking-wider backdrop-blur-sm pointer-events-none">
         {mode === 'morph'
-          ? (isHovered ? 'ASCII Compiled' : 'Hover: ASCII Compile')
+          ? (isHovered ? 'ASCII Raster' : 'Photo (Hover: ASCII)')
           : mode === 'morph-flip'
-          ? (isHovered ? 'ASCII Flip' : 'Hover: 3D Morph Flip')
+          ? (isHeroFace ? 'ASCII Front (Flip)' : (isHovered ? 'ASCII Raster' : 'Photo (Hover: ASCII)'))
           : mode === 'flip'
           ? (isHeroFace ? 'ASCII Face' : 'Photo Face')
           : 'Standard Photo'}

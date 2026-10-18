@@ -29,8 +29,8 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = () => {
     let handleMouseEnter: (() => void) | null = null;
 
     const space = 36; // Crisp neo-brutalist dot spacing
-    const baseRadius = 1.3;
-    const hoverRadius = 140;
+    const baseRadius = 1.5;
+    const hoverRadius = 160;
 
     const init = () => {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -50,7 +50,7 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = () => {
       ctx.clearRect(0, 0, width, height);
 
       const isDark = document.documentElement.classList.contains('dark');
-      const baseAlpha = isDark ? 0.08 : 0.09;
+      const baseAlpha = isDark ? 0.09 : 0.11;
       const baseColor = isDark ? `rgba(255, 255, 255, ${baseAlpha})` : `rgba(5, 5, 5, ${baseAlpha})`;
       const hoverRgb = isDark ? '255, 255, 255' : '5, 5, 5';
 
@@ -104,13 +104,13 @@ const BackgroundGrid: React.FC<BackgroundGridProps> = () => {
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist < hoverRadius) {
               const intensity = 1 - dist / hoverRadius;
-              // Smooth quadratic falloff so edge dots fade gently and peak is soft
-              const factor = intensity * intensity;
               dilatedDots.push({
                 x,
                 y,
-                radius: baseRadius + factor * 1.5, // Subtle growth: max ~2.8px
-                alpha: baseAlpha + factor * 0.16,  // Gentle illumination: max ~0.25 opacity
+                // Prominent visible dilation from 1.5px up to ~4.8px
+                radius: baseRadius + intensity * 3.3,
+                // Muted, non-obtrusive opacity (max ~0.24) so text stays 100% readable
+                alpha: baseAlpha + intensity * 0.13,
               });
               continue;
             }
